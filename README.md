@@ -1,13 +1,15 @@
-# Sample Hardhat Project
+# 🧪 Tirocinio – Analisi e Validazione di Smart Contract Solidity
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+Questo repository contiene il lavoro svolto nell'ambito del tirocinio accademico, finalizzato all'analisi, generazione, test e mutation testing di smart contract Solidity.
 
-Try running some of the following tasks:
+## 📌 Obiettivi del progetto
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
-```
+- ✅ Validare e compilare contratti Solidity reali o generati
+- ⚙️ Configurare un ambiente Hardhat multi-versione
+- 🧪 Scrivere test automatici (unit test) per i contratti
+- 🧬 Applicare tecniche di mutation testing tramite SuMo
+- 🤖 Integrare KodeSherpa per la generazione automatica di contratti e test
+
+---
+
+## 📁 Struttura del progetto

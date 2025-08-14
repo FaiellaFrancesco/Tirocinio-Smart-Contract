@@ -59,12 +59,26 @@
     - Collegato globalmente con `npm link`
     - Si è verificato un errore a causa del modulo mancante `@morenabarboni/sumo`
     - Dopo vari tentativi, la cartella SuMo è stata rimossa
-    - Installato il modulo mancante con: `npm install @morenabarboni/sumo`
+    - Installato manualmente il modulo mancante con: `npm install @morenabarboni/sumo`
+
+💡 ORGANIZZAZIONE DEL LAVORO E CONTROLLO VERSIONE
+
+11. Per tracciare il lavoro e condividere facilmente i progressi, si consiglia l’uso di Git e GitHub:
+    - Inizializzare il repository con `git init`
+    - Creare un file `.gitignore` per escludere: `node_modules/`, `artifacts/`, `cache/`, `.DS_Store`
+    - Fare commit regolari con `git add . && git commit -m "..."`
+    - Creare un repository su GitHub e collegarlo con `git remote add origin ...`
+
+12. Struttura consigliata del progetto:
+    ├── contracts/              → Solo i contratti attivi da testare
+    ├── kode_generated/         → Contratti + test generati da KodeSherpa
+    ├── test/                   → Test automatizzati
+    ├── mutated/                → Mutanti generati da SuMo (opzionale)
+    ├── hardhat.config.js       → Configurazione
+    ├── package.json / lock     → Dipendenze
+    ├── setup_tirocinio.txt     → Riepilogo attività
+    └── README.md               → Descrizione progetto (per tutor/relazione)
 
 ✅ RISULTATO
 
-Hai ora un progetto Hardhat funzionante con solo i contratti Solidity corretti,
-e hai iniziato a configurare SuMo per il mutation testing. L’ambiente è pronto per:
-- scrivere test
-- generare mutanti con SuMo (in corso di configurazione)
-- effettuare deployment o benchmarking
+Hai ora un ambiente Hardhat funzionante, con contratti Solidity validati e un setup iniziale per SuMo. Sei pronto per generare nuovi contratti con KodeSherpa, associarli a test automatici e applicare mutation testing nel contesto del tirocinio.
