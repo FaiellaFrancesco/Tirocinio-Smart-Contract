@@ -1,0 +1,70 @@
+📁 SETUP TIROCINIO – AMBIENTE HARDHAT + CONTRATTI VALIDATI
+
+🔧 CONFIGURAZIONE DELL’AMBIENTE
+
+1. Installato nvm (Node Version Manager):
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+   echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.zshrc
+   echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.zshrc
+   source ~/.zshrc
+
+2. Installato Node.js versione 22:
+   nvm install 22
+   nvm use 22
+
+3. Creato un progetto Hardhat:
+   npm init -y
+   npm install --save-dev hardhat
+   npx hardhat   # → Create a JavaScript project
+
+⚙️ ADATTAMENTO ALLA SITUAZIONE
+
+4. Era presente una cartella "contracts/" con contratti Solidity già esistenti.
+
+5. Configurato hardhat.config.js per supportare più compilatori Solidity:
+
+   module.exports = {
+     solidity: {
+       compilers: [
+         { version: "0.8.4" },
+         { version: "0.8.19" },
+         { version: "0.8.23" },
+         { version: "0.8.30" },
+         // altri...
+       ]
+     }
+   }
+
+🧪 PULIZIA E SELEZIONE DEI CONTRATTI VALIDI
+
+6. Eseguito uno script bash per compilare ogni file Solidity individualmente:
+   - I contratti che compilano sono stati spostati in "compile_success/"
+   - Quelli che falliscono in "compile_failed/"
+
+7. Pulizia della cartella contracts/:
+   rm contracts/*.sol
+
+8. Copia dei contratti validi in contracts/:
+   cp compile_success/*.sol contracts/
+
+9. Verifica finale:
+   npx hardhat clean
+   npx hardhat compile
+
+🧬 INTERAZIONE CON SuMo
+
+10. È stato tentato l’uso del tool SuMo per mutation testing:
+    - Clonata la repository: https://github.com/MorenaBarboni/SuMo-SOlidity-MUtator
+    - Installate le dipendenze con `npm install`
+    - Collegato globalmente con `npm link`
+    - Si è verificato un errore a causa del modulo mancante `@morenabarboni/sumo`
+    - Dopo vari tentativi, la cartella SuMo è stata rimossa
+    - Installato il modulo mancante con: `npm install @morenabarboni/sumo`
+
+✅ RISULTATO
+
+Hai ora un progetto Hardhat funzionante con solo i contratti Solidity corretti,
+e hai iniziato a configurare SuMo per il mutation testing. L’ambiente è pronto per:
+- scrivere test
+- generare mutanti con SuMo (in corso di configurazione)
+- effettuare deployment o benchmarking
