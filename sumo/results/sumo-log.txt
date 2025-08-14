@@ -1,0 +1,9 @@
+>>> SELECTED FILES 
+
+Contracts to be mutated : (1):
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/SimpleBallot.sol
+Tests to be run : (1):
+	- /Users/francescofaiella/Desktop/Tirocinio/tests/SimpleBallot.js
+
+
+>>> GENERATED MUTANTS 
