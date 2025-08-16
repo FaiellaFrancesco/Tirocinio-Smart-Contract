@@ -1,5 +1,5 @@
-import { expect } from "chai";
-import { ethers } from "hardhat";
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 describe("SimpleBallot", function () {
   let SimpleBallotFactory;
@@ -28,7 +28,8 @@ describe("SimpleBallot", function () {
         expect(prop.name).to.equal(proposals[i]);
         expect(prop.voteCount).to.equal(0);
       }
-      // Also test that proposals array length equals input length indirectly by reading last element without revert:
+      
+      // Test that accessing out-of-bounds proposal index reverts
       await expect(ballot.proposals(proposals.length)).to.be.reverted;
 
       // Trying to deploy with zero proposals reverts with NoProposals()
@@ -50,10 +51,12 @@ describe("SimpleBallot", function () {
         ballot,
         "NotChairperson"
       );
-      // Chairperson registers successfully emits event
+      
+      // Chairperson registers successfully and emits event
       await expect(ballot.registerVoter(addr1.address))
         .to.emit(ballot, "VoterRegistered")
         .withArgs(addr1.address);
+        
       // Confirm registered state in mapping
       const voterInfo = await ballot.voters(addr1.address);
       expect(voterInfo.registered).to.be.true;
@@ -63,6 +66,7 @@ describe("SimpleBallot", function () {
 
     it("Idempotent registration does not revert or emit event second time", async function () {
       await ballot.registerVoter(addr1.address);
+      
       // Second call should not revert or emit event again
       await expect(ballot.registerVoter(addr1.address)).not.to.emit(ballot, "VoterRegistered");
 
@@ -140,7 +144,6 @@ describe("SimpleBallot", function () {
     });
 
     it("Returns correct winner after multiple votes", async function () {
-      
       // addr1 votes Proposal A (index 0)
       await ballot.connect(addr1).vote(0);
 
@@ -150,38 +153,74 @@ describe("SimpleBallot", function () {
       // addr3 votes Proposal B (index 1)
       await ballot.connect(addr3).vote(1);
 
-});
+      // Now check winner - should be Proposal B with 2 votes
+      const [winnerIndex, winnerName, winnerVotes] = await ballot.winner();
+      expect(winnerIndex).to.equal(1);
+      expect(winnerName).to.equal(proposals[1]);
+      expect(winnerVotes).to.equal(2);
+    });
 
-it("Returns correct winner when tie occurs picks first highest vote proposal", async function () {
-// Deploy fresh contract for tie test to avoid side effects:
-const tieBallot = await SimpleBallotFactory.deploy(proposals);
-await tieBallot.waitForDeployment();
+    it("Returns correct winner when there are no votes", async function () {
+      // No votes cast, should return first proposal with 0 votes
+      const [winnerIndex, winnerName, winnerVotes] = await ballot.winner();
+      expect(winnerIndex).to.equal(0);
+      expect(winnerName).to.equal(proposals[0]);
+      expect(winnerVotes).to.equal(0);
+    });
 
-// Register voters for tie scenario:
-const signers = await ethers.getSigners();
-const v4 = signers[4];
-const v5 = signers[5];
-await tieBallot.registerVoter(deployer.address); 
-await tieBallot.registerVoter(v4.address);
-await tieBallot.registerVoter(v5.address);
+    it("Returns correct winner when tie occurs (picks first highest vote proposal)", async function () {
+      // Deploy fresh contract for tie test to avoid side effects:
+      const tieBallot = await SimpleBallotFactory.deploy(proposals);
+      await tieBallot.waitForDeployment();
 
-// Votes:
-// deployer votes Proposal A (index 0)
-await tieBallot.connect(deployer).vote(0);
-// v4 votes Proposal B (index 1)
-await tieBallot.connect(v4).vote(1);
-// v5 votes Proposal A (index 0)
-// So Proposal A has 2 votes, Proposal B has 1 vote
+      // Register voters for tie scenario:
+      const signers = await ethers.getSigners();
+      const v4 = signers[4];
+      const v5 = signers[5];
+      await tieBallot.registerVoter(deployer.address); 
+      await tieBallot.registerVoter(v4.address);
+      await tieBallot.registerVoter(v5.address);
 
-await tieBallot.connect(v5).vote(0);
+      // Create a tie scenario:
+      // deployer votes Proposal A (index 0)
+      await tieBallot.connect(deployer).vote(0);
+      // v4 votes Proposal B (index 1)
+      await tieBallot.connect(v4).vote(1);
+      // v5 votes Proposal A (index 0)
+      await tieBallot.connect(v5).vote(0);
 
-const [tieIndex, tieName, tieVotes] = await tieBallot.winner();
+      // Now Proposal A has 2 votes, Proposal B has 1 vote
+      const [tieIndex, tieName, tieVotes] = await tieBallot.winner();
 
-// Winner should be Proposal A with highest votes in this scenario:
-expect(tieIndex).to.equal(0);
-expect(tieName).to.equal(proposals[0]);
-expect(tieVotes).to.equal(2);
+      // Winner should be Proposal A with 2 votes:
+      expect(tieIndex).to.equal(0);
+      expect(tieName).to.equal(proposals[0]);
+      expect(tieVotes).to.equal(2);
+    });
 
-});
-});
+    it("Handles true tie correctly (returns first proposal)", async function () {
+      // Create a true tie scenario with equal votes
+      const tieBallot = await SimpleBallotFactory.deploy(proposals);
+      await tieBallot.waitForDeployment();
+
+      const signers = await ethers.getSigners();
+      await tieBallot.registerVoter(signers[0].address);
+      await tieBallot.registerVoter(signers[1].address);
+      await tieBallot.registerVoter(signers[2].address);
+      await tieBallot.registerVoter(signers[3].address);
+
+      // Create true tie: Proposal A gets 2 votes, Proposal B gets 2 votes
+      await tieBallot.connect(signers[0]).vote(0); // Proposal A
+      await tieBallot.connect(signers[1]).vote(0); // Proposal A
+      await tieBallot.connect(signers[2]).vote(1); // Proposal B
+      await tieBallot.connect(signers[3]).vote(1); // Proposal B
+
+      const [tieIndex, tieName, tieVotes] = await tieBallot.winner();
+
+      // In a tie, should return the first proposal with the highest count
+      expect(tieIndex).to.equal(0);
+      expect(tieName).to.equal(proposals[0]);
+      expect(tieVotes).to.equal(2);
+    });
+  });
 });

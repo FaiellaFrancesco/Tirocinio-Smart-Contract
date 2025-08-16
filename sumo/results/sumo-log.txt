@@ -1,9 +1,20 @@
 >>> SELECTED FILES 
 
-Contracts to be mutated : (1):
+Contracts to be mutated : (7):
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/DonationRegistry.sol
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/EscrowService.sol
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/MockERC20.sol
 	- /Users/francescofaiella/Desktop/Tirocinio/contracts/SimpleBallot.sol
-Tests to be run : (1):
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/SubscriptionManager.sol
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/TokenVault.sol
+	- /Users/francescofaiella/Desktop/Tirocinio/contracts/VotingSystem.sol
+Tests to be run : (6):
+	- /Users/francescofaiella/Desktop/Tirocinio/tests/DonationRegistry.js
+	- /Users/francescofaiella/Desktop/Tirocinio/tests/EscrowService.js
 	- /Users/francescofaiella/Desktop/Tirocinio/tests/SimpleBallot.js
+	- /Users/francescofaiella/Desktop/Tirocinio/tests/SubscriptionManager.js
+	- /Users/francescofaiella/Desktop/Tirocinio/tests/TokenVault.js
+	- /Users/francescofaiella/Desktop/Tirocinio/tests/VotingSystem.js
 
 
 >>> GENERATED MUTANTS 
