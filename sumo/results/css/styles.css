@@ -1,0 +1,194 @@
+/* Base styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #e9ecef;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container styling */
+.container {
+  max-width: 1400px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header styling */
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+header h1 {
+  font-size: 2.5em;
+  color: #343a40;
+  margin: 0;
+}
+
+header p {
+  color: #6c757d;
+  font-size: 1.2em;
+  margin: 10px 0 20px;
+}
+
+/* Section header for tables */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* Icon button styling */
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+.icon-button svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s;
+}
+.icon-button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Navigation styling */
+nav {
+  margin-bottom: 20px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Score card styling */
+.score-card {
+  background: #f1f3f5;
+  border: 1px solid #ced4da;
+  padding: 20px;
+  margin: 0 auto 30px;
+  border-radius: 8px;
+  max-width: 500px;
+  text-align: center;
+}
+
+/* Section headings */
+section h2 {
+  font-size: 1.8em;
+  color: #495057;
+  margin-bottom: 15px;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+}
+
+th {
+  background: #6c757d;
+  color: #fff;
+  font-weight: 500;
+}
+
+tbody tr {
+  border-bottom: 1px solid #dee2e6;
+}
+
+tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+tbody tr:hover {
+  background: #e9ecef;
+}
+
+/* Status styling */
+/*.status-killed {
+  color: #28a745;
+}*/
+
+.status-live {
+  color: #860915;
+}
+
+
+.status-untested {
+  color: #6c757d;
+}
+
+/* Filters container styling for contract page */
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.filters-left {
+  display: flex;
+  gap: 10px;
+}
+.filters-right {
+  /* Right aligned */
+}
+
+/* Input filters styling */
+#filters input, #filters select {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+/* Footer styling */
+footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 0.9em;
+  color: #6c757d;
+}
+  
+code.diff {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  display: block;
+}
+
+.diff-added {
+  color: #b31d28;
+  display: block;
+}
+
+.diff-removed {
+  color: #000000;
+  display: block;
+}
+
+td pre {
+  margin: 0;
+}

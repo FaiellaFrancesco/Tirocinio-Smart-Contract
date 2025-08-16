@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuMo Report</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
+ <link rel="icon" href="resources/sumo-logo.png" type="image/x-icon">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SuMo Report</h1>
+      <p>Mutation testing results for your Smart Contracts.</p>
+    </header>
+
+    <section id="overview">
+      <div class="score-card">
+        <h2>Mutation Score: <span id="scoreValue">0</span>%</h2>
+        <p id="summaryInfo"></p>
+      </div>
+    </section>
+
+    <section id="details">
+      <div class="section-header">
+        <h2>Contracts Summary</h2>
+        <button class="icon-button" onclick="downloadAllCSV()" title="Download All Contracts CSV">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="download-icon">
+             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+             <polyline points="7 10 12 15 17 10"></polyline>
+             <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+      </div>
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Contract</th>
+            <th>Total Mutants</th>
+            <th>Killed</th>
+            <th>Live</th>
+            <th>Stillborn</th>
+            <th>Timed Out</th>
+            <th>Untested</th>
+            <th>Mutation Score</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>Report generated on: <span id="generatedDate"></span></p>
+    </footer>
+  </div>
+  <script src="js/script.js"></script>
+</body>
+</html>
