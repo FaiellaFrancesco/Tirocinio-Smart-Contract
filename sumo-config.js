@@ -7,6 +7,6 @@ module.exports = {
       testingFramework: "auto",
       minimalOperators: false,
       randomSampling: false,
-      randomMutants: 100,
+      randomMutants: 0,
       testingTimeOutInSec: 500  
 }

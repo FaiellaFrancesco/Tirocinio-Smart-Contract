@@ -50,6 +50,7 @@
 9. Verifica finale:
    npx hardhat clean
    npx hardhat compile
+   npx hardhat coverage
 
 🧬 INTERAZIONE CON SuMo
 
