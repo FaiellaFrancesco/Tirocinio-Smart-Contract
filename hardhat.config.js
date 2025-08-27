@@ -22,5 +22,11 @@ module.exports = {
       { version: "0.8.29" },
       { version: "0.8.30" }
     ]
+  },
+  paths: {
+    tests: "./tests"
+  },
+  mocha: {
+    timeout: 20000
   }
 };
