@@ -65,3 +65,20 @@
 
 
 
+------------------------------------------------DIARIO----------------------------------------------------
+2)Generazione dei test dell'ABI:
+   2.1)A cosa serve?
+      -Risparmio di tempo, non bisogna inventare i boilerplate dei test, llm riempie solo i todo
+      -Copertura sistematica: hai subito un blocco di test per ogni funzione dell abi 
+      -Tutti i file hanno formato standard e sono più facili da validare e confrontare 
+      -Pronto per SuMo
+   2.2)Checklist
+      -Prerequisiti : hardhat compule eseguito 
+      -Struttura delle cartelle: 
+            -scripts/scaffold-from-abi.ts script 
+            -test/llm
+      -Aggiungi lo script in TypeScript
+      -Esegui lo script
+      -Controlla l output
+      
+   
