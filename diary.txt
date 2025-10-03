@@ -73,12 +73,15 @@
       -Tutti i file hanno formato standard e sono più facili da validare e confrontare 
       -Pronto per SuMo
    2.2)Checklist
-      -Prerequisiti : hardhat compule eseguito 
+      -Prerequisiti : hardhat compule eseguito ( Ho un script che lo fa per tutti i contratti.df)
       -Struttura delle cartelle: 
             -scripts/scaffold-from-abi.ts script 
             -test/llm
       -Aggiungi lo script in TypeScript
       -Esegui lo script
       -Controlla l output
+
+
+
       
    
