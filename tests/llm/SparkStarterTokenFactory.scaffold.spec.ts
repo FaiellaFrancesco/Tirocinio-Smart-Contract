@@ -60,7 +60,7 @@ describe("SparkStarterTokenFactory — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.generateToken(/* TODO_AI bad */)
+        contract.generateToken({ /* TODO_AI tuple invalida */ })
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

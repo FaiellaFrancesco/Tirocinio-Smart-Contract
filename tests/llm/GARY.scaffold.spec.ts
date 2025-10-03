@@ -36,7 +36,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract._isBlacklisted(/* TODO_AI bad */)
+        contract._isBlacklisted("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -156,7 +156,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.addToBlackList(/* TODO_AI bad */)
+        contract.addToBlackList([] /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -180,7 +180,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.allowance(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.allowance("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -204,7 +204,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.approve(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -228,7 +228,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.balanceOf(/* TODO_AI bad */)
+        contract.balanceOf("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -348,7 +348,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.isFree_AnyERC20Tokens(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.isFree_AnyERC20Tokens("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -420,7 +420,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.marketPair(/* TODO_AI bad */)
+        contract.marketPair("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -492,7 +492,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.removeFromBlackList(/* TODO_AI bad */)
+        contract.removeFromBlackList("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -516,7 +516,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.removeFromBlackListwallets(/* TODO_AI bad */)
+        contract.removeFromBlackListwallets([] /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -612,7 +612,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transfer(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -636,7 +636,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferFrom(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -660,7 +660,7 @@ describe("GARY — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferOwnership(/* TODO_AI bad */)
+        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

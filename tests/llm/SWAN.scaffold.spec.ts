@@ -132,7 +132,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.allowance(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.allowance("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -156,7 +156,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.approve(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -180,7 +180,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.approveMax(/* TODO_AI bad */)
+        contract.approveMax("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -204,7 +204,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.balanceOf(/* TODO_AI bad */)
+        contract.balanceOf("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -228,7 +228,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.checkRatio(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.checkRatio(0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -252,7 +252,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.clearStuckToken(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.clearStuckToken("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -348,7 +348,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.maxWalletRule(/* TODO_AI bad */)
+        contract.maxWalletRule(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -540,7 +540,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setParameters(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.setParameters(0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -564,7 +564,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setStructure(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.setStructure(0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -588,7 +588,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setSwapBackSettings(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.setSwapBackSettings(false /* TODO_AI */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -612,7 +612,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setWallets(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.setWallets("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -636,7 +636,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.showBacking(/* TODO_AI bad */)
+        contract.showBacking(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -828,7 +828,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transfer(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -852,7 +852,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferFrom(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -876,7 +876,7 @@ describe("SWAN — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferOwnership(/* TODO_AI bad */)
+        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

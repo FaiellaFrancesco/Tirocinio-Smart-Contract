@@ -36,7 +36,7 @@ describe("VitalikWorld — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.approve(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -60,7 +60,7 @@ describe("VitalikWorld — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.authorizations(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.authorizations("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -84,7 +84,7 @@ describe("VitalikWorld — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.balances(/* TODO_AI bad */)
+        contract.balances("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -204,7 +204,7 @@ describe("VitalikWorld — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transfer(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -228,7 +228,7 @@ describe("VitalikWorld — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferFrom(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

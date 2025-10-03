@@ -180,7 +180,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.allowance(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.allowance("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -204,7 +204,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.approve(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -228,7 +228,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.balanceOf(/* TODO_AI bad */)
+        contract.balanceOf("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -276,7 +276,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.decreaseAllowance(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.decreaseAllowance("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -300,7 +300,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.deliver(/* TODO_AI bad */)
+        contract.deliver(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -324,7 +324,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.excludeFromFee(/* TODO_AI bad */)
+        contract.excludeFromFee("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -348,7 +348,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.excludeFromReward(/* TODO_AI bad */)
+        contract.excludeFromReward("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -372,7 +372,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.includeInReward(/* TODO_AI bad */)
+        contract.includeInReward("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -396,7 +396,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.increaseAllowance(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.increaseAllowance("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -420,7 +420,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.isExcludedFromFee(/* TODO_AI bad */)
+        contract.isExcludedFromFee("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -444,7 +444,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.isExcludedFromReward(/* TODO_AI bad */)
+        contract.isExcludedFromReward("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -516,7 +516,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.reflectionFromToken(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.reflectionFromToken(0n /* TODO_AI: rendi invalido/edge */, false /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -564,7 +564,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setCharityFeePercent(/* TODO_AI bad */)
+        contract.setCharityFeePercent(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -588,7 +588,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setLiquidityFeePercent(/* TODO_AI bad */)
+        contract.setLiquidityFeePercent(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -612,7 +612,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setSwapBackSettings(/* TODO_AI bad */)
+        contract.setSwapBackSettings(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -636,7 +636,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setTaxFeePercent(/* TODO_AI bad */)
+        contract.setTaxFeePercent(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -708,7 +708,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.tokenFromReflection(/* TODO_AI bad */)
+        contract.tokenFromReflection(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -780,7 +780,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transfer(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -804,7 +804,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferFrom(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -828,7 +828,7 @@ describe("LiquidityGeneratorToken — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferOwnership(/* TODO_AI bad */)
+        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

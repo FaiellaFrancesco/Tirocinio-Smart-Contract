@@ -36,7 +36,7 @@ describe("VaultFactory — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.createVault(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.createVault("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

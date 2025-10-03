@@ -36,7 +36,7 @@ describe("TokenVault — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.balanceOf(/* TODO_AI bad */)
+        contract.balanceOf("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -60,7 +60,7 @@ describe("TokenVault — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.deposit(/* TODO_AI bad */)
+        contract.deposit(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -132,7 +132,7 @@ describe("TokenVault — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.withdraw(/* TODO_AI bad */)
+        contract.withdraw(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

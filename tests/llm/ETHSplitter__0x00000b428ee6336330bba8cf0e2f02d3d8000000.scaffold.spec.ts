@@ -36,7 +36,7 @@ describe("ETHSplitter — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.claim(/* TODO_AI bad */)
+        contract.claim(0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -60,7 +60,7 @@ describe("ETHSplitter — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.splitETH(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.splitETH([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

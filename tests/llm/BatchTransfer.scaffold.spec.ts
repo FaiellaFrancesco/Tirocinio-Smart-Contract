@@ -36,7 +36,7 @@ describe("BatchTransfer — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.batchTransferETH(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.batchTransferETH([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -60,7 +60,7 @@ describe("BatchTransfer — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.batchTransferTokenByTransferFrom(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.batchTransferTokenByTransferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -132,7 +132,7 @@ describe("BatchTransfer — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.withdrawToken(/* TODO_AI bad */)
+        contract.withdrawToken("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

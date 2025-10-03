@@ -36,7 +36,7 @@ describe("NFTDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.batchTransferERC1155(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.batchTransferERC1155([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -60,7 +60,7 @@ describe("NFTDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.batchTransferERC721(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.batchTransferERC721([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -84,7 +84,7 @@ describe("NFTDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.onERC1155BatchReceived(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.onERC1155BatchReceived("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -108,7 +108,7 @@ describe("NFTDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.onERC1155Received(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.onERC1155Received("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -132,7 +132,7 @@ describe("NFTDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.onERC721Received(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.onERC721Received("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

@@ -60,7 +60,7 @@ describe("TokenDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.distributeContractTokens(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.distributeContractTokens([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -84,7 +84,7 @@ describe("TokenDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.distributeTokens(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.distributeTokens([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 
@@ -132,7 +132,7 @@ describe("TokenDistributor — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.vanilla(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+        contract.vanilla({ /* TODO_AI tuple invalida */ }, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

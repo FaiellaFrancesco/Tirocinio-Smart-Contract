@@ -60,7 +60,7 @@ describe("ERC20Token — LLM Scaffold", function () {
     it("reverts su input/ruolo non valido", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setTotalSupply(/* TODO_AI bad */, /* TODO_AI bad */)
+        contract.setTotalSupply(0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
     });
 

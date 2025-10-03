@@ -45,6 +45,18 @@ function tsDefaultFor(solType: string): string {
   if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple */ }";
   return "/* TODO_AI */";
 }
+function badTsDefaultFor(solType: string): string {
+  // Argomenti "edge/zero" validi a livello sintattico
+  if (solType.endsWith("[]")) return "[] /* TODO_AI: rendi invalido/edge */";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: rendi invalido/edge */";
+  if (solType === "bool") return "false /* TODO_AI */";
+  if (solType === "address") return "\"0x0000000000000000000000000000000000000000\" /* TODO_AI: usa zero/non autorizzato */";
+  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
+  if (solType.startsWith("bytes")) return "\"0x\" /* TODO_AI */";
+  if (solType === "string") return `"" /* TODO_AI */`;
+  if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple invalida */ }";
+  return tsDefaultFor(solType);
+}
 
 function signatureOf(name: string, inputs: any[]): string {
   const t = (inputs ?? []).map((i: any) => i.type).join(",");
@@ -63,7 +75,7 @@ function renderFunctionBlock(fn: AbiItem): string {
   const expectLine = isView
     ? `// TODO_AI: expect(await contract.${name}(${argsList})).to.equal(/* atteso */);`
     : `// TODO_AI: verifica stato/eventi dopo la tx`;
-  const badArgs = (fn.inputs || []).map(_ => "/* TODO_AI bad */").join(", ");
+  const badArgs = (fn.inputs || []).map((i: any) => badTsDefaultFor(i.type)).join(", ");
   const stateComment = isView ? "// chiamata di sola lettura" : "// transazione che modifica lo stato";
 
   return `
