@@ -1,0 +1,915 @@
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+
+/**
+ * Scaffold generato automaticamente per CyberQuoreCoin.
+ * I blocchi // TODO_AI vanno completati dall'LLM.
+ */
+
+describe("CyberQuoreCoin — LLM Scaffold", function () {
+  async function deployFixture() {
+    const [owner, addr1, addr2] = await ethers.getSigners();
+    const Factory = await ethers.getContractFactory("CyberQuoreCoin");
+    // TODO_AI: completa i parametri del costruttore se presenti
+    const contract = await Factory.deploy();
+    await contract.waitForDeployment();
+    return { contract, owner, addr1, addr2 };
+  }
+
+  it("deployment di base", async function () {
+    const { contract } = await loadFixture(deployFixture);
+    expect(await contract.getAddress()).to.properAddress;
+  });
+
+  // Eventi in ABI: Approval, Transfer
+
+  
+  describe("BURN_ADDRESS()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.BURN_ADDRESS();
+      // TODO_AI: expect(await contract.BURN_ADDRESS()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.BURN_ADDRESS()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("allowance(address,address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.allowance(/* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("approve(address,uint256)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.approve(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.approve(/* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("balanceOf(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.balanceOf(addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.balanceOf(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.balanceOf(/* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("blacklist(address,bool)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.blacklist(addr1.address /* TODO_AI */, true /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.blacklist(/* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("burnCounter()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.burnCounter();
+      // TODO_AI: expect(await contract.burnCounter()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.burnCounter()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("charityWallet()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.charityWallet();
+      // TODO_AI: expect(await contract.charityWallet()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.charityWallet()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("cyberWallet()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.cyberWallet();
+      // TODO_AI: expect(await contract.cyberWallet()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.cyberWallet()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("decimals()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.decimals();
+      // TODO_AI: expect(await contract.decimals()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.decimals()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("holders(uint256)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.holders(1n /* TODO_AI */);
+      // TODO_AI: expect(await contract.holders(1n /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.holders(/* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("isBlacklisted(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.isBlacklisted(addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.isBlacklisted(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.isBlacklisted(/* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("isExcludedFromFees(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.isExcludedFromFees(addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.isExcludedFromFees(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.isExcludedFromFees(/* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("isExcludedFromLimits(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.isExcludedFromLimits(addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.isExcludedFromLimits(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.isExcludedFromLimits(/* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("liquidityWallet()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.liquidityWallet();
+      // TODO_AI: expect(await contract.liquidityWallet()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.liquidityWallet()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("mainTokenWallet()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.mainTokenWallet();
+      // TODO_AI: expect(await contract.mainTokenWallet()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.mainTokenWallet()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("marketingWallet()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.marketingWallet();
+      // TODO_AI: expect(await contract.marketingWallet()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.marketingWallet()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("maxWalletLimit()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.maxWalletLimit();
+      // TODO_AI: expect(await contract.maxWalletLimit()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.maxWalletLimit()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("mint(address,uint256)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.mint(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
+      // TODO_AI: expect(await contract.mint(addr1.address /* TODO_AI */, 1n /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.mint(/* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("name()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.name();
+      // TODO_AI: expect(await contract.name()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.name()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("openTrading()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.openTrading();
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.openTrading()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("owner()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.owner();
+      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.owner()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("symbol()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.symbol();
+      // TODO_AI: expect(await contract.symbol()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.symbol()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("taxBurn()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.taxBurn();
+      // TODO_AI: expect(await contract.taxBurn()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.taxBurn()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("taxCharity()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.taxCharity();
+      // TODO_AI: expect(await contract.taxCharity()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.taxCharity()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("taxCyber()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.taxCyber();
+      // TODO_AI: expect(await contract.taxCyber()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.taxCyber()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("taxLiquidity()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.taxLiquidity();
+      // TODO_AI: expect(await contract.taxLiquidity()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.taxLiquidity()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("taxReflection()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.taxReflection();
+      // TODO_AI: expect(await contract.taxReflection()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.taxReflection()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("teamWallet()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.teamWallet();
+      // TODO_AI: expect(await contract.teamWallet()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.teamWallet()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("totalBurned()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.totalBurned();
+      // TODO_AI: expect(await contract.totalBurned()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.totalBurned()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("totalSupply()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.totalSupply();
+      // TODO_AI: expect(await contract.totalSupply()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.totalSupply()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("tradingOpen()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.tradingOpen();
+      // TODO_AI: expect(await contract.tradingOpen()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.tradingOpen()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("transfer(address,uint256)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.transfer(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.transfer(/* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("transferFrom(address,address,uint256)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.transferFrom(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.transferFrom(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("unlockTime()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // chiamata di sola lettura
+      const result = await contract.unlockTime();
+      // TODO_AI: expect(await contract.unlockTime()).to.equal(/* atteso */);
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.unlockTime()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("updateFees(uint256,uint256,uint256,uint256,uint256)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.updateFees(1n /* TODO_AI */, 1n /* TODO_AI */, 1n /* TODO_AI */, 1n /* TODO_AI */, 1n /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.updateFees(/* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */, /* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("withdrawETH()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.withdrawETH();
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.withdrawETH()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+
+  describe("withdrawToken(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // transazione che modifica lo stato
+      const result = await contract.withdrawToken(addr1.address /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts su input/ruolo non valido", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.withdrawToken(/* TODO_AI bad */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+    });
+
+    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+  });
+
+});

@@ -64,8 +64,23 @@
 
 
 
+-------------------------------------------------DIARY---------------------------------------------------
+Resoconto di 03/10/2025
+	1.	Hai unificato tutti i contratti in contracts/ e li hai compilati con Hardhat.
+	2.	Abbiamo analizzato lo script di triage e definito un approccio più robusto.
+	3.	Hai creato scripts/scaffold-from-abi.ts e lo hai evoluto per:
+	•	accettare cartella o file singolo,
+	•	ignorare *.dbg.json,
+	•	filtrare solo artifact deployabili (ABI presente, bytecode !== "0x"),
+	•	evitare sovrascritture aggiungendo un suffisso se serviva.
+	4.	Hai lanciato lo script sugli artifact e generato 1555 scaffold in test/llm/, uno per contratto deployabile.
+	5.	Ogni scaffold contiene:
+	•	fixture di deploy,
+	•	test “deployment di base”,
+	•	per ogni funzione: happy path, reverts, boundary con // TODO_AI da completare.
 
-------------------------------------------------DIARIO----------------------------------------------------
+
+------------------------------------------------cose da fare----------------------------------------------------
 2)Generazione dei test dell'ABI:
    2.1)A cosa serve?
       -Risparmio di tempo, non bisogna inventare i boilerplate dei test, llm riempie solo i todo
