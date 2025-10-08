@@ -1,6 +1,8 @@
 node_modules/
 artifacts/
 cache/
-.DS_Store
-TODO
-diary.txt
+coverage/
+prompts_out/
+test/ai/
+sumo-output/
+*.raw.md

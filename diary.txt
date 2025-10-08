@@ -1,0 +1,152 @@
+📁 SETUP TIROCINIO – AMBIENTE HARDHAT + CONTRATTI VALIDATI
+
+🔧 CONFIGURAZIONE DELL’AMBIENTE
+
+1. Installato nvm (Node Version Manager):
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+   echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.zshrc
+   echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.zshrc
+   source ~/.zshrc
+
+2. Installato Node.js versione 22:
+   nvm install 22
+   nvm use 22
+
+3. Creato un progetto Hardhat:
+   npm init -y
+   npm install --save-dev hardhat
+   npx hardhat   # → Create a JavaScript project
+
+⚙️ ADATTAMENTO ALLA SITUAZIONE
+
+4. Era presente una cartella "contracts/" con contratti Solidity già esistenti.
+
+5. Configurato hardhat.config.js per supportare più compilatori Solidity:
+
+   module.exports = {
+     solidity: {
+       compilers: [
+         { version: "0.8.4" },
+         { version: "0.8.19" },
+         { version: "0.8.23" },
+         { version: "0.8.30" },
+         // altri...
+       ]
+     }
+   }
+
+🧪 PULIZIA E SELEZIONE DEI CONTRATTI VALIDI
+
+6. Eseguito uno script bash per compilare ogni file Solidity individualmente:
+   - I contratti che compilano sono stati spostati in "compile_success/"
+   - Quelli che falliscono in "compile_failed/"
+
+7. Pulizia della cartella contracts/:
+   rm contracts/*.sol
+
+8. Copia dei contratti validi in contracts/:
+   cp compile_success/*.sol contracts/
+
+9. Verifica finale:
+   npx hardhat clean
+   npx hardhat compile
+   npx hardhat coverage
+
+🧬 INTERAZIONE CON SuMo
+
+10. È stato tentato l’uso del tool SuMo per mutation testing:
+    - Clonata la repository: https://github.com/MorenaBarboni/SuMo-SOlidity-MUtator
+    - Installate le dipendenze con `npm install`
+    - Collegato globalmente con `npm link`
+    - Si è verificato un errore a causa del modulo mancante `@morenabarboni/sumo`
+    - Dopo vari tentativi, la cartella SuMo è stata rimossa
+    - Installato manualmente il modulo mancante con: `npm install @morenabarboni/sumo`
+
+
+
+-------------------------------------------------DIARY---------------------------------------------------
+RESOCONTO ATTIVITÀ — 03/10/2025
+
+Obiettivo
+---------
+Preparare un dataset di scaffold di test (Mocha/Chai per Hardhat) generati automaticamente a partire dagli artifact dei contratti, così da poterli poi far completare all’LLM e misurare la robustezza via SuMo (mutation testing).
+
+Cosa ho fatto
+-------------
+- Unificazione codice: ho portato tutti i file .sol in un’unica cartella `contracts/` e ho verificato la compilazione con Hardhat.
+- Script di scaffolding: ho creato/raffinato `scripts/scaffold-from-abi.ts` che:
+  * scansiona `artifacts/contracts/**.json`,
+  * ignora i file `*.dbg.json`,
+  * filtra solo i contratti deployabili (ABI non vuota e `bytecode` diverso da "0x": niente interfacce, librerie o contratti astratti),
+  * genera uno scaffold per contratto in `test/llm/`, evitando sovrascritture mediante un suffisso quando il nome è duplicato.
+- Esecuzione massiva: lo script ha prodotto 1.555 scaffold (numero plausibile perché alcuni file .sol contengono più contratti deployabili).
+- Verifica output: controlli rapidi sul numero di file e sulla struttura generata.
+
+Difficoltà incontrate e soluzioni
+---------------------------------
+1) Explosion di scaffold iniziale (5.135)
+   - Causa: consideravo tutti gli artifact con ABI, includendo interfacce e librerie.
+   - Soluzione: filtro su `bytecode != "0x"` -> ora restano solo i contratti deployabili (ridotti a 1.555).
+
+2) Errori sintattici nei test “reverts”
+   - Causa: lo scaffold inseriva placeholder `/* TODO_AI bad */` come argomenti, lasciando virgole senza valori (es. `setTax(/*...*/, /*...*/)`) e rendendo i file non validi.
+   - Soluzione (Fix 1): introdotti placeholder sintatticamente validi per i casi “cattivi” (0n, stringa vuota, `0x000...000` per address, array vuoti, ecc.), accompagnati da commenti `/* TODO_AI: rendi invalido/edge */`.
+   - Verifica: rigenerazione in cartella separata e controllo con `grep -R "TODO_AI bad"` -> ora 0 occorrenze. Notata e corretta anche l’incongruenza tra `test/` e `tests/` che falsava i conteggi.
+
+3) Percorso artifact passato come directory (errore EISDIR)
+   - Causa: passavo una directory invece del file JSON dell’artifact.
+   - Soluzione: lo script ora accetta sia directory sia file e risolve automaticamente l’artifact `<ContractName>.json` corretto.
+
+Stato attuale
+-------------
+- Cartella `contracts/` consolidata e compilabile.
+- Script di scaffolding robusto (filtri corretti e placeholder validi).
+- 1.555 file `.scaffold.spec.ts` pronti in `test/llm/`, ciascuno con:
+  * fixture di deploy,
+  * test di “deployment di base”,
+  * per ogni funzione dell’ABI: stub `happy`, `reverts`, `boundary` con commenti `// TODO_AI` (ora sintatticamente sani).
+
+Comandi utili (usati oggi)
+--------------------------
+- Generazione scaffold (default):
+  npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts test/llm
+
+- Conteggio file generati:
+  ls -1 test/llm | wc -l   # atteso ≈ 1555
+
+- Verifica assenza dei vecchi placeholder “bad”:
+  grep -R "TODO_AI bad" test/llm | wc -l   # atteso 0
+
+Note per la tesi (lezioni apprese)
+----------------------------------
+- Artifact filtering matters: includere interfacce/librerie gonfia i numeri e inquina il dataset; il criterio `bytecode != "0x"` è essenziale.
+- Scaffold compilabili: anche se poi li completa l’LLM, gli scheletri devono essere validi per evitare costi/rumore nella pipeline.
+- Naming & path consistency: differenze tra `test/` e `tests/` portano a diagnosi fuorvianti nei controlli automatici.
+
+
+
+
+
+
+
+
+------------------------------------------------cose da fare----------------------------------------------------
+2)Generazione dei test dell'ABI:
+   2.1)A cosa serve?
+      -Risparmio di tempo, non bisogna inventare i boilerplate dei test, llm riempie solo i todo
+      -Copertura sistematica: hai subito un blocco di test per ogni funzione dell abi 
+      -Tutti i file hanno formato standard e sono più facili da validare e confrontare 
+      -Pronto per SuMo
+   2.2)Checklist
+      -Prerequisiti : hardhat compule eseguito ( Ho un script che lo fa per tutti i contratti.df)
+      -Struttura delle cartelle: 
+            -scripts/scaffold-from-abi.ts script 
+            -test/llm
+      -Aggiungi lo script in TypeScript
+      -Esegui lo script
+      -Controlla l output
+
+
+
+      
+   
