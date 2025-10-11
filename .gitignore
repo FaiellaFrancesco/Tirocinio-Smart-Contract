@@ -1,8 +1,7 @@
 node_modules/
-artifacts/
 cache/
 coverage/
-prompts_out/
+artifacts/
 test/ai/
 sumo-output/
 *.raw.md
