@@ -26,7 +26,7 @@ function main() {
   const includeArg = args.find(a => a.startsWith("--include="));
   const includeRe = includeArg ? new RegExp(includeArg.split("=")[1]) : null;
 
-  const tplCoverage = read(path.join(DEFAULT_TPL_DIR, "coverage.txt"));
+  const tplCoverage = read(path.join(DEFAULT_TPL_DIR, "coverage-eng.txt"));
 
   let made = 0;
   for (const f of walk(scaffoldDir)) {
