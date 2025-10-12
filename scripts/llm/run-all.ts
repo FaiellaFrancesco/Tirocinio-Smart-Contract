@@ -15,7 +15,7 @@ interface Config {
 
 const config: Config = {
   promptsDir: './prompts_out/coverage',
-  outputDir: './test-lllm',
+  outputDir: './prova1-lllm',
   model: 'qwen2.5-coder:3b',
   retries: 2,
   timeout: 90,
@@ -59,8 +59,8 @@ async function runCommand(command: string, args: string[]): Promise<{ success: b
 }
 
 async function generateTest(promptFile: string): Promise<{ success: boolean; message: string }> {
-  const promptName = basename(promptFile, '.coverage.prompt.txt');
-  const outputFile = join(config.outputDir, `${promptName}.spec.ts`);
+  const promptName = basename(promptFile, '.coverage.prompt.txt'); //file input
+  const outputFile = join(config.outputDir, `${promptName}.spec.ts`); //file output
   
   console.log(`🔄 Generando test per: ${promptName}`);
   
@@ -88,7 +88,7 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function main() {
-  console.log('🚀 Avvio generazione automatica test con prompt in inglese...');
+  console.log('Avvio generazione automatica test con prompt in inglese...');
   
   // Verifica che le directory esistano
   try {

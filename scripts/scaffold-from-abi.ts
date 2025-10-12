@@ -1,18 +1,18 @@
 /**
- * Come usare:
+ * How to use:
  * npx ts-node scripts/scaffold-from-abi.ts [artifacts-path] [output-path] [--include=regex]
  *
- * Esempi:
- * npx ts-node scripts/scaffold-from-abi.ts                      # usa defaults
- * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  test/llm
- * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  test/llm --include=Token
+ * Examples:
+ * npx ts-node scripts/scaffold-from-abi.ts                      # use defaults (./scaffolds)
+ * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  scaffolds
+ * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  scaffolds --include=Token
  */
 
 import * as fs from "fs";
 import * as path from "path";
 
 const DEFAULT_ARTIFACTS_ROOT = "./artifacts/contracts";
-const DEFAULT_OUTDIR = "./tests/llm";
+const DEFAULT_OUTDIR = "./scaffolds";
 
 
 interface AbiItem {
@@ -46,15 +46,15 @@ function tsDefaultFor(solType: string): string {
   return "/* TODO_AI */";
 }
 function badTsDefaultFor(solType: string): string {
-  // Argomenti "edge/zero" validi a livello sintattico
-  if (solType.endsWith("[]")) return "[] /* TODO_AI: rendi invalido/edge */";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: rendi invalido/edge */";
+  // Edge/zero arguments valid at syntax level
+  if (solType.endsWith("[]")) return "[] /* TODO_AI: make invalid/edge */";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: make invalid/edge */";
   if (solType === "bool") return "false /* TODO_AI */";
-  if (solType === "address") return "\"0x0000000000000000000000000000000000000000\" /* TODO_AI: usa zero/non autorizzato */";
+  if (solType === "address") return "\"0x0000000000000000000000000000000000000000\" /* TODO_AI: use zero/unauthorized */";
   if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
   if (solType.startsWith("bytes")) return "\"0x\" /* TODO_AI */";
   if (solType === "string") return `"" /* TODO_AI */`;
-  if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple invalida */ }";
+  if (solType.startsWith("tuple")) return "{ /* TODO_AI invalid tuple */ }";
   return tsDefaultFor(solType);
 }
 
@@ -73,10 +73,10 @@ function renderFunctionBlock(fn: AbiItem): string {
     ? `await contract.${name}(${argsList})`
     : `await contract.${name}(${argsList}${isPayable ? (argsList ? ", " : "") + "{ value: 1n /* TODO_AI in wei */ }" : ""})`;
   const expectLine = isView
-    ? `// TODO_AI: expect(await contract.${name}(${argsList})).to.equal(/* atteso */);`
-    : `// TODO_AI: verifica stato/eventi dopo la tx`;
+    ? `// TODO_AI: expect(await contract.${name}(${argsList})).to.equal(/* expected */);`
+    : `// TODO_AI: verify state/events after tx`;
   const badArgs = (fn.inputs || []).map((i: any) => badTsDefaultFor(i.type)).join(", ");
-  const stateComment = isView ? "// chiamata di sola lettura" : "// transazione che modifica lo stato";
+  const stateComment = isView ? "// read-only call" : "// state-modifying transaction";
 
   return `
   describe("${sig}", function () {
@@ -87,16 +87,16 @@ function renderFunctionBlock(fn: AbiItem): string {
       ${expectLine}
     });
 
-    it("reverts su input/ruolo non valido", async function () {
+    it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.${name}(${badArgs})
-      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+      // TODO_AI: 0, max, address(0), role limits, etc.
     });
 
     // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
@@ -115,21 +115,21 @@ import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 /**
- * Scaffold generato automaticamente per ${contractName}.
- * I blocchi // TODO_AI vanno completati dall'LLM.
+ * Auto-generated scaffold for ${contractName}.
+ * TODO_AI blocks should be completed by the LLM.
  */
 
 describe("${contractName} — LLM Scaffold", function () {
   async function deployFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
     const Factory = await ethers.getContractFactory("${contractName}");
-    // TODO_AI: completa i parametri del costruttore se presenti
+    // TODO_AI: complete constructor parameters if any
     const contract = await Factory.deploy(${ctorArgs});
     await contract.waitForDeployment();
     return { contract, owner, addr1, addr2 };
   }
 
-  it("deployment di base", async function () {
+  it("basic deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
     expect(await contract.getAddress()).to.properAddress;
   });
@@ -156,7 +156,7 @@ function main() {
   const includeRe = includeReArg ? new RegExp(includeReArg.split("=")[1]) : null;
 
   if (!fs.existsSync(artifactsRoot) || !fs.statSync(artifactsRoot).isDirectory()) {
-    console.error("❌ Non trovo la cartella artifact: " + artifactsRoot);
+    console.error("❌ Cannot find artifacts folder: " + artifactsRoot);
     process.exit(1);
   }
   fs.mkdirSync(outDir, { recursive: true });
