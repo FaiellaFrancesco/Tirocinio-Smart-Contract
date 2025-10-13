@@ -7,3 +7,8 @@ sumo-output/
 *.raw.md
 .DS_Store
 TODO
+
+# LLM Test Generation directories
+prova2-eng/
+prompts_out_eng/
+tests/llm-eng/

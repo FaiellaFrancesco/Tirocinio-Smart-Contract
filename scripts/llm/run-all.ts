@@ -14,12 +14,12 @@ interface Config {
 }
 
 const config: Config = {
-  promptsDir: './prompts_out/coverage',
-  outputDir: './prova1-lllm',
+  promptsDir: './prompts_out_eng/coverage',
+  outputDir: './prova2-eng',
   model: 'qwen2.5-coder:3b',
-  retries: 2,
-  timeout: 90,
-  maxConcurrent: 3 // Processa 3 contratti alla volta per non sovraccaricare Ollama
+  retries: 3,
+  timeout: 300, // Increased to 5 minutes to avoid truncation
+  maxConcurrent: 1 // Sequential processing to avoid overload
 };
 
 async function runCommand(command: string, args: string[]): Promise<{ success: boolean; output: string }> {

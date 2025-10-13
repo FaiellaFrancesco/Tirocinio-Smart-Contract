@@ -24,8 +24,7 @@ console.log('🚀 Starting English LLM test generation...');
 
 // Get all scaffold files
 const scaffolds = readdirSync(SCAFFOLDS_DIR)
-    .filter(file => file.endsWith('.scaffold.spec.ts'))
-    .slice(0, 5); // Start with just 5 files for testing
+    .filter(file => file.endsWith('.scaffold.spec.ts'));
 
 console.log(`📁 Found ${scaffolds.length} scaffolds to process`);
 
