@@ -12,7 +12,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 const DEFAULT_ARTIFACTS_ROOT = "./artifacts/contracts";
-const DEFAULT_OUTDIR = "./scaffolds";
+const DEFAULT_OUTDIR = "./scaffolds/eng1";
 
 
 interface AbiItem {
