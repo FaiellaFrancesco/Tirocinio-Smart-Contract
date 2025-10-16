@@ -1,31 +1,66 @@
 /**
  * How to use:
- * npx ts-node scripts/scaffold-from-abi.ts [artifacts-path] [output-path] [--include=regex]
+ * npx ts-node scripts/scaffold-from-abi.ts [artifacts-path] [output-path] [--include=regex] [--with-typechain=true|false]
  *
  * Examples:
- * npx ts-node scripts/scaffold-from-abi.ts                      # use defaults (./scaffolds)
- * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  scaffolds
- * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  scaffolds --include=Token
+ * npx ts-node scripts/scaffold-from-abi.ts                      # use defaults (./tests/llm)
+ * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  tests/llm
+ * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  tests/llm --include=Token
+ * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  tests/llm --with-typechain=false
  */
 
 import * as fs from "fs";
 import * as path from "path";
 
 const DEFAULT_ARTIFACTS_ROOT = "./artifacts/contracts";
-const DEFAULT_OUTDIR = "./scaffolds/eng1";
-
+const DEFAULT_OUTDIR = "./tests/llm";
 
 interface AbiItem {
   type: string;
   name?: string;
   inputs?: any[];
+  outputs?: any[];
   stateMutability?: string;
 }
+
 interface ArtifactJson {
   contractName?: string;
   sourceName?: string;
   abi?: AbiItem[];
-  bytecode?: string; // "0x..." se deployabile, "0x" se interfaccia/astratto
+  bytecode?: string;
+  metadata?: any;
+}
+
+interface ContractArtifact {
+  contractName: string;
+  sourceName: string;
+  abi: AbiItem[];
+  fullPath: string;
+}
+
+interface ArtifactCandidate {
+  filePath: string;
+  artifact: ArtifactJson;
+  relativePath: string;
+}
+
+interface ArtifactInfo {
+  contractName: string;
+  sourceName: string;
+  relativePath: string;
+  abi: AbiItem[];
+  metadata?: any;
+}
+
+interface GenerationConfig {
+  withTypeChain: boolean;
+}
+
+interface ParsedArgs {
+  artifactsRoot: string;
+  outDir: string;
+  includePattern: RegExp | null;
+  withTypeChain: boolean;
 }
 
 function isReadableFile(filepath: string): boolean {
@@ -34,28 +69,40 @@ function isReadableFile(filepath: string): boolean {
   } catch { return false; }
 }
 
-function tsDefaultFor(solType: string): string {
+function getConstructorPlaceholder(solType: string): string {
+  if (solType.endsWith("[]")) return "[]";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n";
+  if (solType === "address") return "ethers.ZeroAddress";
+  if (solType === "bool") return "false";
+  if (solType === "string") return '""';
+  if (solType.startsWith("bytes32")) return '"0x"';
+  if (solType.startsWith("bytes")) return '"0x"';
+  if (solType.startsWith("tuple")) return "{}";
+  return '""';
+}
+
+function getTestPlaceholder(solType: string): string {
   if (solType.endsWith("[]")) return "[] /* TODO_AI */";
   if (solType.startsWith("uint") || solType.startsWith("int")) return "1n /* TODO_AI */";
   if (solType === "address") return "addr1.address /* TODO_AI */";
   if (solType === "bool") return "true /* TODO_AI */";
   if (solType === "string") return '"example" /* TODO_AI */';
-  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
+  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(32)}" /* TODO_AI */`;
   if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
   if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple */ }";
   return "/* TODO_AI */";
 }
-function badTsDefaultFor(solType: string): string {
-  // Edge/zero arguments valid at syntax level
+
+function getBadTestPlaceholder(solType: string): string {
   if (solType.endsWith("[]")) return "[] /* TODO_AI: make invalid/edge */";
   if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: make invalid/edge */";
   if (solType === "bool") return "false /* TODO_AI */";
-  if (solType === "address") return "\"0x0000000000000000000000000000000000000000\" /* TODO_AI: use zero/unauthorized */";
-  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
-  if (solType.startsWith("bytes")) return "\"0x\" /* TODO_AI */";
-  if (solType === "string") return `"" /* TODO_AI */`;
+  if (solType === "address") return "ethers.ZeroAddress /* TODO_AI: use zero/unauthorized */";
+  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(32)}" /* TODO_AI */`;
+  if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
+  if (solType === "string") return '""/* TODO_AI */';
   if (solType.startsWith("tuple")) return "{ /* TODO_AI invalid tuple */ }";
-  return tsDefaultFor(solType);
+  return getTestPlaceholder(solType);
 }
 
 function signatureOf(name: string, inputs: any[]): string {
@@ -63,80 +110,158 @@ function signatureOf(name: string, inputs: any[]): string {
   return `${name}(${t})`;
 }
 
+function getFunctionSignature(fn: AbiItem): string {
+  const inputs = fn.inputs || [];
+  const types = inputs.map(i => i.type).join(",");
+  const mutability = fn.stateMutability || "nonpayable";
+  return `${fn.name}(${types})->${mutability}`;
+}
+
+function getEventSignature(event: AbiItem): string {
+  const inputs = event.inputs || [];
+  const types = inputs.map(i => i.type).join(",");
+  return `${event.name}(${types})`;
+}
+
+function renderFixtureFunction(
+  abi: AbiItem[], 
+  contractName: string, 
+  config: GenerationConfig,
+  artifactInfo: ArtifactInfo
+): string {
+  const ctor = abi.find((f: any) => f.type === "constructor");
+  const ctorArgs = (ctor?.inputs || []).map(i => getConstructorPlaceholder(i.type as string)).join(", ");
+  const fqn = `${artifactInfo.sourceName}:${contractName}`;
+
+  if (config.withTypeChain) {
+    return `async function deployFixture() {
+    const [owner, addr1, addr2] = await ethers.getSigners();
+    const factory = new ${contractName}__factory(owner);
+    const contract = await factory.deploy(${ctorArgs});
+    await contract.waitForDeployment();
+    return { contract, owner, addr1, addr2 };
+  }`;
+  } else {
+    return `async function deployFixture() {
+    const [owner, addr1, addr2] = await ethers.getSigners();
+    const Contract = await ethers.getContractFactory("${fqn}");
+    const contract = await Contract.deploy(${ctorArgs});
+    await contract.waitForDeployment();
+    return { contract, owner, addr1, addr2 };
+  }`;
+  }
+}
+
 function renderFunctionBlock(fn: AbiItem): string {
   const name = fn.name!;
   const sig = signatureOf(name, fn.inputs || []);
-  const argsList = (fn.inputs || []).map(i => tsDefaultFor(i.type)).join(", ");
   const isView = fn.stateMutability === "view" || fn.stateMutability === "pure";
-  const isPayable = fn.stateMutability === "payable";
-  const callLine = isView
-    ? `await contract.${name}(${argsList})`
-    : `await contract.${name}(${argsList}${isPayable ? (argsList ? ", " : "") + "{ value: 1n /* TODO_AI in wei */ }" : ""})`;
-  const expectLine = isView
-    ? `// TODO_AI: expect(await contract.${name}(${argsList})).to.equal(/* expected */);`
-    : `// TODO_AI: verify state/events after tx`;
-  const badArgs = (fn.inputs || []).map((i: any) => badTsDefaultFor(i.type)).join(", ");
-  const stateComment = isView ? "// read-only call" : "// state-modifying transaction";
 
-  return `
+  if (isView) {
+    return `
   describe("${sig}", function () {
     it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      ${stateComment}
-      const result = ${callLine};
-      ${expectLine}
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions if needed
+      // TODO_AI: Act -> call ${name}() with valid inputs
+      // TODO_AI: Assert -> expect correct return values
+    });
+
+    it("edge cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test edge cases (zero values, max values, etc.)
+    });
+  });
+`;
+  } else {
+    return `
+  describe("${sig}", function () {
+    it("happy path", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions (e.g., fund contract if withdrawing)
+      // TODO_AI: Act -> call the function with valid inputs
+      // TODO_AI: Assert -> expect events/state changes
     });
 
     it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.${name}(${badArgs})
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions
+      // TODO_AI: Act -> call function with invalid inputs or unauthorized caller
+      // TODO_AI: Assert -> expect revert with specific message
     });
 
     it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test boundary conditions (0, max values, role limits, etc.)
     });
-
-    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
   });
 `;
+  }
 }
 
-function renderFile(contractName: string, abi: AbiItem[]): string {
+function renderFile(
+  contractName: string, 
+  abi: AbiItem[], 
+  config: GenerationConfig,
+  artifactInfo: ArtifactInfo,
+  outputDir: string
+): string {
   const fns = abi.filter(a => a.type === "function" && a.name);
-  const events = abi.filter(a => a.type === "event").map(e => (e as any).name).join(", ") || "—";
-  const ctor = abi.find(a => a.type === "constructor");
-  const ctorArgs = (ctor?.inputs || []).map(i => tsDefaultFor(i.type as string)).join(", ");
-
-  return `import { expect } from "chai";
+  const events = abi.filter(a => a.type === "event");
+  const functionSigs = fns.map(getFunctionSignature).join("\n *   ") || "(none)";
+  const eventSigs = events.map(getEventSignature).join("\n *   ") || "(none)";
+  
+  // Calculate relative path to typechain-types
+  const relativePath = path.relative(outputDir, ".");
+  const typechainPath = path.posix.join(relativePath, "typechain-types");
+  
+  // Generate imports
+  let imports = `import { expect } from "chai";
 import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";`;
 
-/**
- * Auto-generated scaffold for ${contractName}.
- * TODO_AI blocks should be completed by the LLM.
- */
-
-describe("${contractName} — LLM Scaffold", function () {
-  async function deployFixture() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
-    const Factory = await ethers.getContractFactory("${contractName}");
-    // TODO_AI: complete constructor parameters if any
-    const contract = await Factory.deploy(${ctorArgs});
-    await contract.waitForDeployment();
-    return { contract, owner, addr1, addr2 };
+  if (config.withTypeChain) {
+    imports += `\nimport { ${contractName}, ${contractName}__factory } from "${typechainPath}";`;
   }
 
-  it("basic deployment", async function () {
+  // Generate FQN
+  const fqn = `${artifactInfo.sourceName}:${contractName}`;
+
+  // Generate documentation header
+  const header = `/**
+ * Auto-generated scaffold for ${contractName}.
+ * ARTIFACT_SOURCE: ${artifactInfo.sourceName}
+ * ARTIFACT_PATH: ${artifactInfo.relativePath}
+ * ARTIFACT_FQN: ${fqn}
+ *
+ * FUNCTIONS:
+ *   ${functionSigs}
+ *
+ * EVENTS:
+ *   ${eventSigs}
+ *
+ * LLM NOTES (follow strictly):
+ * - Remove this.skip() and fill TODO_AI blocks when implementing tests.
+ * - Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+ * - View/Pure: assert return values. State-changing: happy path + revert + boundary.
+ * - Do NOT introduce functions that are not listed above.
+ */`;
+
+  const deployFixture = renderFixtureFunction(abi, contractName, config, artifactInfo);
+
+  return `${imports}
+
+${header}
+
+describe("${contractName} — AI Generated Scaffold", function () {
+  ${deployFixture}
+
+  it("deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.properAddress;
+    expect(await contract.getAddress()).to.be.properAddress;
   });
 
-  // Eventi in ABI: ${events}
-
-  ${fns.map(renderFunctionBlock).join("\n")}
+${fns.map(renderFunctionBlock).join("")}
 });
 `;
 }
@@ -148,64 +273,175 @@ function slugFromSource(sourceName?: string): string | null {
   return parts.join("__");
 }
 
+function parseArgs(args: string[]): ParsedArgs {
+  const result: ParsedArgs = {
+    artifactsRoot: DEFAULT_ARTIFACTS_ROOT,
+    outDir: DEFAULT_OUTDIR,
+    includePattern: null,
+    withTypeChain: false
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg.startsWith("--include=")) {
+      result.includePattern = new RegExp(arg.split("=")[1]);
+    } else if (arg.startsWith("--with-typechain=")) {
+      result.withTypeChain = arg.split("=")[1] === "true";
+    } else if (!arg.startsWith("--")) {
+      if (i === 0) result.artifactsRoot = arg;
+      else if (i === 1) result.outDir = arg;
+    }
+  }
+
+  return result;
+}
+
+function findBestArtifact(artifacts: ArtifactCandidate[]): ArtifactCandidate {
+  // Sort by deterministic criteria
+  return artifacts.sort((a, b) => {
+    // 1. Prefer artifacts with sourceName
+    if (a.artifact.sourceName && !b.artifact.sourceName) return -1;
+    if (!a.artifact.sourceName && b.artifact.sourceName) return 1;
+    
+    // 2. Prefer shorter source paths (main contracts vs libraries)
+    if (a.artifact.sourceName && b.artifact.sourceName) {
+      const aDepth = a.artifact.sourceName.split('/').length;
+      const bDepth = b.artifact.sourceName.split('/').length;
+      if (aDepth !== bDepth) return aDepth - bDepth;
+    }
+    
+    // 3. Prefer alphabetically first by source name
+    if (a.artifact.sourceName !== b.artifact.sourceName) {
+      return (a.artifact.sourceName || "").localeCompare(b.artifact.sourceName || "");
+    }
+    
+    // 4. Finally by file path
+    return a.filePath.localeCompare(b.filePath);
+  })[0];
+}
+
 function main() {
   const args = process.argv.slice(2);
-  const artifactsRoot = args[0] && !args[0].startsWith("--") ? args[0] : DEFAULT_ARTIFACTS_ROOT;
-  const outDir = args[1] && !args[1].startsWith("--") ? args[1] : DEFAULT_OUTDIR;
-  const includeReArg = args.find(a => a.startsWith("--include="));
-  const includeRe = includeReArg ? new RegExp(includeReArg.split("=")[1]) : null;
+  const config = parseArgs(args);
 
-  if (!fs.existsSync(artifactsRoot) || !fs.statSync(artifactsRoot).isDirectory()) {
-    console.error("❌ Cannot find artifacts folder: " + artifactsRoot);
+  if (!fs.existsSync(config.artifactsRoot) || !fs.statSync(config.artifactsRoot).isDirectory()) {
+    console.error("❌ Cannot find artifacts folder: " + config.artifactsRoot);
     process.exit(1);
   }
-  fs.mkdirSync(outDir, { recursive: true });
+  
+  fs.mkdirSync(config.outDir, { recursive: true });
 
-  let count = 0, skipped = 0;
+  console.log(`🔍 Scanning artifacts in: ${config.artifactsRoot}`);
+  console.log(`📁 Output directory: ${config.outDir}`);
+  console.log(`🔗 TypeChain integration: ${config.withTypeChain ? 'enabled' : 'disabled'}`);
+  if (config.includePattern) {
+    console.log(`📋 Include pattern: ${config.includePattern.source}`);
+  }
+
+  let count = 0, skipped = 0, duplicates = 0;
+  const contractArtifacts = new Map<string, ArtifactCandidate[]>();
 
   function scanDir(dir: string) {
     const entries = fs.readdirSync(dir);
     for (const entry of entries) {
-      if (entry.endsWith(".dbg.json")) continue; // ignora debug
+      if (entry.endsWith(".dbg.json")) continue;
       const fullPath = path.join(dir, entry);
       const stat = fs.statSync(fullPath);
 
       if (stat.isDirectory()) {
         scanDir(fullPath);
-        continue;
+      } else if (entry.endsWith(".json")) {
+        try {
+          const content = fs.readFileSync(fullPath, "utf8");
+          const artifact = JSON.parse(content);
+          
+          if (artifact.abi && Array.isArray(artifact.abi) && artifact.contractName) {
+            const name = artifact.contractName as string;
+            
+            // Skip contracts without deployable bytecode (interfaces, abstract contracts, libraries)
+            if (!artifact.bytecode || artifact.bytecode === "0x" || artifact.bytecode.length <= 4) {
+              skipped++;
+              continue;
+            }
+            
+            if (config.includePattern && !config.includePattern.test(name)) {
+              skipped++;
+              continue;
+            }
+
+            const candidate: ArtifactCandidate = {
+              filePath: fullPath,
+              artifact,
+              relativePath: path.relative(config.artifactsRoot, fullPath)
+            };
+
+            if (!contractArtifacts.has(name)) {
+              contractArtifacts.set(name, []);
+            }
+            contractArtifacts.get(name)!.push(candidate);
+          }
+        } catch (err) {
+          console.error(`⚠️  Could not process ${fullPath}: ${err}`);
+        }
       }
-      if (!entry.endsWith(".json") || !isReadableFile(fullPath)) continue;
-
-      const rawData = fs.readFileSync(fullPath, "utf-8");
-      let art: ArtifactJson;
-      try { art = JSON.parse(rawData) as ArtifactJson; }
-      catch { continue; }
-
-      // requisito minimo: ABI presente
-      if (!art.abi || !Array.isArray(art.abi) || art.abi.length === 0) { skipped++; continue; }
-      // **filtro chiave**: solo contratti deployabili (no interfacce/librerie/astratti)
-      if (typeof art.bytecode !== "string" || art.bytecode === "0x") { skipped++; continue; }
-
-      const name = (art.contractName ?? path.basename(entry, ".json")).trim();
-      if (includeRe && !includeRe.test(name)) { skipped++; continue; }
-
-      // evita sovrascritture se esistono duplicati
-      let outPath = path.join(outDir, `${name}.scaffold.spec.ts`);
-      if (isReadableFile(outPath)) {
-        const slug = slugFromSource(art.sourceName) ?? path.basename(fullPath, ".json");
-        outPath = path.join(outDir, `${name}__${slug}.scaffold.spec.ts`);
-      }
-
-      const content = renderFile(name, art.abi as AbiItem[]);
-      fs.writeFileSync(outPath, content, "utf-8");
-      console.log(`✅ ${name}  →  ${outPath}`);
-      count++;
     }
   }
 
-  scanDir(artifactsRoot);
-  console.log(`\n📁 Creati ${count} scaffold. Saltati ${skipped} artifact (interfacce/astratti/bytecode "0x" o senza ABI).`);
-  console.log(`Artifact root: ${path.resolve(artifactsRoot)}  |  Output: ${path.resolve(outDir)}`);
+  scanDir(config.artifactsRoot);
+
+  // Process each unique contract
+  for (const [contractName, candidates] of contractArtifacts) {
+    if (candidates.length > 1) {
+      console.log(`🔄 Found ${candidates.length} artifacts for ${contractName}, selecting best...`);
+      duplicates += candidates.length - 1;
+    }
+
+    const bestCandidate = findBestArtifact(candidates);
+    const artifactInfo: ArtifactInfo = {
+      contractName,
+      sourceName: bestCandidate.artifact.sourceName || `Unknown.sol`,
+      relativePath: bestCandidate.relativePath,
+      abi: bestCandidate.artifact.abi as AbiItem[],
+      metadata: bestCandidate.artifact.metadata
+    };
+
+    const generationConfig: GenerationConfig = {
+      withTypeChain: config.withTypeChain
+    };
+
+    try {
+      const content = renderFile(
+        contractName, 
+        bestCandidate.artifact.abi as AbiItem[], 
+        generationConfig,
+        artifactInfo,
+        config.outDir
+      );
+
+      const fileName = bestCandidate.artifact.sourceName 
+        ? `${slugFromSource(bestCandidate.artifact.sourceName)}__${contractName}.scaffold.spec.ts`
+        : `${contractName}.scaffold.spec.ts`;
+      
+      const outPath = path.join(config.outDir, fileName);
+      fs.writeFileSync(outPath, content, "utf8");
+      
+      console.log(`✅ Generated: ${fileName} (from ${artifactInfo.relativePath})`);
+      count++;
+    } catch (err) {
+      console.error(`❌ Failed to generate test for ${contractName}: ${err}`);
+    }
+  }
+
+  console.log(`\n� Generated ${count} test files in ${config.outDir}`);
+  console.log(`📊 Skipped: ${skipped}, Duplicates resolved: ${duplicates}`);
+  console.log(`💡 Next steps:`);
+  console.log(`   - Review generated scaffolds in ${config.outDir}`);
+  console.log(`   - Complete TODO_AI blocks`);
+  console.log(`   - Run: npx tsc --noEmit (to check TypeScript)`);
+  console.log(`   - Run: npm test (to execute tests)`);
 }
 
-main();
+if (require.main === module) {
+  main();
+}

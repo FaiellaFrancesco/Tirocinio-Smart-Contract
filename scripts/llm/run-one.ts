@@ -1,241 +1,349 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env npx ts-node
 
-/**
- * LLM runner (singolo file) — OpenAI-compatible.
- * - Legge un .prompt.txt
- * - Chiama /v1/chat/completions (Ollama/LM Studio/vLLM)
- * - Estrae il blocco ```ts (anche se non chiuso) o, in fallback, il codice "nudo"
- * - Scrive .spec.ts; salva sempre anche il .raw.md per debug
- *
- * Uso:
- *   npx ts-node scripts/llm/run-one.ts \
- *     --input=prompts_out/coverage/Foo.coverage.prompt.txt \
- *     --out=test/ai/coverage/Foo.coverage.ollama.spec.ts \
- *     --model=qwen2.5-coder:3b \
- *     --retries=2 --timeout=90
- */
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import { spawn } from 'child_process';
 
-import * as fs from "fs";
-import * as path from "path";
-
-// Types
-interface ChatMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
+interface ScaffoldHeader {
+  contractName: string;
+  artifactSource: string;
+  artifactPath: string;
+  artifactFqn: string;
+  functions: string[];
+  events: string[];
 }
 
-interface ChatCompletionRequest {
+interface CliArgs {
+  scaffold: string;
+  out: string;
   model: string;
-  messages: ChatMessage[];
-  temperature: number;
-  max_tokens: number;
-  stop?: string[];
+  template?: string;
+  timeout?: number;
+  prevErrors?: string;
+  skipTest: boolean;
+  skipTsc: boolean;
+  maxOutputChars?: number;
 }
 
-interface ChatCompletionResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
+// Utility functions
+async function readFileUtf8(filepath: string): Promise<string> {
+  return fs.readFile(filepath, 'utf-8');
 }
 
-// Polyfill per fetch se non disponibile (Node.js < 18)
-if (typeof fetch === 'undefined') {
+async function writeFileUtf8(filepath: string, content: string): Promise<void> {
+  await fs.mkdir(path.dirname(filepath), { recursive: true });
+  await fs.writeFile(filepath, content, 'utf-8');
+}
+
+function extractHeader(scaffold: string): ScaffoldHeader {
+  // Parse header from /** ... */ comment block
+  const headerMatch = scaffold.match(/\/\*\*([\s\S]*?)\*\//);
+  if (!headerMatch) {
+    throw new Error('No header comment block found');
+  }
+  
+  const header = headerMatch[1];
+  
+  // Extract contract name from describe line as fallback
+  const describeMatch = scaffold.match(/describe\s*\(\s*["'`]([^"'`]+)\s*—/);
+  let contractName = '';
+  if (describeMatch) {
+    contractName = describeMatch[1];
+  }
+  
+  // Extract metadata
+  const artifactSourceMatch = header.match(/ARTIFACT_SOURCE:\s*(.+)/);
+  const artifactPathMatch = header.match(/ARTIFACT_PATH:\s*(.+)/);
+  const artifactFqnMatch = header.match(/ARTIFACT_FQN:\s*(.+)/);
+  
+  // Extract functions section
+  const functionsMatch = header.match(/FUNCTIONS:\s*\n([\s\S]*?)(?:\n\s*\n|\n\s*EVENTS:)/);
+  const functions = functionsMatch 
+    ? functionsMatch[1].split('\n').map(l => l.trim().replace(/^\*\s*/, '')).filter(l => l && l !== '(none)')
+    : [];
+  
+  // Extract events section
+  const eventsMatch = header.match(/EVENTS:\s*\n([\s\S]*?)(?:\n\s*\n|\n\s*LLM NOTES)/);
+  const events = eventsMatch 
+    ? eventsMatch[1].split('\n').map(l => l.trim().replace(/^\*\s*/, '')).filter(l => l && l !== '(none)')
+    : [];
+  
+  return {
+    contractName,
+    artifactSource: artifactSourceMatch?.[1]?.trim() || '',
+    artifactPath: artifactPathMatch?.[1]?.trim() || '',
+    artifactFqn: artifactFqnMatch?.[1]?.trim() || '',
+    functions,
+    events
+  };
+}
+
+function buildPrompt(template: string, data: Record<string, string>): string {
+  let result = template;
+  for (const [key, value] of Object.entries(data)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+  }
+  return result;
+}
+
+function extractCodeBlock(markdown: string): string | null {
+  // Try typescript first, then ts, then fallback to full content
+  let match = markdown.match(/```typescript\s*\n([\s\S]*?)\n```/);
+  if (!match) {
+    match = markdown.match(/```ts\s*\n([\s\S]*?)\n```/);
+  }
+  
+  if (match) {
+    return match[1].replace(/\r\n/g, '\n').trim();
+  }
+  
+  // Fallback to entire response if no code block
+  return markdown.replace(/\r\n/g, '\n').trim();
+}
+
+async function callOllama(model: string, prompt: string, timeoutSec: number): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutSec * 1000);
+  
   try {
-    // @ts-ignore
-    global.fetch = require('node-fetch');
-  } catch (e) {
-    console.error("❌ fetch non disponibile. Installa node-fetch: npm install node-fetch");
+    console.log(`📨 Sending → model="${model}" timeout=${timeoutSec}s prompt=${prompt.length} chars`);
+    
+    const response = await fetch('http://localhost:11434/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        temperature: 0.2,
+        max_tokens: 8192,
+        stream: false,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are STRICTLY a Hardhat local unit-test generator (Mocha/Chai + Ethers v6). NEVER import from ethers package in tests; only import { ethers } from "hardhat". NEVER create providers or wallets (no RPC URLs). Remove all this.skip(); fill all // TODO_AI. Use only functions listed in FUNCTIONS; do not invent function names. For withdraw/claim-like functions: in the same test first fund the contract, then withdraw, assert event and balances. Each test runs in fresh fixture (loadFixture), do not rely on state from other tests.'
+          },
+          {
+            role: 'user', 
+            content: prompt
+          }
+        ]
+      }),
+      signal: controller.signal
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json() as any;
+    const content = data.choices?.[0]?.message?.content || '';
+    
+    console.log(`📥 Received ${content.length} chars`);
+    
+    return content;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function runCommand(command: string, args: string[], options: { timeoutSec?: number } = {}): Promise<{ stdout: string, stderr: string, success: boolean }> {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, { 
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: true 
+    });
+    
+    let stdout = '';
+    let stderr = '';
+    let killed = false;
+    
+    const timeout = options.timeoutSec ? setTimeout(() => {
+      killed = true;
+      child.kill('SIGKILL');
+    }, options.timeoutSec * 1000) : null;
+    
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    child.on('close', (code) => {
+      if (timeout) clearTimeout(timeout);
+      resolve({
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+        success: !killed && code === 0
+      });
+    });
+  });
+}
+
+function parseArgs(argv: string[]): CliArgs {
+  const args: Partial<CliArgs> = {
+    skipTest: false,
+    skipTsc: false
+  };
+  
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg.startsWith('--scaffold=')) {
+      args.scaffold = arg.split('=')[1];
+    } else if (arg.startsWith('--out=')) {
+      args.out = arg.split('=')[1];
+    } else if (arg.startsWith('--model=')) {
+      args.model = arg.split('=')[1];
+    } else if (arg.startsWith('--template=')) {
+      args.template = arg.split('=')[1];
+    } else if (arg.startsWith('--timeout=')) {
+      args.timeout = parseInt(arg.split('=')[1]);
+    } else if (arg.startsWith('--prev-errors=')) {
+      args.prevErrors = arg.split('=')[1];
+    } else if (arg.startsWith('--max-output-chars=')) {
+      args.maxOutputChars = parseInt(arg.split('=')[1]);
+    } else if (arg === '--skip-test') {
+      args.skipTest = true;
+    } else if (arg === '--skip-tsc') {
+      args.skipTsc = true;
+    }
+  }
+  
+  if (!args.scaffold || !args.out || !args.model) {
+    throw new Error('Required: --scaffold, --out, --model');
+  }
+  
+  return {
+    scaffold: args.scaffold,
+    out: args.out,
+    model: args.model,
+    template: args.template || 'prompts/templates/coverage-eng.txt',
+    timeout: args.timeout || 600,
+    prevErrors: args.prevErrors,
+    skipTest: args.skipTest || false,
+    skipTsc: args.skipTsc || false,
+    maxOutputChars: args.maxOutputChars || 120000
+  };
+}
+
+async function main(): Promise<void> {
+  try {
+    const args = parseArgs(process.argv.slice(2));
+    
+    console.log(`🚀 Generating test from scaffold: ${args.scaffold}`);
+    console.log(`📤 Output: ${args.out}`);
+    console.log(`🤖 Model: ${args.model}`);
+    
+    // 1. Read scaffold
+    const scaffoldContent = await readFileUtf8(args.scaffold);
+    
+    // 2. Parse header
+    const header = extractHeader(scaffoldContent);
+    console.log(`📋 Contract: ${header.contractName}`);
+    console.log(`📋 Functions: ${header.functions.length}`);
+    console.log(`📋 Events: ${header.events.length}`);
+    
+    // 3. Load template
+    const template = await readFileUtf8(args.template!);
+    
+    // 4. Handle previous errors if provided
+    let prevErrors = '';
+    if (args.prevErrors) {
+      try {
+        const errorContent = await readFileUtf8(args.prevErrors);
+        // Truncate to first 80-120 lines
+        const lines = errorContent.split('\n').slice(0, 100);
+        prevErrors = lines.join('\n');
+      } catch (e) {
+        console.warn(`⚠️  Could not read prev-errors file: ${args.prevErrors}`);
+      }
+    }
+    
+    // 5. Build prompt
+    const prompt = buildPrompt(template, {
+      CONTRACT_NAME: header.contractName,
+      FUNCTION_LIST: header.functions.join('\n'),
+      EVENT_LIST: header.events.join('\n'),
+      SCAFFOLD_CONTENT: scaffoldContent,
+      PREV_ERRORS: prevErrors
+    });
+    
+    // 6. Call LLM
+    const response = await callOllama(args.model, prompt, args.timeout!);
+    
+    // 7. Extract code
+    const code = extractCodeBlock(response);
+    if (!code) {
+      console.error('❌ No code block found in response');
+      process.exit(2);
+    }
+    
+    // Truncate if needed
+    let finalCode = code;
+    if (args.maxOutputChars && code.length > args.maxOutputChars) {
+      finalCode = code.substring(0, args.maxOutputChars);
+      console.warn(`⚠️  Code truncated to ${args.maxOutputChars} chars`);
+    }
+    
+    // Basic validation
+    if (!finalCode.includes('import { ethers } from "hardhat"') || !finalCode.includes('}')) {
+      console.error('❌ Generated code missing required imports or malformed');
+      // Save raw output for debugging
+      const rawPath = args.out.replace(/\.ts$/, '.raw.md');
+      await writeFileUtf8(rawPath, response);
+      console.log(`🔍 Raw response saved to: ${rawPath}`);
+      process.exit(2);
+    }
+    
+    // 8. Write output
+    await writeFileUtf8(args.out, finalCode);
+    console.log(`📝 Wrote ${args.out} (${finalCode.length} chars)`);
+    
+    // 9. Gate G1 (TypeScript)
+    if (!args.skipTsc) {
+      console.log('🧪 TSC: Running TypeScript check...');
+      const tscResult = await runCommand('npx', ['tsc', '--noEmit', '--skipLibCheck', args.out], { timeoutSec: 120 });
+      
+      if (!tscResult.success) {
+        const errorPath = args.out + '.ts-errors.txt';
+        await writeFileUtf8(errorPath, tscResult.stderr + '\n' + tscResult.stdout);
+        console.log(`🧪 TSC: FAIL (${errorPath})`);
+        process.exit(3);
+      } else {
+        console.log('🧪 TSC: PASS');
+      }
+    }
+    
+    // 10. Gate G2 (Hardhat test)
+    if (!args.skipTest) {
+      console.log('🧪 TEST: Running Hardhat test...');
+      const testResult = await runCommand('npx', ['hardhat', 'test', args.out], { timeoutSec: 300 });
+      
+      if (!testResult.success) {
+        const errorPath = args.out + '.test-errors.txt';
+        // Truncate output to 2-3k chars for logs
+        const truncatedOutput = (testResult.stdout + '\n' + testResult.stderr).substring(0, 3000);
+        await writeFileUtf8(errorPath, truncatedOutput);
+        console.log(`🧪 TEST: FAIL (${errorPath})`);
+        process.exit(4);
+      } else {
+        console.log('🧪 TEST: PASS');
+      }
+    }
+    
+    // 11. Success
+    console.log(`✅ Success! Generated and validated ${args.out}`);
+    const stats = await fs.stat(args.out);
+    console.log(`📊 File size: ${stats.size} bytes`);
+    
+  } catch (error) {
+    console.error(`❌ Error: ${error}`);
     process.exit(1);
   }
 }
 
-// ---------- Config ----------
-const BASE_URL = process.env.OPENAI_BASE_URL || "http://localhost:11434/v1";
-const API_KEY  = process.env.OPENAI_API_KEY  || "ollama";
-
-// ---------- CLI ----------
-const args = process.argv.slice(2);
-function getArg(name: string, def?: string) {
-  const p = `--${name}=`;
-  const hit = args.find(a => a.startsWith(p));
-  return hit ? hit.slice(p.length) : def;
+if (require.main === module) {
+  main();
 }
-function getNum(name: string, def: number) {
-  const v = getArg(name);
-  return v ? Number(v) : def;
-}
-
-const inputPath = getArg("input");
-const outPath   = getArg("out");
-const modelArg  = getArg("model", "qwen2.5-coder:3b");
-const retries   = getNum("retries", 2);
-const timeoutS  = getNum("timeout", 90);
-
-if (!inputPath || !outPath) {
-  console.error("Uso: --input=<prompt.txt> --out=<output.spec.ts> [--model=qwen2.5-coder:3b] [--retries=2] [--timeout=90]");
-  process.exit(1);
-}
-
-// Type assertions dopo la validazione
-const validInputPath = inputPath as string;
-const validOutPath = outPath as string;
-const model = modelArg || "qwen2.5-coder:3b"; // fallback garantito
-
-// ---------- FS helpers ----------
-function readFile(p: string) { return fs.readFileSync(p, "utf-8"); }
-function writeFile(p: string, s: string) {
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, s, "utf-8");
-}
-
-// ---------- Estrazione codice ----------
-function extractTsBlock(s: string): { code: string | null, raw: string } {
-  // 1) blocco ```ts ... ```
-  let m = /```ts\s*([\s\S]*?)```/m.exec(s);
-  if (m) return { code: m[1].trim(), raw: s };
-
-  // 2) blocco ```typescript ... ```
-  m = /```typescript\s*([\s\S]*?)```/m.exec(s);
-  if (m) return { code: m[1].trim(), raw: s };
-
-  // 3) blocco ``` ... ``` generico
-  m = /```\s*([\s\S]*?)```/m.exec(s);
-  if (m) {
-    const content = m[1].trim();
-    // Verifica se sembra TypeScript
-    if (content.includes('import') && (content.includes('chai') || content.includes('hardhat') || content.includes('ethers'))) {
-      return { code: content, raw: s };
-    }
-  }
-
-  // 4) blocco ```ts NON CHIUSO → prendi tutto dopo l'apertura
-  let start = s.indexOf("```ts");
-  if (start >= 0) {
-    let rest = s.slice(start + 5);      // toglie ```ts
-    return { code: rest.trim(), raw: s };
-  }
-
-  // 5) blocco ```typescript NON CHIUSO
-  start = s.indexOf("```typescript");
-  if (start >= 0) {
-    let rest = s.slice(start + 13);     // toglie ```typescript
-    return { code: rest.trim(), raw: s };
-  }
-
-  // 6) Fallback: se sembra un file di test TS, prendi tutto
-  if (
-    /\bimport\b.+from\s+["']chai["']/.test(s) ||
-    /\bimport\b.+from\s+["']hardhat["']/.test(s) ||
-    /\bdescribe\s*\(/.test(s) ||
-    /\bexpect\s*\(/.test(s)
-  ) {
-    return { code: s.trim(), raw: s };
-  }
-
-  // 7) Cerca pattern TypeScript specifici nel testo
-  if (/import.*ethers.*hardhat/s.test(s) || /describe\s*\(\s*["']/s.test(s)) {
-    // Prova a estrarre solo la parte che sembra codice TypeScript
-    const lines = s.split('\n');
-    let codeStart = -1;
-    let codeEnd = lines.length;
-    
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].includes('import') && (lines[i].includes('chai') || lines[i].includes('hardhat'))) {
-        codeStart = i;
-        break;
-      }
-    }
-    
-    if (codeStart >= 0) {
-      const code = lines.slice(codeStart, codeEnd).join('\n').trim();
-      return { code, raw: s };
-    }
-  }
-
-  return { code: null, raw: s };
-}
-
-// ---------- HTTP ----------
-function sleep(ms: number) { return new Promise(res => setTimeout(res, ms)); }
-
-async function callChatCompletions(model: string, prompt: string, attempt: number, maxAttempts: number): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(new Error("Timeout")), timeoutS * 1000);
-
-  const body: ChatCompletionRequest = {
-    model,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a TypeScript code generator for Hardhat tests. IMPORTANT: Your response must start with ```ts and end with ```. Generate ONLY TypeScript code for Hardhat/Mocha/Chai tests. Use imports like 'import { expect } from \"chai\"' and 'import { ethers } from \"hardhat\"'. Do NOT write any explanatory text, comments outside code, or other languages. Output format: ```ts\n[YOUR TYPESCRIPT CODE HERE]\n```"
-      },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.2,
-    max_tokens: 2048
-  };
-
-  try {
-    const res = await fetch(`${BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal
-    });
-
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`HTTP ${res.status}: ${txt}`);
-    }
-
-    const json = await res.json() as ChatCompletionResponse;
-    return String(json?.choices?.[0]?.message?.content ?? "");
-  } catch (err: any) {
-    // retry su errori di rete / 5xx
-    if (attempt < maxAttempts) {
-      const backoff = 1000 * Math.pow(2, attempt); // 1s, 2s, 4s...
-      console.warn(`⚠️ Tentativo ${attempt + 1}/${maxAttempts} fallito (${err?.message || err}). Retry tra ${backoff}ms...`);
-      await sleep(backoff);
-      return callChatCompletions(model, prompt, attempt + 1, maxAttempts);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// ---------- Main ----------
-(async () => {
-  const prompt = readFile(validInputPath);
-  console.log(`📨 Invio → ${BASE_URL}  model="${model}"  file="${path.basename(validInputPath)}"`);
-
-  const started = Date.now();
-  const content = await callChatCompletions(model, prompt, 0, retries);
-  const took = ((Date.now() - started) / 1000).toFixed(1);
-
-  // Salva sempre il RAW per debug/audit
-  const rawOut = validOutPath.replace(/\.spec\.ts$/i, ".raw.md");
-  writeFile(rawOut, content);
-
-  // Estrai codice
-  const { code } = extractTsBlock(content);
-
-  if (code) {
-    // normalizza fine-riga e newline finale
-    const normalized = code.replace(/\r\n/g, "\n").trimEnd() + "\n";
-    writeFile(validOutPath, normalized);
-    console.log(`✅ Generato: ${validOutPath}  (in ${took}s)`);
-    console.log(`📝 RAW salvato per debug: ${rawOut}`);
-  } else {
-    console.warn(`⚠️ Nessun blocco TS estratto. Controlla il RAW: ${rawOut}`);
-  }
-})().catch(err => {
-  console.error("❌ Errore:", err?.message || err);
-  process.exit(1);
-});

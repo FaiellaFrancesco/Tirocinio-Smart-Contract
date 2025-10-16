@@ -2,14 +2,15 @@
 import * as fs from "fs";
 import * as path from "path";
 
-//npx ts-node scripts/build-prompts.ts tests/llm prompts_out || prompt per generare 
-const DEFAULT_SCAFFOLD_DIR = "tests/llm";
-const DEFAULT_TPL_DIR = "prompts/templates";
-const DEFAULT_OUT_DIR = "prompts_out";
+// Uso: npx ts-node scripts/build-prompts.ts [scaffoldDir] [outDir] [--include=regex]
+const DEFAULT_SCAFFOLD_DIR = "scaffolds/eng1";
+const DEFAULT_OUT_DIR = "prompts_out_eng";
 
 function read(p: string) { return fs.readFileSync(p, "utf-8"); }
-function write(p: string, s: string) { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, s, "utf-8"); }
-
+function write(p: string, s: string) {
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, s, "utf-8");
+}
 function* walk(dir: string): Generator<string> {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const f = path.join(dir, e.name);
@@ -26,7 +27,9 @@ function main() {
   const includeArg = args.find(a => a.startsWith("--include="));
   const includeRe = includeArg ? new RegExp(includeArg.split("=")[1]) : null;
 
-  const tplCoverage = read(path.join(DEFAULT_TPL_DIR, "coverage-eng.txt"));
+  // Load the template
+  const templatePath = "prompts/templates/coverage-eng.txt";
+  const template = read(templatePath);
 
   let made = 0;
   for (const f of walk(scaffoldDir)) {
@@ -35,12 +38,14 @@ function main() {
     if (includeRe && !includeRe.test(name)) continue;
 
     const scaffold = read(f);
-    const promptText = tplCoverage.replace("{{SCAFFOLD_CONTENT}}", scaffold);
+
+    // Use the template and replace the scaffold content
+    const promptText = template.replace("{{SCAFFOLD_CONTENT}}", scaffold);
     const outPath = path.join(outDir, "coverage", `${name}.coverage.prompt.txt`);
     write(outPath, promptText);
     console.log("→", outPath);
     made++;
   }
-  console.log(`\nCreati ${made} prompt in ${outDir}/coverage`);
+  console.log(`\nCreati ${made} prompt in ${outDir}/coverage usando template ${templatePath}`);
 }
 main();

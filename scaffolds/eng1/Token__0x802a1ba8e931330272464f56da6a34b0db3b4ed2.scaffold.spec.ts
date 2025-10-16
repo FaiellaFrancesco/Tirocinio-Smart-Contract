@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 /**
  * Auto-generated scaffold for Token.
@@ -19,7 +19,7 @@ describe("Token — LLM Scaffold", function () {
 
   it("basic deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.properAddress;
+    expect(await contract.getAddress()).to.be.properAddress;
   });
 
   // Eventi in ABI: Approval, Transfer

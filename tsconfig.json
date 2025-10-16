@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "typeRoots": ["./node_modules/@types", "./typechain-types"],
+    "types": ["node", "mocha", "chai"]
+  },
+  "include": [
+    "./scripts/**/*.ts",
+    "valido/**/*.ts", 
+    "./tests/llm-eng/**/*.ts",
+    "./typechain-types/**/*.ts",
+    "./hardhat.config.ts"
+  ],
+  "exclude": [
+    "node_modules/**/*",
+    "artifacts/**/*", 
+    "cache/**/*",
+    "coverage/**/*",
+    "contracts/**/*",
+    "**/*.sol",
+    "dist/**/*",
+    "scaffolds/**/*",
+    "tests/llm/**/*",
+    "old-scaffolds/**/*",
+    "prompts/**/*",
+    "prompts_out/**/*",
+    "prompts_out_eng/**/*",
+    "sumo/**/*",
+    "ignition/**/*",
+    "valid/**/*",
+    "prova-generazione-llm/**/*",
+    "test-lllm/**/*"
+  ]
+}

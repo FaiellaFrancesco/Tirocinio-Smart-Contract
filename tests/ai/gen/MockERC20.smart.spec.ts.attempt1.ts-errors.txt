@@ -1,0 +1,19 @@
+STDOUT:
+tests/ai/gen/MockERC20.smart.spec.ts(2,10): error TS2305: Module '"hardhat"' has no exported member 'ethers'.
+tests/ai/gen/MockERC20.smart.spec.ts(37,44): error TS2737: BigInt literals are not available when targeting lower than ES2020.
+tests/ai/gen/MockERC20.smart.spec.ts(44,47): error TS2339: Property 'properAddress' does not exist on type 'Assertion'.
+tests/ai/gen/MockERC20.smart.spec.ts(62,67): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(67,30): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(68,66): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(95,32): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(113,67): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(118,30): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(119,66): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(124,32): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(157,34): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(243,33): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(261,33): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(306,37): error TS2304: Cannot find name 'addr1'.
+tests/ai/gen/MockERC20.smart.spec.ts(313,52): error TS2304: Cannot find name 'addr1'.
+
+STDERR:

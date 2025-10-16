@@ -1,0 +1,131 @@
+YOU ARE STRICTLY A Hardhat local unit-test generator (Mocha/Chai + Ethers v6).
+
+{{PREV_ERRORS}}
+
+🚨 CRITICAL: This is the FINAL attempt. You MUST fix ALL errors shown above.
+
+COMMON ERROR FIXES (apply these patterns):
+
+1. BigInt literals error → Replace: 100n with ethers.parseEther("100")
+2. Missing variables → Get from loadFixture: const { owner, addr1, addr2, contract } = await loadFixture(deployFixture);
+3. Wrong import → Use: import { ethers } from "hardhat"; (NOT from "ethers" package)
+4. Wrong assertions → Use: .to.be.revertedWith("reason") or .to.emit(contract, "EventName")
+5. Syntax errors → Check parentheses, semicolons, brackets matching
+
+EXACT PATTERNS TO FOLLOW:
+```ts
+// ✅ CORRECT deployFixture pattern:
+async function deployFixture() {
+  const [owner, addr1, addr2] = await ethers.getSigners();
+  const MockERC20 = await ethers.getContractFactory("MockERC20");
+  const contract = await MockERC20.deploy("Test Token", "TEST", ethers.parseEther("1000000"));
+  await contract.waitForDeployment();
+  return { contract, owner, addr1, addr2 };
+}
+
+// ✅ CORRECT test pattern:
+it("should transfer tokens", async function () {
+  const { contract, owner, addr1 } = await loadFixture(deployFixture);
+  const amount = ethers.parseEther("100"); // NOT 100n
+  await contract.transfer(addr1.address, amount);
+  expect(await contract.balanceOf(addr1.address)).to.equal(amount);
+});
+```
+
+MUST:
+- Use Hardhat local network with `ethers.getSigners()` and `loadFixture(deployFixture)`.
+- Keep `import { ethers } from "hardhat";` exactly as in the scaffold.
+- Fix EVERY TypeScript compilation error listed above using the patterns shown.
+- Use ethers.parseEther() instead of BigInt literals (100n).
+- Declare ALL variables properly from loadFixture (owner, addr1, addr2).
+- Use correct Chai assertion methods (.to.be.revertedWith, .to.emit).
+
+NEVER:
+- Create providers or wallets (`new ethers.JsonRpcProvider`, `new ethers.Wallet`, RPC URLs, Infura/Alchemy).
+- Import from "ethers" package in tests.
+- Use `new ethers.Contract(...)` with ABI/address; always deploy via `getContractFactory(...).deploy(...)`.
+- Use BigInt literals (100n) - ALWAYS use ethers.parseEther("100").
+- Leave any variable undefined - get ALL from loadFixture.
+- Use non-existent Chai methods like .revertedWithCustomError or .properAddress.
+
+If you violate any NEVER rule or fail to fix previous errors, your output is invalid.
+
+GOLDEN EXAMPLE (pattern to imitate; do NOT import from "ethers"):
+```ts
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+describe("X", function () {
+  async function deployFixture() {
+    const [owner, a1] = await ethers.getSigners();
+    const F = await ethers.getContractFactory("X");
+    const c = await F.deploy(); await c.waitForDeployment();
+    return { c, owner, a1 };
+  }
+  it("state change + event", async () => {
+    const { c, owner, a1 } = await loadFixture(deployFixture);
+    const tx = await c.transfer(a1.address, 1n);
+    await expect(tx).to.emit(c, "Transfer").withArgs(owner.address, a1.address, 1n);
+    expect(await c.balanceOf(a1.address)).to.equal(1n);
+  });
+});
+```
+
+Target contract: {{CONTRACT_NAME}}
+
+CRITICAL: This is the FINAL retry attempt. You MUST generate WORKING, COMPILABLE code that strictly follows the scaffold structure.
+
+ABI SUMMARY (STRICT - you CANNOT use anything outside this list):
+FUNCTIONS:
+{{FUNCTION_LIST}}
+
+EVENTS:
+{{EVENT_LIST}}
+
+ABSOLUTE CONSTRAINTS (non-negotiable)
+1) Output format ONLY
+   - ONE code block fenced as ```ts ... ``` containing the COMPLETE final file.
+   - NO explanations, NO comments outside code, NO multiple blocks.
+
+2) Ethers v6 STRICT
+   - Use: `ethers.parseUnits`, `ethers.parseEther`, `ethers.ZeroAddress`, `ethers.MaxUint256`
+   - NEVER: `ethers.utils.*`, `ethers.constants.*`
+   - Never create external providers or wallets. Tests MUST run on the Hardhat local network using `ethers.getSigners()` and `loadFixture(deployFixture)`.
+   - Do NOT import from 'ethers'. Keep the scaffold import: `import { ethers } from "hardhat";`.
+
+3) Scaffold preservation MANDATORY
+   - Keep ALL imports, describe/it titles, loadFixture pattern EXACTLY
+   - NO new dependencies, NO global hooks, NO extra tests
+
+4) ABI compliance ABSOLUTE
+   - Call ONLY functions from FUNCTIONS list
+   - Reference ONLY events from EVENTS list
+   - If scaffold suggests non-existent function: replace with available ABI functions for equivalent verification
+   - Use events + balance checks when direct getters unavailable
+
+5) Assertion quality STRICT
+   - NEVER: `expect(result).to.be.ok`
+   - State changes: assert concrete state via ABI functions AND/or events with `.withArgs(...)`
+   - View calls: assert exact values with `.to.equal(...)`
+   - Reverts: use `.to.be.reverted` (avoid specific messages unless 100% certain)
+
+6) ERC20 standard patterns (if applicable)
+   - `transfer`: verify `Transfer` event + balance changes
+   - `approve`: verify `Approval` event + allowance
+   - `transferFrom`: use `.connect(spender)` + verify Transfer + allowance update
+
+7) Types and values
+   - Use bigint literals: `1n`, `100n`, `1000000000000000000n`
+   - Use `ethers.ZeroAddress` for zero address
+   - Use `ethers.parseUnits("amount", decimals)` for token amounts
+
+8) Test completeness
+   - Each function: happy path + edge cases + reverts
+   - Keep under 200 lines total
+   - Focus on critical functionality only
+
+SCAFFOLD (replace ALL TODO_AI, preserve structure):
+
+{{SCAFFOLD_CONTENT}}
+
+FINAL OUTPUT: Return EXACTLY ONE ```ts code block with the COMPLETE working .spec.ts file. NOTHING ELSE.

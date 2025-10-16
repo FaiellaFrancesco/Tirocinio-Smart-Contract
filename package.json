@@ -3,18 +3,27 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "hardhat test",
+    "test:one": "hardhat test --trace --network hardhat",
+    "compile": "hardhat compile",
+    "clean": "hardhat clean"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "@types/chai": "4.3.20",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.7.0",
+    "chai": "^4.3.10",
     "hardhat": "^2.26.2",
     "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
