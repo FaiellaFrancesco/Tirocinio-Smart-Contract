@@ -1,0 +1,161 @@
+You are a Hardhat TypeScript unit test generator. Your task is to complete the provided scaffold by removing all `this.skip()` and filling in all `// TODO_AI` comments with concrete test code.
+
+CONTRACT: DonationRegistry
+
+FUNCTIONS (use ONLY these, do NOT invent others):
+donate()->payable
+getDonationTotal(address)->view
+owner()->view
+withdraw()->nonpayable
+EVENTS:
+DonationReceived(address,uint256)
+FundsWithdrawn(address,uint256)
+LLM NOTES (follow strictly):
+- Remove this.skip() and fill TODO_AI blocks when implementing tests.
+- Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+- View/Pure: assert return values. State-changing: happy path + revert + boundary.
+- Do NOT introduce functions that are not listed above.
+
+EVENTS (these may be emitted by functions):
+DonationReceived(address,uint256)
+FundsWithdrawn(address,uint256)
+LLM NOTES (follow strictly):
+- Remove this.skip() and fill TODO_AI blocks when implementing tests.
+- Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+- View/Pure: assert return values. State-changing: happy path + revert + boundary.
+- Do NOT introduce functions that are not listed above.
+
+
+
+STRICT RULES:
+- Remove all `this.skip();` lines
+- Replace every `// TODO_AI ...` with concrete code
+- Do NOT introduce functions not listed in FUNCTIONS
+- Keep imports as-is (import { ethers } from "hardhat"), Ethers v6 only, bigint literals, ethers.ZeroAddress, ethers.parseEther
+- Use signers owner, addr1, addr2, loadFixture(deployFixture)
+- TypeChain types must remain valid if present
+- For withdraw/claim-like functions: first fund the contract, then withdraw, assert events and balances
+- Each test runs in fresh fixture (loadFixture), do not rely on state from other tests
+- Use expect().to.emit() for event assertions
+- Use expect().to.be.revertedWith() or expect().to.be.reverted for revert tests
+
+SCAFFOLD TO COMPLETE:
+
+```ts
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+
+/**
+ * Auto-generated scaffold for DonationRegistry.
+ * ARTIFACT_SOURCE: contracts/DonationRegistry.sol
+ * ARTIFACT_PATH: DonationRegistry.sol/DonationRegistry.json
+ * ARTIFACT_FQN: contracts/DonationRegistry.sol:DonationRegistry
+ *
+ * FUNCTIONS:
+ *   donate()->payable
+ *   getDonationTotal(address)->view
+ *   owner()->view
+ *   withdraw()->nonpayable
+ *
+ * EVENTS:
+ *   DonationReceived(address,uint256)
+ *   FundsWithdrawn(address,uint256)
+ *
+ * LLM NOTES (follow strictly):
+ * - Remove this.skip() and fill TODO_AI blocks when implementing tests.
+ * - Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+ * - View/Pure: assert return values. State-changing: happy path + revert + boundary.
+ * - Do NOT introduce functions that are not listed above.
+ */
+
+describe("DonationRegistry — AI Generated Scaffold", function () {
+  async function deployFixture() {
+    const [owner, addr1, addr2] = await ethers.getSigners();
+    const Contract = await ethers.getContractFactory("contracts/DonationRegistry.sol:DonationRegistry");
+    const contract = await Contract.deploy();
+    await contract.waitForDeployment();
+    return { contract, owner, addr1, addr2 };
+  }
+
+  it("deployment", async function () {
+    const { contract } = await loadFixture(deployFixture);
+    expect(await contract.getAddress()).to.be.a('string');
+  });
+
+
+  describe("donate()", function () {
+    it("happy path", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions (e.g., fund contract if withdrawing)
+      // TODO_AI: Act -> call the function with valid inputs
+      // TODO_AI: Assert -> expect events/state changes
+    });
+
+    it("reverts on invalid input/role", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions
+      // TODO_AI: Act -> call function with invalid inputs or unauthorized caller
+      // TODO_AI: Assert -> expect revert with specific message
+    });
+
+    it("boundary cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test boundary conditions (0, max values, role limits, etc.)
+    });
+  });
+
+  describe("getDonationTotal(address)", function () {
+    it("happy path", async function () {
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call getDonationTotal() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
+    });
+
+    it("edge cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test edge cases (zero values, max values, etc.)
+    });
+  });
+
+  describe("owner()", function () {
+    it("happy path", async function () {
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call owner() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
+    });
+
+    it("edge cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test edge cases (zero values, max values, etc.)
+    });
+  });
+
+  describe("withdraw()", function () {
+    it("happy path", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions (e.g., fund contract if withdrawing)
+      // TODO_AI: Act -> call the function with valid inputs
+      // TODO_AI: Assert -> expect events/state changes
+    });
+
+    it("reverts on invalid input/role", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions
+      // TODO_AI: Act -> call function with invalid inputs or unauthorized caller
+      // TODO_AI: Assert -> expect revert with specific message
+    });
+
+    it("boundary cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test boundary conditions (0, max values, role limits, etc.)
+    });
+  });
+
+});
+
+```
+
+Return ONLY the completed TypeScript code wrapped in ```typescript ... ``` block.

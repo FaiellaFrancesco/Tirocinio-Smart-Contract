@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-10-17T12:37:42.290Z",
+  "config": {
+    "inputDir": "./tests/llm",
+    "outputDir": "./tests/ai/generated",
+    "validOutputDir": "./tests/ai/generated/valid",
+    "invalidOutputDir": "./tests/ai/generated/invalid",
+    "templatesDir": "./prompts/templates",
+    "model": "codellama:13b-code",
+    "endpoint": "https://pomologically-unexpunged-nicolette.ngrok-free.dev/v1/chat/completions",
+    "timeout": 300,
+    "maxConcurrent": 1,
+    "retries": 3
+  },
+  "metrics": {
+    "total": 1,
+    "successful": 0,
+    "compilationErrors": 0,
+    "incomplete": 0,
+    "timeouts": 0,
+    "abiErrors": 0,
+    "bannedPatternErrors": 0,
+    "networkErrors": 0
+  },
+  "totalTime": 1.004,
+  "successRate": 0
+}

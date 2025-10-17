@@ -1,758 +1,700 @@
 #!/usr/bin/env npx ts-node
 
 import { promises as fs } from 'fs';
+import * as fssync from 'fs';
+import { join, basename } from 'path';
 import * as path from 'path';
 import { spawn } from 'child_process';
+import { existsSync, writeFileSync, readFileSync } from 'fs';
 
-interface CliArgs {
-  scaffold: string;
-  out: string;
+interface Config {
+  promptsDir: string;
+  templatesDir: string;
+  outputDir: string;
+  validOutputDir: string;
+  invalidOutputDir: string;
+  tempDir: string;
+  artifactsRoot: string;
   model: string;
-  template?: string;
-  timeout?: number;
-  prevErrors?: string;
-  skipTest?: boolean;
-  skipTsc?: boolean;
-  maxOutputChars?: number;
-  maxRetries?: number;
+  retries: number;
+  timeout: number;        // seconds
+  maxConcurrent: number;
 }
 
-interface AttemptResult {
-  success: boolean;
-  code?: string;
-  errors: string[];
-  warnings: string[];
-  attemptNumber: number;
-  templateUsed: string;
+interface QualityMetrics {
+  total: number;
+  successful: number;
+  compilationErrors: number;
+  incomplete: number;
+  timeouts: number;
+  abiErrors: number;
+  bannedPatternErrors: number;
 }
 
-interface ScaffoldHeader {
-  contractName: string;
-  artifactSource: string;
-  artifactPath: string;
-  artifactFqn: string;
-  functions: string[];
-  events: string[];
+const config: Config = {
+  promptsDir: './prompts_out_eng/coverage',
+  templatesDir: './prompts/templates',
+  outputDir: './prova-generazione-llm/temp',
+  validOutputDir: './prova-generazione-llm/prova4-valid',
+  invalidOutputDir: './prova-generazione-llm/prova4-invalid',
+  tempDir: './prova-generazione-llm/temp-prompts',
+  artifactsRoot: './artifacts/contracts',
+  model: 'codellama:13b-code',
+  retries: 3,
+  timeout: 900,            // 15 minuti per Colab lento
+  maxConcurrent: 1
+};
+
+const metrics: QualityMetrics = {
+  total: 0,
+  successful: 0,
+  compilationErrors: 0,
+  incomplete: 0,
+  timeouts: 0,
+  abiErrors: 0,
+  bannedPatternErrors: 0,
+};
+
+/* --------------------------- Utilities & helpers --------------------------- */
+
+function normalizeSpec(content: string): string {
+  return content
+    // Import must come from hardhat
+    .replace(/^import\s+\{\s*ethers\s*\}\s+from\s+['"]ethers['"];?/m, 'import { ethers } from "hardhat";')
+    // ethers v5 -> v6
+    .replace(/ethers\.utils\.parseUnits/g, 'ethers.parseUnits')
+    .replace(/ethers\.utils\.parseEther/g, 'ethers.parseEther')
+    .replace(/ethers\.constants\.AddressZero/g, 'ethers.ZeroAddress')
+    .replace(/ethers\.constants\.MaxUint256/g, 'ethers.MaxUint256')
+    // chai matcher fix
+    .replace(/\.to\.properAddress/g, '.to.be.properAddress');
 }
 
-// Utility functions
-async function readFileUtf8(filepath: string): Promise<string> {
-  return fs.readFile(filepath, 'utf-8');
-}
-
-async function writeFileUtf8(filepath: string, content: string): Promise<void> {
-  await fs.mkdir(path.dirname(filepath), { recursive: true });
-  await fs.writeFile(filepath, content, 'utf-8');
-}
-
-function parseCliArgs(): CliArgs {
-  const args = process.argv.slice(2);
-  const parsed: Partial<CliArgs> = {};
-  
-  for (const arg of args) {
-    if (arg.startsWith('--scaffold=')) {
-      parsed.scaffold = arg.split('=')[1];
-    } else if (arg.startsWith('--out=')) {
-      parsed.out = arg.split('=')[1];
-    } else if (arg.startsWith('--model=')) {
-      parsed.model = arg.split('=')[1];
-    } else if (arg.startsWith('--template=')) {
-      parsed.template = arg.split('=')[1];
-    } else if (arg.startsWith('--timeout=')) {
-      parsed.timeout = parseInt(arg.split('=')[1]);
-    } else if (arg.startsWith('--prev-errors=')) {
-      parsed.prevErrors = arg.split('=')[1];
-    } else if (arg.startsWith('--max-output-chars=')) {
-      parsed.maxOutputChars = parseInt(arg.split('=')[1]);
-    } else if (arg.startsWith('--max-retries=')) {
-      parsed.maxRetries = parseInt(arg.split('=')[1]);
-    } else if (arg === '--skip-test') {
-      parsed.skipTest = true;
-    } else if (arg === '--skip-tsc') {
-      parsed.skipTsc = true;
-    }
-  }
-  
-  // Required parameters
-  if (!parsed.scaffold || !parsed.out || !parsed.model) {
-    console.error('❌ Missing required parameters for run-all.ts');
-    console.error('');
-    console.error('USAGE:');
-    console.error('  npx ts-node scripts/llm/run-all.ts \\');
-    console.error('    --scaffold=tests/llm/<Name>.scaffold.spec.ts \\');
-    console.error('    --out=tests/ai/gen/<Name>.spec.ts \\');
-    console.error('    --model=qwen2.5-coder:3b \\');
-    console.error('    [--template=prompts/templates/coverage-eng.txt] \\');
-    console.error('    [--timeout=600] \\');
-    console.error('    [--prev-errors=path/to/errors.txt] \\');
-    console.error('    [--skip-test] \\');
-    console.error('    [--skip-tsc] \\');
-    console.error('    [--max-output-chars=120000] \\');
-    console.error('    [--max-retries=3]');
-    console.error('');
-    console.error('DESCRIPTION:');
-    console.error('  Process a single scaffold file through LLM to generate complete tests.');
-    console.error('  Uses retry system with progressive templates and smart error feedback.');
-    console.error('  Validates with TypeScript compilation and Hardhat tests unless skipped.');
-    console.error('');
-    console.error('EXIT CODES:');
-    console.error('  0 - Success');
-    console.error('  1 - Fatal error (missing files, network, etc.)');
-    console.error('  2 - Policy violation or code extraction failure');
-    console.error('  3 - TypeScript compilation failure');
-    console.error('  4 - Hardhat test execution failure');
-    process.exit(1);
-  }
-  
-  return {
-    scaffold: parsed.scaffold!,
-    out: parsed.out!,
-    model: parsed.model!,
-    template: parsed.template || 'prompts/templates/coverage-eng.txt',
-    timeout: parsed.timeout || 600,
-    prevErrors: parsed.prevErrors,
-    skipTest: parsed.skipTest || false,
-    skipTsc: parsed.skipTsc || false,
-    maxOutputChars: parsed.maxOutputChars || 120000,
-    maxRetries: parsed.maxRetries || 3
-  };
-}
-
-function extractHeader(scaffoldContent: string, scaffoldPath?: string): ScaffoldHeader {
-  // Find the FIRST /** ... */ comment block after imports
-  const headerMatch = scaffoldContent.match(/\/\*\*([\s\S]*?)\*\//);
-  if (!headerMatch) {
-    console.log('⚠️  No header comment block found, using fallbacks');
-  }
-  
-  const comment = headerMatch ? headerMatch[1] : "";
-  
-  const readField = (label: string): string => {
-    const rx = new RegExp(`${label}:\\s*(.+)`);
-    const match = comment.match(rx);
-    return match?.[1]?.trim() ?? "";
-  };
-
-  // CONTRACT_NAME: first from comment, then from describe("Name — ..."), then from filename
-  let contractName = readField("CONTRACT_NAME");
-  if (!contractName) {
-    const describeMatch = scaffoldContent.match(/describe\s*\(\s*["'`]([^"'`]+?)\s*(?:—|-)\s*.*(?:LLM Scaffold|AI Generated Scaffold)/i);
-    if (describeMatch) {
-      contractName = describeMatch[1];
-    }
-  }
-  if (!contractName && scaffoldPath) {
-    const baseName = path.basename(scaffoldPath).replace(/\.scaffold\.spec\.ts$/i, "");
-    const parts = baseName.split("__");
-    contractName = parts[parts.length - 1] || baseName;
-  }
-
-  // FUNCTIONS
-  let functions: string[] = [];
-  const functionsMatch = comment.match(/FUNCTIONS:\s*\n([\s\S]*?)(?:\n\s*\n|\n\s*EVENTS:|$)/i);
-  if (functionsMatch) {
-    functions = functionsMatch[1]
-      .split("\n")
-      .map(l => l.replace(/^\s*\*\s?/, "").trim())
-      .filter(l => l && l.toLowerCase() !== "(none)");
-  }
-
-  // EVENTS
-  let events: string[] = [];
-  const eventsMatch = comment.match(/EVENTS:\s*\n([\s\S]*?)(?:\n\s*\n|$)/i);
-  if (eventsMatch) {
-    events = eventsMatch[1]
-      .split("\n")
-      .map(l => l.replace(/^\s*\*\s?/, "").trim())
-      .filter(l => l && l.toLowerCase() !== "(none)");
-  }
-
-  if (functions.length === 0) {
-    console.log('⚠️  FUNCTIONS list empty; prompt may be weaker');
-  }
-
-  return {
-    contractName: contractName || 'UnknownContract',
-    artifactSource: readField("ARTIFACT_SOURCE"),
-    artifactPath: readField("ARTIFACT_PATH"),
-    artifactFqn: readField("ARTIFACT_FQN"),
-    functions,
-    events,
-  };
-}
-
-function buildPrompt(template: string, data: Record<string, string>): string {
-  let result = template;
-  for (const [key, value] of Object.entries(data)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
-  }
-  return result;
-}
-
-function validateGeneratedCodePolicy(tsCode: string): string[] {
-  const errs: string[] = [];
-  
-  // Banned patterns
-  const bannedPatterns = [
-    { pattern: /from\s+["']ethers["']/, message: 'BANNED: import from "ethers" package (use "hardhat" instead)' },
-    { pattern: /new\s+ethers\.(JsonRpcProvider|Wallet|Contract)\b/, message: 'BANNED: external provider/wallet creation' },
-    { pattern: /\bethers\.providers\b/, message: 'BANNED: ethers.providers usage' },
-    { pattern: /\bethers\.utils\./, message: 'BANNED: ethers.utils.* (use ethers.parseEther, etc.)' },
-    { pattern: /\b\d+n\b/, message: 'BANNED: BigInt literals (100n) - use ethers.parseEther("100") instead' },
-    { pattern: /\.properAddress\b/, message: 'BANNED: .properAddress - use .to.be.a("string") instead' },
-    { pattern: /\.revertedWithCustomError\b/, message: 'BANNED: .revertedWithCustomError - use .to.be.revertedWith("reason") instead' },
-    { pattern: /0x0{40}/i, message: 'BANNED: hardcoded zero address (use ethers.ZeroAddress)' }
+function findBannedPatterns(spec: string): string[] {
+  const errors: string[] = [];
+  const rules: Array<[RegExp, string]> = [
+    [/\bnew\s+ethers\.(providers\.)?JsonRpcProvider\s*\(/i, 'External provider creation is forbidden. Use Hardhat network and ethers.getSigners().'],
+    [/\bnew\s+ethers\.Wallet\s*\(/i, 'External wallet creation is forbidden. Use ethers.getSigners().'],
+    [/\bhttps?:\/\/[^\s\'"]+/i, 'External endpoints (RPC URLs) are forbidden in unit tests.'],
+    [/\bInfura|Alchemy|YOUR_INFURA|YOUR_ALCHEMY/i, 'Do not reference external RPC providers (Infura/Alchemy placeholders found).'],
+    [/\bnew\s+ethers\.Contract\s*\(/i, 'Do not instantiate raw ethers.Contract in tests. Use Hardhat factories and deploy in a fixture.'],
   ];
-  
-  for (const { pattern, message } of bannedPatterns) {
-    if (pattern.test(tsCode)) {
-      errs.push(message);
-    }
+  for (const [re, msg] of rules) {
+    if (re.test(spec)) errors.push(msg);
   }
-  
-  // Check for skipped tests (ignore in comments)
-  const skipInCode = tsCode.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
-  if (skipInCode.includes("this.skip(") || skipInCode.includes(".skip(")) {
-    errs.push("Found skipped tests (this.skip / .skip). Must be removed.");
+  if (/^import\s+\{\s*ethers\s*\}\s+from\s+['"]ethers['"];?/m.test(spec)) {
+    errors.push('Import must be from "hardhat": use `import { ethers } from "hardhat";`.');
   }
-  
-  // Check for TODO_AI markers (ignore in comments)
-  if (skipInCode.includes("TODO_AI")) {
-    errs.push("Found TODO_AI markers. Must be fully replaced.");
-  }
-  
-  // Check required imports
-  if (!tsCode.includes('import { ethers } from "hardhat"')) {
-    errs.push('Missing required import: import { ethers } from "hardhat"');
-  }
-  
-  // Check loadFixture usage
-  if (!/loadFixture\s*\(\s*deployFixture\s*\)/.test(tsCode)) {
-    errs.push("Missing loadFixture(deployFixture) usage.");
-  }
-  
-  // Check for common undefined variable patterns
-  const undefinedVarPatterns = [
-    { pattern: /\baddr1\b/, varName: 'addr1' },
-    { pattern: /\baddr2\b/, varName: 'addr2' },
-    { pattern: /\bowner\b/, varName: 'owner' },
-    { pattern: /\bcontract\b/, varName: 'contract' }
-  ];
-  
-  for (const { pattern, varName } of undefinedVarPatterns) {
-    if (pattern.test(tsCode) && !new RegExp(`const\\s*\\{[^}]*\\b${varName}\\b[^}]*\\}\\s*=\\s*await\\s+loadFixture`).test(tsCode)) {
-      errs.push(`Variable '${varName}' used but not destructured from loadFixture. Add: const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);`);
-    }
-  }
-  
-  // Check deployFixture returns all required variables
-  if (/async\s+function\s+deployFixture/.test(tsCode) && !/return\s*\{[^}]*contract[^}]*owner[^}]*addr1[^}]*addr2[^}]*\}/.test(tsCode)) {
-    errs.push("deployFixture must return { contract, owner, addr1, addr2 } with ALL signers");
-  }
-  
-  return errs;
+  return errors;
 }
 
-function basicCompletenessCheck(tsCode: string): string[] {
-  const issues: string[] = [];
-  
-  const trimmed = tsCode.trim();
-  if (!trimmed.endsWith("}") && !trimmed.endsWith("});")) {
-    issues.push("File seems truncated (does not end with '}' or '});').");
+function abiValidateSpecCalls(spec: string, abi: any[]): { ok: boolean; errors: string[] } {
+  const abiFns = new Set(abi.filter(a => a.type === 'function').map(a => a.name));
+  const abiEvents = new Set(abi.filter(a => a.type === 'event').map(a => a.name));
+
+  const ethersSystemFunctions = new Set([
+    'waitForDeployment','getAddress','connect','attach','deployed','deployTransaction','interface',
+    'provider','signer','target','runner','getFunction','getEvent','queryFilter','on','off',
+    'removeAllListeners','listenerCount','listeners','addListener','removeListener','emit'
+  ]);
+
+  const fnUse = Array.from(spec.matchAll(/contract\.(\w+)\s*\(/g)).map(m => m[1]);
+  // Ignora eventi nelle righe con TODO_AI
+  const lines = spec.split('\n');
+  const evUse: string[] = [];
+  for (const line of lines) {
+    if (line.includes('TODO_AI')) continue; // Salta righe con TODO_AI
+    const matches = Array.from(line.matchAll(/to\.emit\(\s*contract\s*,\s*["'`](\w+)["'`]\s*\)/g));
+    evUse.push(...matches.map(m => m[1]));
   }
-  
-  // More flexible regex for it blocks
-  const itBlocks = tsCode.match(/it\s*\(\s*["'`][^"'`]+["'`]\s*,\s*async.*?\{/gs) || [];
-  if (itBlocks.length === 0) {
-    issues.push("No async it() test blocks found.");
+
+  const errors: string[] = [];
+  for (const f of fnUse) {
+    if (!ethersSystemFunctions.has(f) && !abiFns.has(f)) errors.push(`Function not in ABI: ${f}`);
   }
-  
-  return issues;
+  for (const e of evUse) if (!abiEvents.has(e)) errors.push(`Event not in ABI: ${e}`);
+  return { ok: errors.length === 0, errors };
 }
 
-function checkFunctionUsage(tsCode: string, allowedFunctions: string[]): string[] {
-  const warnings: string[] = [];
-  
-  if (allowedFunctions.length === 0) return warnings;
-  
-  const allowed = new Set(allowedFunctions.map(l => l.split("(")[0]));
-  // Add always-allowed methods
-  allowed.add("getAddress");
-  allowed.add("waitForDeployment"); 
-  allowed.add("connect");
-  
-  // Find contract method calls: contract.<method>(
-  const methodCalls = tsCode.match(/contract\.\w+\(/g) || [];
-  for (const call of methodCalls) {
-    const methodName = call.replace(/^contract\./, '').replace(/\($/, '');
-    if (!allowed.has(methodName)) {
-      warnings.push(`WARNING: Method '${methodName}' not in allowed functions list`);
-    }
-  }
-  
-  return warnings;
-}
-
-function extractCodeBlock(markdown: string): { code: string | null; hasCodeBlock: boolean } {
-  // Try typescript first, then ts
-  let match = markdown.match(/```typescript\s*\n([\s\S]*?)\n```/);
-  if (!match) {
-    match = markdown.match(/```ts\s*\n([\s\S]*?)\n```/);
-  }
-  
-  if (match) {
-    return {
-      code: match[1].replace(/\r\n/g, '\n').trim(),
-      hasCodeBlock: true
-    };
-  }
-  
-  // Fallback to entire response if no code block
-  return {
-    code: markdown.replace(/\r\n/g, '\n').trim(),
-    hasCodeBlock: false
-  };
-}
-
-function getTemplateForAttempt(attemptNumber: number, originalTemplate: string): string {
-  // Use original template for attempt 1, then progression based on template type
-  if (attemptNumber === 1) {
-    return originalTemplate;
-  }
-  
-  // Determine template family from original template
-  let templates: string[];
-  if (originalTemplate.includes('simple')) {
-    // Simple template family
-    templates = [
-      'prompts/templates/coverage-eng-simple.txt',
-      'prompts/templates/coverage-eng-simple-retry.txt', 
-      'prompts/templates/coverage-eng-simple-final.txt'
-    ];
-  } else {
-    // Original/detailed template family  
-    templates = [
-      'prompts/templates/coverage-eng.txt',
-      'prompts/templates/coverage-eng-retry.txt',
-      'prompts/templates/coverage-eng-final.txt'
-    ];
-  }
-  
-  const index = Math.min(attemptNumber - 1, templates.length - 1);
-  return templates[index];
-}
-
-function getTimeoutForAttempt(attemptNumber: number, baseTimeout: number): number {
-  // Progressive timeout increase: base, base*1.5, base*2
-  const multipliers = [1, 1.5, 2];
-  const index = Math.min(attemptNumber - 1, multipliers.length - 1);
-  return Math.floor(baseTimeout * multipliers[index]);
-}
-
-// 🔧 SMART ERROR ACCUMULATION: Only pass relevant errors to next attempt
-function formatPreviousErrors(errors: string[], warnings: string[], attemptNumber: number): string {
-  if (errors.length === 0 && warnings.length === 0) return '';
-  
-  let result = 'PREVIOUS ATTEMPT ERRORS:\n';
-  
-  if (errors.length > 0) {
-    result += 'CRITICAL ERRORS (must fix):\n';
-    errors.forEach(err => result += `- ${err}\n`);
-  }
-  
-  if (warnings.length > 0) {
-    result += 'WARNINGS (should address):\n';
-    warnings.forEach(warn => result += `- ${warn}\n`);
-  }
-  
-  // Add specific guidance based on attempt number
-  if (attemptNumber >= 3) {
-    result += '\n🚨 FINAL ATTEMPT - Apply these specific fixes:\n';
-    result += '- Replace ALL BigInt literals (100n) with ethers.parseEther("100")\n';
-    result += '- Declare missing variables: const { owner, addr1, addr2, contract } = await loadFixture(deployFixture);\n';
-    result += '- Use correct Chai syntax: .to.be.revertedWith("message") NOT .revertedWithCustomError\n';
-    result += '- Fix import: import { ethers } from "hardhat"; (NOT from "ethers")\n';
-  } else {
-    result += '\nPlease fix ALL errors above. Pay special attention to:\n';
-    result += '- Missing variable declarations (owner, addr1, addr2 should be from loadFixture)\n';
-    result += '- Correct imports and TypeScript syntax\n';
-    result += '- Proper Chai assertion syntax (.to.be.revertedWith, .to.emit, etc.)\n';
-  }
-  
-  return result + '\n';
-}
-
-async function callOllama(model: string, prompt: string, timeoutSec: number): Promise<string> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.log(`⏰ Request timed out after ${timeoutSec}s, aborting...`);
-    controller.abort();
-  }, timeoutSec * 1000);
-  
+async function validateTypeScript(filePath: string): Promise<{ valid: boolean; errors: string }> {
   try {
-    console.log(`📨 Sending → model="${model}" timeout=${timeoutSec}s prompt=${prompt.length} chars`);
-    
-    const response = await fetch('http://localhost:11434/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model,
-        temperature: 0.2,
-        max_tokens: 8192,
-        stream: false,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are STRICTLY a Hardhat local unit-test generator (Mocha/Chai + Ethers v6). NEVER import from ethers package in tests; only import { ethers } from "hardhat". NEVER create providers or wallets (no RPC URLs). Remove all this.skip(); fill all // TODO_AI. Use only functions listed in FUNCTIONS; do not invent function names. For withdraw/claim-like functions: in the same test first fund the contract, then withdraw, assert event and balances. Each test runs in fresh fixture (loadFixture), do not rely on state from other tests.'
-          },
-          {
-            role: 'user', 
-            content: prompt
-          }
-        ]
-      }),
-      signal: controller.signal
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      throw new Error(`Ollama API error: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-    
-    const data = await response.json() as any;
-    const content = data.choices?.[0]?.message?.content || '';
-    
-    if (!content) {
-      throw new Error('Empty response from Ollama API');
-    }
-    
-    console.log(`📥 Received ${content.length} chars`);
-    
-    return content;
+    const result = await runCommand('npx', ['tsc', '--noEmit', '--skipLibCheck', filePath]);
+    return { valid: result.success, errors: result.output };
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error(`Request timeout after ${timeoutSec}s. Try increasing --timeout or check if Ollama model "${model}" is running.`);
-      }
-      if (error.message.includes('fetch')) {
-        throw new Error(`Network error: Cannot connect to Ollama at localhost:11434. Is Ollama running?\nOriginal: ${error.message}`);
-      }
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
+    return { valid: false, errors: `Validation error: ${error}` };
   }
 }
 
-async function runCommand(command: string, args: string[], options: { timeoutSec?: number } = {}): Promise<{ stdout: string, stderr: string, success: boolean }> {
+async function isTestComplete(content: string): Promise<boolean> {
+  if (content.includes('TODO_AI')) return false;
+
+  const hasDescribe = content.includes('describe(');
+  const hasFixture = content.includes('loadFixture');
+  const endsCorrectly = content.trim().endsWith('});');
+  if (!hasDescribe || !hasFixture || !endsCorrectly) return false;
+
+  const lines = content.split('\n');
+  const minLength = lines.length > 30;
+  const hasExpectStatements = content.includes('expect(') && content.includes('.to.');
+
+  const itBlocks = content.match(/it\([^{]+\{[\s\S]*?\}\);/g) || [];
+  const hasRealTests = itBlocks.some(block => {
+    const hasExpect = block.includes('expect(');
+    const hasAwait = block.includes('await');
+    const isNotJustDeployment = !block.includes('basic deployment') || block.length > 200;
+    return hasExpect && hasAwait && isNotJustDeployment;
+  });
+
+  return minLength && hasExpectStatements && hasRealTests;
+}
+
+async function runCommand(command: string, args: string[]): Promise<{ success: boolean; output: string }> {
   return new Promise((resolve) => {
-    const child = spawn(command, args, { 
-      stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true 
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    let killed = false;
-    
-    const timeout = options.timeoutSec ? setTimeout(() => {
-      killed = true;
-      child.kill('SIGKILL');
-    }, options.timeoutSec * 1000) : null;
-    
-    child.stdout?.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    child.stderr?.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    child.on('close', (code) => {
-      if (timeout) clearTimeout(timeout);
-      resolve({
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-        success: !killed && code === 0
-      });
+    const proc = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'], cwd: process.cwd() });
+
+    let output = '';
+    let error = '';
+
+    proc.stdout?.on('data', (data) => { output += data.toString(); });
+    proc.stderr?.on('data', (data) => { error += data.toString(); });
+
+    const killer = setTimeout(() => {
+      proc.kill();
+      resolve({ success: false, output: 'TIMEOUT: Process killed after timeout' });
+    }, config.timeout * 1000 + 60000); // +60s buffer
+
+    proc.on('close', (code) => {
+      clearTimeout(killer);
+      resolve({ success: code === 0, output: output + (error ? '\nERROR: ' + error : '') });
     });
   });
 }
 
-async function attemptGeneration(
-  args: CliArgs, 
-  header: ScaffoldHeader, 
-  scaffoldContent: string, 
-  attemptNumber: number,
-  previousErrors: string[] = [],
-  previousWarnings: string[] = []
-): Promise<AttemptResult> {
-  
-  const templatePath = getTemplateForAttempt(attemptNumber, args.template!);
-  const timeout = getTimeoutForAttempt(attemptNumber, args.timeout!);
-  
-  console.log(`\n🔄 ATTEMPT ${attemptNumber}/${args.maxRetries}`);
-  console.log(`📋 Template: ${path.basename(templatePath)}`);
-  console.log(`⏱️  Timeout: ${timeout}s`);
-  
-  try {
-    // 1. Load template
-    const template = await readFileUtf8(templatePath);
-    
-    // 2. Format previous errors with smart accumulation
-    const prevErrorsContent = formatPreviousErrors(previousErrors, previousWarnings, attemptNumber);
-    
-    // 3. Build prompt
-    const prompt = buildPrompt(template, {
-      CONTRACT_NAME: header.contractName,
-      FUNCTION_LIST: header.functions.join('\n'),
-      EVENT_LIST: header.events.join('\n'),
-      SCAFFOLD_CONTENT: scaffoldContent,
-      PREV_ERRORS: prevErrorsContent
-    });
-    
-    // 4. Save prompt for debugging
-    const promptPath = args.out.replace(/\.spec\.ts$/i, `.attempt${attemptNumber}.prompt.txt`);
-    await writeFileUtf8(promptPath, prompt);
-    console.log(`📝 Prompt saved to ${promptPath}`);
-    
-    // 5. Call LLM
-    console.log(`📨 Calling model="${args.model}" with ${prompt.length} chars...`);
-    const response = await callOllama(args.model, prompt, timeout);
-    
-    // 6. Apply max output chars limit
-    const truncatedResponse = args.maxOutputChars && response.length > args.maxOutputChars 
-      ? response.substring(0, args.maxOutputChars)
-      : response;
-    
-    console.log(`📥 Received ${response.length} chars${response.length !== truncatedResponse.length ? ` (truncated to ${truncatedResponse.length})` : ''}`);
-    
-    // 7. Extract code block
-    const { code: extractedCode, hasCodeBlock } = extractCodeBlock(truncatedResponse);
-    console.log(`📥 Code extraction: ${hasCodeBlock ? 'success' : 'fallback'}`);
-    
-    if (!extractedCode) {
-      const rawPath = args.out.replace(/\.ts$/, `.attempt${attemptNumber}.raw.md`);
-      await writeFileUtf8(rawPath, truncatedResponse);
-      return {
-        success: false,
-        errors: ['No code block found in response'],
-        warnings: [],
-        attemptNumber,
-        templateUsed: templatePath
-      };
+/* --------------------- Prompt assembly (scaffold + template) --------------------- */
+
+async function generatePromptWithTemplate(promptFile: string, templateFile: string, previousErrors: string = ''): Promise<string> {
+  const originalPrompt = await fs.readFile(promptFile, 'utf8');
+  const templateContent = await fs.readFile(templateFile, 'utf8');
+
+  const m = originalPrompt.match(/```ts\s*([\s\S]*?)\s*```/);
+  if (!m) throw new Error(`Cannot extract scaffold content from ${promptFile}`);
+  const scaffold = m[1];
+
+  const base = path.basename(promptFile, '.coverage.prompt.txt');
+  const contractName = base.replace(/\.coverage$/i, '');
+
+  const best = findBestArtifactForScaffold(contractName, scaffold, config.artifactsRoot);
+  let functionList = '';
+  let eventList = '—';
+  if (best) {
+    const abi = best.abi;
+    const describedFns = extractFunctionNamesFromScaffold(scaffold);
+    const fns = abi.filter((a: any) => a.type === 'function');
+    const evs = abi.filter((a: any) => a.type === 'event');
+    const chosenFns = describedFns.size ? fns.filter((f: any) => describedFns.has(f.name)) : fns;
+    functionList = chosenFns
+      .map((f: any) => `${f.name}(${(f.inputs || []).map((i: any) => i.type).join(',')})->${f.stateMutability || 'nonpayable'}`)
+      .join('\n');
+    eventList = evs.map((e: any) => e.name).join(', ') || '—';
+  } else {
+    console.warn(`⚠️  No artifact candidates for ${contractName}: proceeding without FUNCTION_LIST/EVENT_LIST.`);
+  }
+
+  return templateContent
+    .replace('{{CONTRACT_NAME}}', contractName)
+    .replace('{{FUNCTION_LIST}}', functionList)
+    .replace('{{EVENT_LIST}}', eventList)
+    .replace('{{PREV_ERRORS}}', previousErrors)
+    .replace('{{SCAFFOLD_CONTENT}}', scaffold);
+}
+
+/* ------------------------------- ABI helpers ------------------------------- */
+
+function extractFunctionNamesFromScaffold(scaffold: string): Set<string> {
+  const s = new Set<string>();
+  // Più tollerante: consente lettere, numeri, underscore, $; e prende la virgola dopo il titolo del describe
+  const regex = /describe\(\s*["'`]([\w$]+)["'`]\s*,/g;
+  let match;
+  while ((match = regex.exec(scaffold)) !== null) s.add(match[1]);
+  return s;
+}
+
+function listArtifactsByName(contractName: string, root: string): Array<{ path: string; abi: any[]; sourceName: string }> {
+  const out: Array<{ path: string; abi: any[]; sourceName: string }> = [];
+  const stack = [root];
+  while (stack.length) {
+    const dir = stack.pop()!;
+    let entries: fssync.Dirent[];
+    try {
+      entries = fssync.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
     }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) stack.push(full);
+      else if (e.isFile() && full.endsWith('.json')) {
+        try {
+          const js = JSON.parse(fssync.readFileSync(full, 'utf-8'));
+          if (js?.contractName?.toLowerCase() === contractName.toLowerCase() && Array.isArray(js?.abi)) {
+            out.push({ path: full, abi: js.abi, sourceName: js.sourceName || '' });
+          }
+        } catch {}
+      }
+    }
+  }
+  out.sort((a, b) => a.path.localeCompare(b.path));
+  return out;
+}
+
+function scoreArtifactForScaffold(abi: any[], describedFns: Set<string>): number {
+  if (!describedFns.size) return 0;
+  const abiFns = new Set(abi.filter(a => a.type === 'function').map((a: any) => a.name as string));
+  let score = 0;
+  for (const fn of describedFns) if (abiFns.has(fn)) score += 10;
+  return score;
+}
+
+function findBestArtifactForScaffold(contractName: string, scaffoldOrSpec: string, root: string): { path: string; abi: any[] } | null {
+  const candidates = listArtifactsByName(contractName, root);
+  if (!candidates.length) return null;
+  const describedFns = extractFunctionNamesFromScaffold(scaffoldOrSpec);
+  let best = candidates[0];
+  let bestScore = scoreArtifactForScaffold(best.abi, describedFns);
+  for (let i = 1; i < candidates.length; i++) {
+    const c = candidates[i];
+    const s = scoreArtifactForScaffold(c.abi, describedFns);
+    if (s > bestScore) { best = c; bestScore = s; }
+  }
+  return { path: best.path, abi: best.abi };
+}
+
+/* ------------------------ Remote Ollama HTTP invocation ------------------------ */
+
+/**
+ * Chiama Ollama remoto via Flask/ngrok su Colab.
+ * Supporta sia risposte testuali "plain" sia lo streaming NDJSON dell'API /api/generate (campi "response").
+ */
+async function callRemoteOllama(model: string, prompt: string): Promise<{ success: boolean; output: string }> {
+  const endpoint = process.env.OLLAMA_URL || '';
+  if (!endpoint) {
+    return { success: false, output: '❌ Missing OLLAMA_URL (remote Colab endpoint).' };
+  }
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), config.timeout * 1000);
+
+  try {
+    console.log(`🔍 DEBUG - Inviando al modello ${model}:`);
+    console.log(`📏 Lunghezza prompt: ${prompt.length} caratteri`);
+    console.log(`📝 Prime 200 caratteri: ${prompt.substring(0, 200)}...`);
+    console.log(`📝 Ultime 200 caratteri: ...${prompt.substring(prompt.length - 200)}`);
     
-    // 8. Policy validation
-    const policyErrors = validateGeneratedCodePolicy(extractedCode);
-    const completenessErrors = basicCompletenessCheck(extractedCode);
-    const functionWarnings = checkFunctionUsage(extractedCode, header.functions);
-    
-    const allErrors = [...policyErrors, ...completenessErrors];
-    
-    console.log(`📊 Validation: ${allErrors.length} errors, ${functionWarnings.length} warnings`);
-    
-    // Save raw response for debugging
-    const rawPath = args.out.replace(/\.ts$/, `.attempt${attemptNumber}.raw.md`);
-    await writeFileUtf8(rawPath, truncatedResponse);
-    
-    return {
-      success: allErrors.length === 0,
-      code: extractedCode,
-      errors: allErrors,
-      warnings: functionWarnings,
-      attemptNumber,
-      templateUsed: templatePath
-    };
-    
-  } catch (error) {
-    console.error(`❌ Attempt ${attemptNumber} failed:`, error);
-    return {
-      success: false,
-      errors: [error instanceof Error ? error.message : String(error)],
-      warnings: [],
-      attemptNumber,
-      templateUsed: templatePath
-    };
+    const res = await fetch(`${endpoint}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        model, 
+        prompt,
+        stream: false,
+        options: {
+          temperature: 0.1,    // Più deterministico
+          top_k: 10,          // Meno opzioni = più veloce
+          top_p: 0.8,         
+          num_predict: 2048,  // Limite ragionevole
+          num_ctx: 4096       // Contesto più piccolo
+        }
+      }),
+      signal: controller.signal
+    });
+
+    const status = res.status;
+    const contentType = res.headers.get('content-type') || '';
+    const text = await res.text();
+
+    if (status < 200 || status >= 300) {
+      return { success: false, output: `HTTP ${status}: ${text.slice(0, 500)}` };
+    }
+
+    // 1) Prova JSON singolo
+    try {
+      const obj = JSON.parse(text);
+      if (obj && typeof obj === 'object') {
+        if (typeof obj.response === 'string') return { success: true, output: obj.response };
+        if (typeof obj.message === 'string')  return { success: true, output: obj.message };
+      }
+    } catch {
+      // non JSON singolo, potrebbe essere NDJSON
+    }
+
+    // 2) Prova NDJSON (una JSON per riga) – tipico di Ollama streaming
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    let acc = '';
+    let parsedSomething = false;
+    for (const line of lines) {
+      try {
+        const j = JSON.parse(line);
+        if (typeof j.response === 'string') { acc += j.response; parsedSomething = true; }
+      } catch { /* non-json line, skip */ }
+    }
+    if (parsedSomething) return { success: true, output: acc };
+
+    // 3) Fallback: plain text
+    return { success: true, output: text };
+
+  } catch (err: any) {
+    if (err?.name === 'AbortError') return { success: false, output: 'TIMEOUT: Remote Ollama request aborted' };
+    return { success: false, output: `Error calling remote Ollama: ${err?.message || String(err)}` };
+  } finally {
+    clearTimeout(id);
   }
 }
+
+/* ----------------------- Post-processing & file routing ----------------------- */
+
+async function processSuccessfulTest(tempOutputFile: string, promptName: string, testContent: string): Promise<{ success: boolean; message: string }> {
+  const validation = await validateTypeScript(tempOutputFile);
+  if (!validation.valid) {
+    console.log(`❌ Compilazione Fallita: ${promptName}`);
+    const invalidFile = join(config.invalidOutputDir, `${promptName}.compilation-error.spec.ts`);
+    await fs.mkdir(config.invalidOutputDir, { recursive: true });
+    await fs.writeFile(invalidFile, testContent);
+    await fs.writeFile(invalidFile + '.errors', validation.errors);
+    metrics.compilationErrors++;
+    return { success: false, message: `Compilation failed: ${validation.errors.slice(0, 200)}` };
+  }
+
+  const validFile = join(config.validOutputDir, `${promptName}.spec.ts`);
+  await fs.mkdir(config.validOutputDir, { recursive: true });
+  await fs.rename(tempOutputFile, validFile);
+
+  console.log(`✅ Test Valido: ${promptName}`);
+  metrics.successful++;
+  return { success: true, message: `Valid test generated: ${validFile}` };
+}
+
+/* ---------------------------- Generation with retry --------------------------- */
+
+async function generateTestWithRetry(promptFile: string): Promise<{ success: boolean; message: string }> {
+  const promptName = basename(promptFile, '.coverage.prompt.txt');
+  const tempOutputFile = join(config.outputDir, `${promptName}.spec.ts`);
+
+  const validFile = join(config.validOutputDir, `${promptName}.spec.ts`);
+  if (existsSync(validFile)) {
+    console.log(`⏭️  Saltando ${promptName} - test valido già esistente`);
+    return { success: true, message: `Test already exists: ${validFile}` };
+  }
+
+  console.log(`🔄 Generando test per: ${promptName}`);
+  metrics.total++;
+
+  const templates = [
+    'attempt-1.txt',
+    'attempt-2.txt',
+    'attempt-3.txt'
+  ];
+
+  const modelConfigs = [{ model: config.model, timeout: config.timeout }];
+
+  let totalAttempts = 0;
+  let previousErrors = '';
+
+  for (let templateIndex = 0; templateIndex < templates.length; templateIndex++) {
+    const templateFileName = templates[templateIndex];
+    const templateFile = join(config.templatesDir, templateFileName);
+    const templateName = basename(templateFileName, '.txt');
+    console.log(`   📝 Template ${templateIndex + 1}/${templates.length}: ${templateName}`);
+
+    const modelsToTry = [modelConfigs[0]];
+
+    for (const { model, timeout } of modelsToTry) {
+      totalAttempts++;
+      console.log(`      🤖 Tentativo ${totalAttempts} con ${model} (timeout: ${timeout}s)`);
+
+      try {
+        const customPrompt = await generatePromptWithTemplate(promptFile, templateFile, previousErrors);
+        await fs.mkdir(config.tempDir, { recursive: true });
+        const tempPromptFile = join(config.tempDir, `prompt_${promptName}_${templateIndex}_${Date.now()}.txt`);
+        await fs.writeFile(tempPromptFile, customPrompt);
+
+        // → Chiamata diretta a Ollama remoto
+        const promptContent = await fs.readFile(tempPromptFile, 'utf-8');
+        const result = await callRemoteOllama(model, promptContent);
+
+        // pulizia prompt solo se andato a buon fine
+        const keepPrompt = !result.success;
+        if (!keepPrompt && existsSync(tempPromptFile)) {
+          await fs.unlink(tempPromptFile);
+        }
+
+        if (result.success) {
+          await fs.writeFile(tempOutputFile, result.output, 'utf-8');
+          await sleep(500); // assicurati che il file sia flushato
+          if (!existsSync(tempOutputFile)) {
+            console.log(`      ❌ File output mancante dopo scrittura`);
+            continue;
+          }
+
+          let testContent = readFileSync(tempOutputFile, 'utf-8');
+          testContent = extractTypeScriptBlock(testContent);
+          testContent = normalizeSpec(testContent);
+          writeFileSync(tempOutputFile, testContent, 'utf-8');
+          await sleep(300);
+
+          // BANNED patterns
+          const banned = findBannedPatterns(testContent);
+          if (banned.length) {
+            console.log('         - BANNED patterns detected:\n           • ' + banned.join('\n           • '));
+            const invalidBase = join(config.invalidOutputDir, `${promptName}.banned`);
+            await fs.mkdir(config.invalidOutputDir, { recursive: true });
+            await fs.writeFile(`${invalidBase}.spec.ts`, testContent);
+            await fs.writeFile(`${invalidBase}.errors`, banned.join('\n'));
+            metrics.bannedPatternErrors++;
+            
+            // Aggiungi agli errori per il prossimo tentativo
+            previousErrors += (previousErrors ? '\n\n' : '') + 
+              `Tentativo ${templateIndex + 1} (${templateName}):\n` + 
+              `Pattern bannati rilevati: ${banned.join(', ')}`;
+            
+            try { await fs.unlink(tempOutputFile); } catch {}
+            continue;
+          }
+
+          // ABI validation
+          const bestForValidation = findBestArtifactForScaffold(promptName, testContent, config.artifactsRoot);
+          if (bestForValidation) {
+            console.log(`         🔍 ABI path: ${bestForValidation.path}`);
+            const abi = bestForValidation.abi;
+            const functionNames = abi.filter((item: any) => item.type === 'function').map((item: any) => item.name);
+            console.log(`         📋 Functions in ABI: ${functionNames.slice(0, 5).join(', ')}${functionNames.length > 5 ? '...' : ''} (${functionNames.length} total)`);
+            const abiCheck = abiValidateSpecCalls(testContent, abi);
+            if (!abiCheck.ok) {
+              console.log('         - ABI validator errors:\n           • ' + abiCheck.errors.join('\n           • '));
+              const invalidBase = join(config.invalidOutputDir, `${promptName}.abi-error`);
+              await fs.mkdir(config.invalidOutputDir, { recursive: true });
+              await fs.writeFile(`${invalidBase}.spec.ts`, testContent);
+              await fs.writeFile(`${invalidBase}.errors`, abiCheck.errors.join('\n'));
+              metrics.abiErrors++;
+              
+              // Aggiungi agli errori per il prossimo tentativo
+              previousErrors += (previousErrors ? '\n\n' : '') + 
+                `Tentativo ${templateIndex + 1} (${templateName}):\n` + 
+                `Errori ABI: ${abiCheck.errors.join(', ')}`;
+              
+              try { await fs.unlink(tempOutputFile); } catch {}
+              continue;
+            }
+          }
+
+          const complete = await isTestComplete(testContent);
+          const tsCheck = await validateTypeScript(tempOutputFile);
+
+          console.log(`         📊 Test generato: ${testContent.length} caratteri`);
+          console.log(`         🔍 Completo: ${complete ? 'SÌ' : 'NO'}`);
+          console.log(`         ✅ TypeScript: ${tsCheck.valid ? 'SÌ' : 'NO'}`);
+
+          if (complete && tsCheck.valid) {
+            console.log('      ✅ SUCCESSO! Test completo generato');
+            return await processSuccessfulTest(tempOutputFile, promptName, testContent);
+          } else {
+            // Raccogliamo gli errori per il prossimo tentativo
+            const errors: string[] = [];
+            if (!complete) {
+              metrics.incomplete++;
+              const todoCount = (testContent.match(/TODO_AI/g) || []).length;
+              console.log(`      ⚠️  Test incompleto (TODO_AI: ${todoCount})`);
+              errors.push(`Test incompleto: ${todoCount} TODO_AI non sostituiti`);
+            }
+            if (!tsCheck.valid) {
+              console.log(`      ⚠️  Errori TypeScript: ${tsCheck.errors.slice(0, 200)}...`);
+              errors.push(`Errori TypeScript: ${tsCheck.errors}`);
+            }
+            
+            // Aggiorna gli errori per il prossimo tentativo
+            previousErrors += (previousErrors ? '\n\n' : '') + 
+              `Tentativo ${templateIndex + 1} (${templateName}):\n` + 
+              errors.join('\n');
+            
+            // salva primo parziale
+            const partialFile = join(config.invalidOutputDir, `${promptName}.partial.spec.ts`);
+            await fs.mkdir(config.invalidOutputDir, { recursive: true });
+            await fs.writeFile(partialFile, testContent);
+            try { await fs.unlink(tempOutputFile); } catch {}
+          }
+        } else {
+          console.log(`      ❌ Generazione fallita: ${result.output.slice(0, 200)}...`);
+          if (result.output.includes('TIMEOUT')) {
+            console.log(`         ⏰ Timeout dopo ${timeout}s`);
+            metrics.timeouts++;
+          }
+        }
+      } catch (error) {
+        console.log(`      ❌ Errore: ${error}`);
+      }
+    }
+  }
+
+  console.log(`   ❌ FALLIMENTO totale dopo ${totalAttempts} tentativi`);
+  return { success: false, message: `Failed after ${totalAttempts} attempts with all templates` };
+}
+
+async function generateTest(promptFile: string): Promise<{ success: boolean; message: string }> {
+  return await generateTestWithRetry(promptFile);
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/* ------------------------------------ Main ------------------------------------ */
 
 async function main() {
-  const args = parseCliArgs();
-  
-  console.log(`🚀 Starting LLM generation with up to ${args.maxRetries} attempts`);
-  console.log(`📁 Scaffold: ${args.scaffold}`);
-  console.log(`📄 Output: ${args.out}`);
-  console.log(`🤖 Model: ${args.model}`);
-  
-  try {
-    // 1. Read scaffold
-    const scaffoldContent = await readFileUtf8(args.scaffold);
-    
-    // 2. Parse header
-    const header = extractHeader(scaffoldContent, args.scaffold);
-    
-    // 3. Smart retry loop with progressive error handling
-    let lastResult: AttemptResult | null = null;
-    let currentErrors: string[] = [];  // 🎯 Current level errors only
-    let currentWarnings: string[] = [];
-    const maxRetries = args.maxRetries!;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const result = await attemptGeneration(
-        args, 
-        header, 
-        scaffoldContent, 
-        attempt,
-        currentErrors,    // Only pass current-level errors
-        currentWarnings
-      );
-      
-      lastResult = result;
-      
-      if (result.success && result.code) {
-        console.log(`✅ Attempt ${attempt} policy validation succeeded!`);
-        
-        // 🎯 RESET errors since we passed policy - now test compilation/runtime
-        console.log(`🔄 Policy passed - now testing gates with fresh error context`);
-        currentErrors = [];
-        currentWarnings = [];
-        
-        // Write the code for validation gates
-        await writeFileUtf8(args.out, result.code);
-        console.log(`📝 Code written to ${args.out}`);
-        
-        // Test Gate G1 (TypeScript compilation)
-        let tscPassed = true;
-        if (!args.skipTsc) {
-          console.log('🧪 TSC: Running TypeScript compilation...');
-          const tscResult = await runCommand('npx', ['tsc', '--noEmit', '--skipLibCheck', args.out]);
-          
-          if (!tscResult.success) {
-            console.log('🧪 TSC: FAIL - Will retry with TypeScript errors');
-            tscPassed = false;
-            // Only pass TypeScript errors, not old policy errors
-            currentErrors = [
-              'TypeScript compilation failed - fix these specific errors:',
-              tscResult.stdout,
-              tscResult.stderr
-            ];
-            
-            const errorPath = args.out + `.attempt${attempt}.ts-errors.txt`;
-            await writeFileUtf8(errorPath, `STDOUT:\n${tscResult.stdout}\n\nSTDERR:\n${tscResult.stderr}`);
-          } else {
-            console.log('🧪 TSC: PASS');
-          }
-        }
-        
-        // Test Gate G2 (Hardhat test)  
-        let testPassed = true;
-        if (tscPassed && !args.skipTest) {
-          console.log('🧪 TEST: Running Hardhat test...');
-          const testResult = await runCommand('npx', ['hardhat', 'test', args.out]);
-          
-          if (!testResult.success) {
-            console.log('🧪 TEST: FAIL - Will retry with test errors');
-            testPassed = false;
-            currentErrors = [
-              'Hardhat test execution failed - fix these runtime errors:',
-              testResult.stderr,
-              testResult.stdout.slice(0, 1000)
-            ];
-            
-            const errorPath = args.out + `.attempt${attempt}.test-errors.txt`;
-            const truncatedOutput = (testResult.stdout + '\n' + testResult.stderr).slice(0, 3000);
-            await writeFileUtf8(errorPath, truncatedOutput);
-          } else {
-            console.log('🧪 TEST: PASS');
-          }
-        }
-        
-        // Complete success
-        if (tscPassed && testPassed) {
-          console.log(`🎉 Attempt ${attempt} COMPLETE SUCCESS!`);
-          break;
-        }
-        
-        // Continue retry if we have more attempts
-        if (attempt >= maxRetries) {
-          console.error(`💀 All ${maxRetries} attempts exhausted.`);
-          if (!tscPassed) {
-            console.log(`📝 TypeScript errors saved to ${args.out}.attempt${attempt}.ts-errors.txt`);
-            process.exit(3);
-          } else if (!testPassed) {
-            console.log(`📝 Test errors saved to ${args.out}.attempt${attempt}.test-errors.txt`);
-            process.exit(4);
-          }
-        }
-        
-      } else {
-        console.log(`❌ Attempt ${attempt} failed policy validation`);
-        
-        // Accumulate only policy errors for next policy attempt
-        currentErrors = result.errors;
-        currentWarnings = result.warnings;
-        
-        // Save errors for this attempt
-        const errorsPath = args.out + `.attempt${attempt}.errors.txt`;
-        await writeFileUtf8(errorsPath, [...result.errors, ...result.warnings].join('\n'));
-        
-        if (attempt >= maxRetries) {
-          console.error(`💀 All ${maxRetries} attempts failed policy validation`);
-          console.log('📋 Files created for debugging:');
-          for (let i = 1; i <= maxRetries; i++) {
-            console.log(`   - ${args.out.replace(/\.ts$/, `.attempt${i}.prompt.txt`)} (prompt)`);
-            console.log(`   - ${args.out.replace(/\.ts$/, `.attempt${i}.raw.md`)} (raw response)`);
-            console.log(`   - ${args.out + `.attempt${i}.errors.txt`} (errors)`);
-          }
-          process.exit(2);
-        } else {
-          console.log(`🔄 Retrying with policy error feedback...`);
-        }
-      }
-    }
-    
-    // Final success
-    const stats = await fs.stat(args.out);
-    console.log(`\n🎉 SUCCESS! Generated ${stats.size} bytes at ${args.out}`);
-    console.log(`📋 Files created:`);
-    console.log(`   - ${args.out} (final test file)`);
-    
-    // Show all attempt files
-    for (let i = 1; i <= (lastResult?.attemptNumber || 1); i++) {
-      console.log(`   - ${args.out.replace(/\.ts$/, `.attempt${i}.prompt.txt`)} (attempt ${i} prompt)`);
-      console.log(`   - ${args.out.replace(/\.ts$/, `.attempt${i}.raw.md`)} (attempt ${i} response)`);
-    }
-    
-    process.exit(0);
-    
-  } catch (error) {
-    console.error('❌ FATAL ERROR (exit code 1):');
-    if (error instanceof Error) {
-      console.error(error.message);
-      if (error.message.includes('timeout') || error.message.includes('Ollama')) {
-        console.error('\n💡 TROUBLESHOOTING:');
-        console.error('   - Check if Ollama is running: curl http://localhost:11434/api/tags');
-        console.error('   - Verify model exists: ollama list');
-        console.error('   - Try increasing --timeout (current: ' + args.timeout + 's)');
-        console.error('   - For large prompts, try --max-output-chars to reduce complexity');
-      }
-    } else {
-      console.error('Unknown error:', error);
-    }
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log(`
+🚀 Sistema Generazione Test LLM con Retry Intelligente (remoto)
+
+Usage: npx ts-node scripts/llm/run-all.ts [options]
+
+Options:
+  --target=<name>   Genera test solo per contratti che contengono <name>
+  --force           Rigenera anche test già completati
+  --help, -h        Mostra questa guida
+
+Env:
+  OLLAMA_URL        Endpoint remoto (es. https://xxxx.ngrok-free.app)
+
+Examples:
+  export OLLAMA_URL="https://...ngrok-free.app"
+  npx ts-node scripts/llm/run-all.ts --target=DonationRegistry
+  npx ts-node scripts/llm/run-all.ts --force
+    `);
+    return;
+  }
+
+  if (!process.env.OLLAMA_URL) {
+    console.error('❌ OLLAMA_URL non impostata. Esempio: export OLLAMA_URL="https://<ngrok>.ngrok-free.app"');
     process.exit(1);
+  }
+
+  console.log('🚀 Avvio generazione automatica test con retry intelligente (Ollama remoto)...');
+
+  const targetFile = process.argv.find(arg => arg.startsWith('--target='))?.split('=')[1];
+  const skipCompleted = !process.argv.includes('--force');
+
+  try {
+    await fs.access(config.promptsDir);
+    await fs.mkdir(config.outputDir, { recursive: true });
+    await fs.mkdir(config.validOutputDir, { recursive: true });
+    await fs.mkdir(config.invalidOutputDir, { recursive: true });
+    await fs.mkdir(config.tempDir, { recursive: true });
+  } catch (error) {
+    console.error('❌ Errore accesso directory:', error);
+    process.exit(1);
+  }
+
+  let promptFiles = await fs.readdir(config.promptsDir);
+  let coveragePrompts = promptFiles
+    .filter(file => file.endsWith('.coverage.prompt.txt'))
+    .map(file => join(config.promptsDir, file));
+
+  if (targetFile) {
+    coveragePrompts = coveragePrompts.filter(file => {
+      const baseName = basename(file, '.coverage.prompt.txt');
+      return baseName.toLowerCase().includes(targetFile.toLowerCase());
+    });
+    console.log(`🎯 Filtrando per target: ${targetFile}`);
+  }
+
+  if (skipCompleted) {
+    const initialCount = coveragePrompts.length;
+    coveragePrompts = coveragePrompts.filter(file => {
+      const promptName = basename(file, '.coverage.prompt.txt');
+      const validFile = join(config.validOutputDir, `${promptName}.spec.ts`);
+      return !existsSync(validFile);
+    });
+    const skippedCount = initialCount - coveragePrompts.length;
+    if (skippedCount > 0) {
+      console.log(`⏭️  Saltati ${skippedCount} test già completati (usa --force per rigenerare)`);
+    }
+  }
+
+  console.log(`📁 Trovati ${coveragePrompts.length} prompt da processare`);
+
+  const results = {
+    total: coveragePrompts.length,
+    success: 0,
+    failed: 0,
+    processed: 0,
+  };
+
+  for (let i = 0; i < coveragePrompts.length; i += config.maxConcurrent) {
+    const batch = coveragePrompts.slice(i, i + config.maxConcurrent);
+
+    console.log(`\n🔄 Processando batch ${Math.floor(i / config.maxConcurrent) + 1}/${Math.ceil(coveragePrompts.length / config.maxConcurrent)}`);
+    console.log(`📊 Progresso: ${results.processed}/${results.total} (${results.total ? Math.round(results.processed / results.total * 100) : 0}%)`);
+
+    const batchPromises = batch.map(promptFile => generateTest(promptFile));
+    const batchResults = await Promise.all(batchPromises);
+
+    batchResults.forEach(result => {
+      results.processed++;
+      if (result.success) results.success++; else results.failed++;
+    });
+
+    if (i + config.maxConcurrent < coveragePrompts.length) {
+      console.log('⏸️  Pausa di 5 secondi prima del prossimo batch...');
+      await sleep(5000);
+    }
+  }
+
+  console.log('\n🏁 Generazione completata!');
+  console.log(`📊 Statistiche dettagliate:`);
+  console.log(`   📁 Totale prompt processati: ${metrics.total}`);
+  console.log(`   ✅ Test validi (compilabili e completi): ${metrics.successful}`);
+  console.log(`   ⚠️  Test incompleti (con TODO_AI): ${metrics.incomplete}`);
+  console.log(`   ❌ Errori di compilazione: ${metrics.compilationErrors}`);
+  console.log(`   🧩 Errori ABI (funzioni/eventi non in ABI): ${metrics.abiErrors}`);
+  console.log(`   🛑 Banned patterns (external provider/wallet/RPC): ${metrics.bannedPatternErrors}`);
+  console.log(`   ⏰ Timeout LLM: ${metrics.timeouts}`);
+  console.log(`   📈 Tasso successo: ${metrics.total ? Math.round(metrics.successful / metrics.total * 100) : 0}%`);
+  console.log(`   🔧 Tasso compilazione: ${metrics.total ? Math.round((metrics.successful + metrics.incomplete) / metrics.total * 100) : 0}%`);
+
+  const metricsFile = join(config.outputDir, 'quality-metrics.json');
+  await fs.writeFile(metricsFile, JSON.stringify({
+    timestamp: new Date().toISOString(),
+    config,
+    metrics,
+    qualityAnalysis: {
+      successRate: metrics.total ? metrics.successful / metrics.total : 0,
+      compilationRate: metrics.total ? (metrics.successful + metrics.incomplete) / metrics.total : 0,
+      completionRate: (metrics.successful + metrics.incomplete) ? (metrics.successful / (metrics.successful + metrics.incomplete)) : 0
+    }
+  }, null, 2));
+
+  if (metrics.successful > 0) {
+    console.log(`\n🎉 Test validi salvati in: ${config.validOutputDir}`);
+    console.log(`📋 Metriche salvate in: ${metricsFile}`);
+  }
+  if (metrics.compilationErrors > 0 || metrics.incomplete > 0) {
+    console.log(`\n🔍 Test problematici in: ${config.invalidOutputDir}`);
   }
 }
 
-// Handle interruption
 process.on('SIGINT', () => {
-  console.log('\n⚠️  Process interrupted by user');
+  console.log('\n⚠️  Processo interrotto dall\'utente');
   process.exit(0);
 });
 
+/* Rimuove blocchi markdown e testo extra, restituisce solo TypeScript puro */
+function extractTypeScriptBlock(content: string): string {
+  // Cerca blocco ```ts ... ``` oppure ```typescript ... ```
+  const match = content.match(/```(?:ts|typescript)?[\s\r\n]*([\s\S]*?)```/i);
+  if (match) return match[1].trim();
+  // Se non trova blocco, restituisce tutto il contenuto (già pulito)
+  return content.trim();
+}
+
 main().catch(error => {
-  console.error('❌ Fatal error:', error);
+  console.error('❌ Errore fatale:', error);
   process.exit(1);
 });

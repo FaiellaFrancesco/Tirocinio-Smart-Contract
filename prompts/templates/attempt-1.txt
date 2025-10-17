@@ -1,0 +1,9 @@
+Complete this Hardhat test by replacing ALL TODO_AI with working code.
+
+Contract: {{CONTRACT_NAME}}
+Available functions: {{FUNCTION_LIST}}
+Available events: {{EVENT_LIST}}
+
+Replace every TODO_AI comment with real TypeScript code. Output ONLY the complete TypeScript code, nothing else.
+
+{{SCAFFOLD_CONTENT}}

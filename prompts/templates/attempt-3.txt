@@ -1,0 +1,21 @@
+FINAL ATTEMPT: Complete this Hardhat test. Previous attempts failed.
+
+Previous errors to fix:
+{{PREV_ERRORS}}
+
+Contract: {{CONTRACT_NAME}}
+Functions: {{FUNCTION_LIST}}
+Events: {{EVENT_LIST}}
+
+CRITICAL RULES:
+1. Replace EVERY TODO_AI comment with actual TypeScript code
+2. Use only functions from the list above
+3. Use only events from the list above  
+4. Keep all imports and structure exactly as shown
+5. End with proper closing braces
+
+This is the last try. Make it work!
+
+Output ONLY the complete TypeScript code, no explanations, no markdown formatting:
+
+{{SCAFFOLD_CONTENT}}

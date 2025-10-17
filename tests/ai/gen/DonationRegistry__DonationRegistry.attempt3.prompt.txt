@@ -1,6 +1,17 @@
 YOU ARE STRICTLY A Hardhat local unit-test generator (Mocha/Chai + Ethers v6).
 
-{{PREV_ERRORS}}
+PREVIOUS ATTEMPT ERRORS:
+CRITICAL ERRORS (must fix):
+- Network error: Cannot connect to Ollama at http://localhost:11434. Is Ollama running?
+Original: fetch failed
+
+🚨 FINAL ATTEMPT - Apply these specific fixes:
+- Replace ALL BigInt literals (100n) with ethers.parseEther("100")
+- Declare missing variables: const { owner, addr1, addr2, contract } = await loadFixture(deployFixture);
+- Use correct Chai syntax: .to.be.revertedWith("message") NOT .revertedWithCustomError
+- Fix import: import { ethers } from "hardhat"; (NOT from "ethers")
+
+
 
 🚨 CRITICAL: This is the FINAL attempt. You MUST fix ALL errors shown above.
 
@@ -114,16 +125,33 @@ describe("X", function () {
 });
 ```
 
-Target contract: {{CONTRACT_NAME}}
+Target contract: DonationRegistry
 
 CRITICAL: This is the FINAL retry attempt. You MUST generate WORKING, COMPILABLE code that strictly follows the scaffold structure.
 
 ABI SUMMARY (STRICT - you CANNOT use anything outside this list):
 FUNCTIONS:
-{{FUNCTION_LIST}}
+donate()->payable
+getDonationTotal(address)->view
+owner()->view
+withdraw()->nonpayable
+EVENTS:
+DonationReceived(address,uint256)
+FundsWithdrawn(address,uint256)
+LLM NOTES (follow strictly):
+- Remove this.skip() and fill TODO_AI blocks when implementing tests.
+- Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+- View/Pure: assert return values. State-changing: happy path + revert + boundary.
+- Do NOT introduce functions that are not listed above.
 
 EVENTS:
-{{EVENT_LIST}}
+DonationReceived(address,uint256)
+FundsWithdrawn(address,uint256)
+LLM NOTES (follow strictly):
+- Remove this.skip() and fill TODO_AI blocks when implementing tests.
+- Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+- View/Pure: assert return values. State-changing: happy path + revert + boundary.
+- Do NOT introduce functions that are not listed above.
 
 ABSOLUTE CONSTRAINTS (non-negotiable)
 1) Output format ONLY
@@ -169,6 +197,119 @@ ABSOLUTE CONSTRAINTS (non-negotiable)
 
 SCAFFOLD (replace ALL TODO_AI, preserve structure):
 
-{{SCAFFOLD_CONTENT}}
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+
+/**
+ * Auto-generated scaffold for DonationRegistry.
+ * ARTIFACT_SOURCE: contracts/DonationRegistry.sol
+ * ARTIFACT_PATH: DonationRegistry.sol/DonationRegistry.json
+ * ARTIFACT_FQN: contracts/DonationRegistry.sol:DonationRegistry
+ *
+ * FUNCTIONS:
+ *   donate()->payable
+ *   getDonationTotal(address)->view
+ *   owner()->view
+ *   withdraw()->nonpayable
+ *
+ * EVENTS:
+ *   DonationReceived(address,uint256)
+ *   FundsWithdrawn(address,uint256)
+ *
+ * LLM NOTES (follow strictly):
+ * - Remove this.skip() and fill TODO_AI blocks when implementing tests.
+ * - Use Ethers v6 (no ethers.utils), bigint literals, ethers.ZeroAddress.
+ * - View/Pure: assert return values. State-changing: happy path + revert + boundary.
+ * - Do NOT introduce functions that are not listed above.
+ */
+
+describe("DonationRegistry — AI Generated Scaffold", function () {
+  async function deployFixture() {
+    const [owner, addr1, addr2] = await ethers.getSigners();
+    const Contract = await ethers.getContractFactory("contracts/DonationRegistry.sol:DonationRegistry");
+    const contract = await Contract.deploy();
+    await contract.waitForDeployment();
+    return { contract, owner, addr1, addr2 };
+  }
+
+  it("deployment", async function () {
+    const { contract } = await loadFixture(deployFixture);
+    expect(await contract.getAddress()).to.be.a('string');
+  });
+
+
+  describe("donate()", function () {
+    it("happy path", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions (e.g., fund contract if withdrawing)
+      // TODO_AI: Act -> call the function with valid inputs
+      // TODO_AI: Assert -> expect events/state changes
+    });
+
+    it("reverts on invalid input/role", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions
+      // TODO_AI: Act -> call function with invalid inputs or unauthorized caller
+      // TODO_AI: Assert -> expect revert with specific message
+    });
+
+    it("boundary cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test boundary conditions (0, max values, role limits, etc.)
+    });
+  });
+
+  describe("getDonationTotal(address)", function () {
+    it("happy path", async function () {
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call getDonationTotal() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
+    });
+
+    it("edge cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test edge cases (zero values, max values, etc.)
+    });
+  });
+
+  describe("owner()", function () {
+    it("happy path", async function () {
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call owner() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
+    });
+
+    it("edge cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test edge cases (zero values, max values, etc.)
+    });
+  });
+
+  describe("withdraw()", function () {
+    it("happy path", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions (e.g., fund contract if withdrawing)
+      // TODO_AI: Act -> call the function with valid inputs
+      // TODO_AI: Assert -> expect events/state changes
+    });
+
+    it("reverts on invalid input/role", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Arrange -> prepare preconditions
+      // TODO_AI: Act -> call function with invalid inputs or unauthorized caller
+      // TODO_AI: Assert -> expect revert with specific message
+    });
+
+    it("boundary cases", async function () {
+      this.skip(); // TODO_AI: remove this.skip() when implementing
+      // TODO_AI: Test boundary conditions (0, max values, role limits, etc.)
+    });
+  });
+
+});
+
 
 FINAL OUTPUT: Return EXACTLY ONE ```ts code block with the COMPLETE working .spec.ts file. NOTHING ELSE.
