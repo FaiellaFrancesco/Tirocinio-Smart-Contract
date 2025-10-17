@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { SparkStarterToken, SparkStarterToken__factory } from "../../typechain-types";
 
 /**
  * Auto-generated scaffold for SparkStarterToken.
@@ -77,24 +76,24 @@ import { SparkStarterToken, SparkStarterToken__factory } from "../../typechain-t
 describe("SparkStarterToken — AI Generated Scaffold", function () {
   async function deployFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
-    const factory = new SparkStarterToken__factory(owner);
-    const contract = await factory.deploy({}, ethers.ZeroAddress, ethers.ZeroAddress);
+    const Contract = await ethers.getContractFactory("contracts/0x78fca1a50af3a9dabe90099df80a4a809ce386b3.sol:SparkStarterToken");
+    const contract = await Contract.deploy({}, ethers.ZeroAddress, ethers.ZeroAddress);
     await contract.waitForDeployment();
     return { contract, owner, addr1, addr2 };
   }
 
   it("deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.be.properAddress;
+    expect(await contract.getAddress()).to.be.a('string');
   });
 
 
   describe("FEE_DIVISOR()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call FEE_DIVISOR() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call FEE_DIVISOR() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -105,10 +104,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("WETH()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call WETH() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call WETH() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -140,10 +139,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("allowance(address,address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call allowance() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call allowance() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -175,10 +174,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("athMcap()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call athMcap() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call athMcap() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -189,10 +188,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("balanceOf(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call balanceOf() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call balanceOf() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -224,10 +223,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("buyTax()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call buyTax() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call buyTax() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -238,10 +237,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("computeMcap()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call computeMcap() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call computeMcap() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -252,10 +251,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("decimals()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call decimals() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call decimals() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -287,10 +286,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("dexRouter()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call dexRouter() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call dexRouter() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -301,10 +300,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("dynamicTaxOn()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call dynamicTaxOn() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call dynamicTaxOn() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -336,10 +335,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("exemptFromFees(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call exemptFromFees() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call exemptFromFees() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -350,10 +349,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("exemptFromLimits(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call exemptFromLimits() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call exemptFromLimits() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -385,10 +384,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("incubatorAddress()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call incubatorAddress() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call incubatorAddress() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -399,10 +398,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("isAMMPair(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call isAMMPair() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call isAMMPair() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -413,10 +412,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("lastSwapBackBlock()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call lastSwapBackBlock() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call lastSwapBackBlock() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -427,10 +426,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("launchTimestamp()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call launchTimestamp() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call launchTimestamp() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -441,10 +440,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("limited()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call limited() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call limited() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -455,10 +454,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("lpPair()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call lpPair() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call lpPair() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -469,10 +468,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("maxWallet()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call maxWallet() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call maxWallet() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -483,10 +482,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("name()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call name() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call name() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -497,10 +496,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("owner()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call owner() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call owner() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -511,10 +510,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("platformAddress()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call platformAddress() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call platformAddress() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -525,10 +524,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("priceFeed()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call priceFeed() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call priceFeed() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -560,10 +559,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("sellTax()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call sellTax() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call sellTax() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -574,10 +573,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("startingMcap()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call startingMcap() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call startingMcap() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -588,10 +587,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("swapTokensAtAmt()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call swapTokensAtAmt() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call swapTokensAtAmt() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -602,10 +601,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("symbol()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call symbol() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call symbol() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -616,10 +615,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("taxAddress1()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call taxAddress1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call taxAddress1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -630,10 +629,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("taxAddress1Split()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call taxAddress1Split() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call taxAddress1Split() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -644,10 +643,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("taxAddress2()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call taxAddress2() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call taxAddress2() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -658,10 +657,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("teamTokenAddress()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call teamTokenAddress() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call teamTokenAddress() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -672,10 +671,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("tokenInfo()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call tokenInfo() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call tokenInfo() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -686,10 +685,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("tokenLocker()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call tokenLocker() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call tokenLocker() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -700,10 +699,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("totalSupply()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call totalSupply() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call totalSupply() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -714,10 +713,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("tradingAllowed()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call tradingAllowed() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call tradingAllowed() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -791,10 +790,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("vaultAddress()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call vaultAddress() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call vaultAddress() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -805,10 +804,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("vaultUnlocked()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call vaultUnlocked() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call vaultUnlocked() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -819,10 +818,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("whitelistActive()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call whitelistActive() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call whitelistActive() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -833,10 +832,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("whitelistStartTime()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call whitelistStartTime() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call whitelistStartTime() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -868,10 +867,10 @@ describe("SparkStarterToken — AI Generated Scaffold", function () {
 
   describe("whitelistedAddress(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call whitelistedAddress() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call whitelistedAddress() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {

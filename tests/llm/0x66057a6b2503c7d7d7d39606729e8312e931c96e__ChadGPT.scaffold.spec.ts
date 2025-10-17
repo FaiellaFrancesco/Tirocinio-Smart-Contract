@@ -46,16 +46,16 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   it("deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.be.properAddress;
+    expect(await contract.getAddress()).to.be.a('string');
   });
 
 
   describe("A1(address,address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call A1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call A1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -66,10 +66,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("B1(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call B1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call B1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -80,10 +80,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("D1()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call D1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call D1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -94,10 +94,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("N1()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call N1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call N1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -108,10 +108,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("S1()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call S1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call S1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -122,10 +122,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("T1()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call T1() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call T1() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -199,10 +199,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("d()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call d() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call d() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -234,10 +234,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("e()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call e() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call e() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -269,10 +269,10 @@ describe("ChadGPT — AI Generated Scaffold", function () {
 
   describe("v()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call v() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call v() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {

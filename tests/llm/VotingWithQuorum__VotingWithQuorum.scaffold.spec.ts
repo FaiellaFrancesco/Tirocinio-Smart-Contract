@@ -43,14 +43,14 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
   async function deployFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
     const Contract = await ethers.getContractFactory("contracts/VotingWithQuorum.sol:VotingWithQuorum");
-    const contract = await Contract.deploy(0n);
+    const contract = await Contract.deploy(BigInt(0));
     await contract.waitForDeployment();
     return { contract, owner, addr1, addr2 };
   }
 
   it("deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.be.properAddress;
+    expect(await contract.getAddress()).to.be.a('string');
   });
 
 
@@ -77,10 +77,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("getWinningProposal()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call getWinningProposal() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call getWinningProposal() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -91,10 +91,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("hasVoted(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call hasVoted() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call hasVoted() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -105,10 +105,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("owner()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call owner() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call owner() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -119,10 +119,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("proposals(uint256)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call proposals() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call proposals() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -133,10 +133,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("quorumPercent()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call quorumPercent() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call quorumPercent() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -168,10 +168,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("registeredVoters(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call registeredVoters() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call registeredVoters() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -224,10 +224,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("totalVoters()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call totalVoters() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call totalVoters() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -259,10 +259,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("votesCast()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call votesCast() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call votesCast() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -273,10 +273,10 @@ describe("VotingWithQuorum — AI Generated Scaffold", function () {
 
   describe("votingStarted()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call votingStarted() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call votingStarted() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {

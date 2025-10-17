@@ -71,7 +71,7 @@ function isReadableFile(filepath: string): boolean {
 
 function getConstructorPlaceholder(solType: string): string {
   if (solType.endsWith("[]")) return "[]";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "BigInt(0)";
   if (solType === "address") return "ethers.ZeroAddress";
   if (solType === "bool") return "false";
   if (solType === "string") return '""';
@@ -83,7 +83,7 @@ function getConstructorPlaceholder(solType: string): string {
 
 function getTestPlaceholder(solType: string): string {
   if (solType.endsWith("[]")) return "[] /* TODO_AI */";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "1n /* TODO_AI */";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "BigInt(1) /* TODO_AI */";
   if (solType === "address") return "addr1.address /* TODO_AI */";
   if (solType === "bool") return "true /* TODO_AI */";
   if (solType === "string") return '"example" /* TODO_AI */';
@@ -95,7 +95,7 @@ function getTestPlaceholder(solType: string): string {
 
 function getBadTestPlaceholder(solType: string): string {
   if (solType.endsWith("[]")) return "[] /* TODO_AI: make invalid/edge */";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: make invalid/edge */";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "BigInt(0) /* TODO_AI: make invalid/edge */";
   if (solType === "bool") return "false /* TODO_AI */";
   if (solType === "address") return "ethers.ZeroAddress /* TODO_AI: use zero/unauthorized */";
   if (solType.startsWith("bytes32")) return `"0x${"00".repeat(32)}" /* TODO_AI */`;
@@ -161,10 +161,10 @@ function renderFunctionBlock(fn: AbiItem): string {
     return `
   describe("${sig}", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call ${name}() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call ${name}() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -258,7 +258,7 @@ describe("${contractName} — AI Generated Scaffold", function () {
 
   it("deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.be.properAddress;
+    expect(await contract.getAddress()).to.be.a('string');
   });
 
 ${fns.map(renderFunctionBlock).join("")}

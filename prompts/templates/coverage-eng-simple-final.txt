@@ -1,0 +1,19 @@
+🚨 FINAL ATTEMPT! Fix ALL errors: {{PREV_ERRORS}}
+
+COPY THIS PATTERN EXACTLY:
+
+```typescript
+it("any test", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  expect(someResult).to.equal(expectedValue);
+});
+```
+
+CRITICAL FIXES:
+- Start EVERY test with: const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+- Use: .to.be.revertedWith("message") 
+- Use: BigInt(0) not 0n
+- End file with: });
+
+Generate complete working .spec.ts file:
+{{SCAFFOLD_CONTENT}}

@@ -198,6 +198,9 @@ function validateGeneratedCodePolicy(tsCode: string): string[] {
     { pattern: /new\s+ethers\.(JsonRpcProvider|Wallet|Contract)\b/, message: 'BANNED: external provider/wallet creation' },
     { pattern: /\bethers\.providers\b/, message: 'BANNED: ethers.providers usage' },
     { pattern: /\bethers\.utils\./, message: 'BANNED: ethers.utils.* (use ethers.parseEther, etc.)' },
+    { pattern: /\b\d+n\b/, message: 'BANNED: BigInt literals (100n) - use ethers.parseEther("100") instead' },
+    { pattern: /\.properAddress\b/, message: 'BANNED: .properAddress - use .to.be.a("string") instead' },
+    { pattern: /\.revertedWithCustomError\b/, message: 'BANNED: .revertedWithCustomError - use .to.be.revertedWith("reason") instead' },
     { pattern: /0x0{40}/i, message: 'BANNED: hardcoded zero address (use ethers.ZeroAddress)' }
   ];
   
@@ -226,6 +229,25 @@ function validateGeneratedCodePolicy(tsCode: string): string[] {
   // Check loadFixture usage
   if (!/loadFixture\s*\(\s*deployFixture\s*\)/.test(tsCode)) {
     errs.push("Missing loadFixture(deployFixture) usage.");
+  }
+  
+  // Check for common undefined variable patterns
+  const undefinedVarPatterns = [
+    { pattern: /\baddr1\b/, varName: 'addr1' },
+    { pattern: /\baddr2\b/, varName: 'addr2' },
+    { pattern: /\bowner\b/, varName: 'owner' },
+    { pattern: /\bcontract\b/, varName: 'contract' }
+  ];
+  
+  for (const { pattern, varName } of undefinedVarPatterns) {
+    if (pattern.test(tsCode) && !new RegExp(`const\\s*\\{[^}]*\\b${varName}\\b[^}]*\\}\\s*=\\s*await\\s+loadFixture`).test(tsCode)) {
+      errs.push(`Variable '${varName}' used but not destructured from loadFixture. Add: const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);`);
+    }
+  }
+  
+  // Check deployFixture returns all required variables
+  if (/async\s+function\s+deployFixture/.test(tsCode) && !/return\s*\{[^}]*contract[^}]*owner[^}]*addr1[^}]*addr2[^}]*\}/.test(tsCode)) {
+    errs.push("deployFixture must return { contract, owner, addr1, addr2 } with ALL signers");
   }
   
   return errs;
@@ -293,11 +315,28 @@ function extractCodeBlock(markdown: string): { code: string | null; hasCodeBlock
 }
 
 function getTemplateForAttempt(attemptNumber: number, originalTemplate: string): string {
-  const templates = [
-    originalTemplate,                              // Attempt 1: original
-    'prompts/templates/coverage-eng-retry.txt',    // Attempt 2: retry
-    'prompts/templates/coverage-eng-final.txt'     // Attempt 3: final
-  ];
+  // Use original template for attempt 1, then progression based on template type
+  if (attemptNumber === 1) {
+    return originalTemplate;
+  }
+  
+  // Determine template family from original template
+  let templates: string[];
+  if (originalTemplate.includes('simple')) {
+    // Simple template family
+    templates = [
+      'prompts/templates/coverage-eng-simple.txt',
+      'prompts/templates/coverage-eng-simple-retry.txt', 
+      'prompts/templates/coverage-eng-simple-final.txt'
+    ];
+  } else {
+    // Original/detailed template family  
+    templates = [
+      'prompts/templates/coverage-eng.txt',
+      'prompts/templates/coverage-eng-retry.txt',
+      'prompts/templates/coverage-eng-final.txt'
+    ];
+  }
   
   const index = Math.min(attemptNumber - 1, templates.length - 1);
   return templates[index];

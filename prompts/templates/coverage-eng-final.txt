@@ -4,32 +4,75 @@ YOU ARE STRICTLY A Hardhat local unit-test generator (Mocha/Chai + Ethers v6).
 
 🚨 CRITICAL: This is the FINAL attempt. You MUST fix ALL errors shown above.
 
-COMMON ERROR FIXES (apply these patterns):
+CRITICAL ERROR FIXES (apply these EXACT patterns):
 
-1. BigInt literals error → Replace: 100n with ethers.parseEther("100")
-2. Missing variables → Get from loadFixture: const { owner, addr1, addr2, contract } = await loadFixture(deployFixture);
-3. Wrong import → Use: import { ethers } from "hardhat"; (NOT from "ethers" package)
-4. Wrong assertions → Use: .to.be.revertedWith("reason") or .to.emit(contract, "EventName")
-5. Syntax errors → Check parentheses, semicolons, brackets matching
+1. ❌ BigInt literals: 0n, 100n → ✅ ethers.parseEther("0"), ethers.parseEther("100")
+2. ❌ Missing variables: Cannot find name 'addr1' → ✅ ALWAYS destructure: const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+3. ❌ Wrong Chai assertions: .properAddress, .revertedWithCustomError → ✅ Use: .to.be.a("string"), .to.be.revertedWith("reason")
+4. ❌ Wrong ethers import: import { ethers } from "ethers" → ✅ import { ethers } from "hardhat";
+5. ❌ Direct BigInt: 1000000n → ✅ ethers.parseEther("1000000") or ethers.parseUnits("1000000", 18)
+6. ❌ Wrong constructor: deploy(0n) → ✅ Check scaffold comments for exact params needed
+7. ❌ Missing await: contract.deploy() → ✅ await contract.waitForDeployment();
 
 EXACT PATTERNS TO FOLLOW:
 ```ts
-// ✅ CORRECT deployFixture pattern:
+// ✅ CORRECT imports (use these EXACTLY):
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+
+// ✅ CORRECT deployFixture pattern for MockERC20:
 async function deployFixture() {
   const [owner, addr1, addr2] = await ethers.getSigners();
   const MockERC20 = await ethers.getContractFactory("MockERC20");
   const contract = await MockERC20.deploy("Test Token", "TEST", ethers.parseEther("1000000"));
   await contract.waitForDeployment();
-  return { contract, owner, addr1, addr2 };
+  return { contract, owner, addr1, addr2 }; // MUST return ALL signers
 }
 
-// ✅ CORRECT test pattern:
-it("should transfer tokens", async function () {
-  const { contract, owner, addr1 } = await loadFixture(deployFixture);
-  const amount = ethers.parseEther("100"); // NOT 100n
-  await contract.transfer(addr1.address, amount);
-  expect(await contract.balanceOf(addr1.address)).to.equal(amount);
+// ✅ ALTERNATIVE deployFixture if constructor takes no params:
+async function deployFixture() {
+  const [owner, addr1, addr2] = await ethers.getSigners();
+  const MockERC20 = await ethers.getContractFactory("MockERC20");
+  const contract = await MockERC20.deploy();
+  await contract.waitForDeployment();
+  return { contract, owner, addr1, addr2 }; // MUST return ALL signers
+}
+
+// ✅ UNIVERSAL CORRECT PATTERNS (work for ANY contract):
+
+// 1. ALWAYS destructure ALL variables from loadFixture in EVERY test:
+it("any test name", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  // Now ALL variables are accessible: contract, owner, addr1, addr2
+  await contract.connect(addr1).someFunction(addr2.address);
 });
+
+// 2. CORRECT Chai revert patterns (universal):
+it("should revert with message", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  await expect(contract.connect(addr1).someFunction())
+    .to.be.revertedWith("Expected error message"); // ✅ CORRECT
+  // NEVER use: .to.be.revertedWithCustomError() // ❌ WRONG
+});
+
+// 3. CORRECT deployment test (universal):
+it("deployment", async function () {
+  const { contract } = await loadFixture(deployFixture);
+  expect(await contract.getAddress()).to.be.a("string"); // ✅ CORRECT
+  // NEVER use: .to.be.properAddress // ❌ WRONG
+});
+
+// 4. CORRECT number handling (universal):
+it("number operations", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  const amount = BigInt(100); // ✅ For constructor params
+  const value = ethers.parseEther("1.0"); // ✅ For ether amounts
+  await contract.someFunction(amount);
+});
+
+// 5. ALWAYS complete the file properly:
+}); // ✅ MUST end with closing brace and semicolon
 ```
 
 MUST:

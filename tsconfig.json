@@ -21,6 +21,7 @@
     "./scripts/**/*.ts",
     "valido/**/*.ts", 
     "./tests/llm-eng/**/*.ts",
+    "./tests/ai/**/*.ts",
     "./typechain-types/**/*.ts",
     "./hardhat.config.ts"
   ],

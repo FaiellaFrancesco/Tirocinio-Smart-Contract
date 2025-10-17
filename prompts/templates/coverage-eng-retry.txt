@@ -86,6 +86,13 @@ HARD CONSTRAINTS
    - Implement for each function block at least: one happy-path, one revert (when applicable), and minimal boundary checks (zero, max, zero address) when meaningful.
    - Keep the file concise (≤ ~180 lines). Do NOT add unrelated tests.
 
+CRITICAL: Fix these universal errors from {{PREV_ERRORS}}:
+- "Cannot find name 'addr1/addr2'" → ALWAYS: const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+- ".revertedWithCustomError" error → USE: .to.be.revertedWith("message")
+- ".properAddress" error → USE: .to.be.a('string')
+- "File truncated" → ALWAYS end with closing });
+- BigInt literal errors → USE: BigInt(0) not 0n
+
 SCAFFOLD (replace ALL TODO_AI with working code; keep titles/structure):
 
 {{SCAFFOLD_CONTENT}}

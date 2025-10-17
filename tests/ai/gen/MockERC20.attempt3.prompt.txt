@@ -15,32 +15,75 @@ Original: fetch failed
 
 🚨 CRITICAL: This is the FINAL attempt. You MUST fix ALL errors shown above.
 
-COMMON ERROR FIXES (apply these patterns):
+CRITICAL ERROR FIXES (apply these EXACT patterns):
 
-1. BigInt literals error → Replace: 100n with ethers.parseEther("100")
-2. Missing variables → Get from loadFixture: const { owner, addr1, addr2, contract } = await loadFixture(deployFixture);
-3. Wrong import → Use: import { ethers } from "hardhat"; (NOT from "ethers" package)
-4. Wrong assertions → Use: .to.be.revertedWith("reason") or .to.emit(contract, "EventName")
-5. Syntax errors → Check parentheses, semicolons, brackets matching
+1. ❌ BigInt literals: 0n, 100n → ✅ ethers.parseEther("0"), ethers.parseEther("100")
+2. ❌ Missing variables: Cannot find name 'addr1' → ✅ ALWAYS destructure: const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+3. ❌ Wrong Chai assertions: .properAddress, .revertedWithCustomError → ✅ Use: .to.be.a("string"), .to.be.revertedWith("reason")
+4. ❌ Wrong ethers import: import { ethers } from "ethers" → ✅ import { ethers } from "hardhat";
+5. ❌ Direct BigInt: 1000000n → ✅ ethers.parseEther("1000000") or ethers.parseUnits("1000000", 18)
+6. ❌ Wrong constructor: deploy(0n) → ✅ Check scaffold comments for exact params needed
+7. ❌ Missing await: contract.deploy() → ✅ await contract.waitForDeployment();
 
 EXACT PATTERNS TO FOLLOW:
 ```ts
-// ✅ CORRECT deployFixture pattern:
+// ✅ CORRECT imports (use these EXACTLY):
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+
+// ✅ CORRECT deployFixture pattern for MockERC20:
 async function deployFixture() {
   const [owner, addr1, addr2] = await ethers.getSigners();
   const MockERC20 = await ethers.getContractFactory("MockERC20");
   const contract = await MockERC20.deploy("Test Token", "TEST", ethers.parseEther("1000000"));
   await contract.waitForDeployment();
-  return { contract, owner, addr1, addr2 };
+  return { contract, owner, addr1, addr2 }; // MUST return ALL signers
 }
 
-// ✅ CORRECT test pattern:
-it("should transfer tokens", async function () {
-  const { contract, owner, addr1 } = await loadFixture(deployFixture);
-  const amount = ethers.parseEther("100"); // NOT 100n
-  await contract.transfer(addr1.address, amount);
-  expect(await contract.balanceOf(addr1.address)).to.equal(amount);
+// ✅ ALTERNATIVE deployFixture if constructor takes no params:
+async function deployFixture() {
+  const [owner, addr1, addr2] = await ethers.getSigners();
+  const MockERC20 = await ethers.getContractFactory("MockERC20");
+  const contract = await MockERC20.deploy();
+  await contract.waitForDeployment();
+  return { contract, owner, addr1, addr2 }; // MUST return ALL signers
+}
+
+// ✅ UNIVERSAL CORRECT PATTERNS (work for ANY contract):
+
+// 1. ALWAYS destructure ALL variables from loadFixture in EVERY test:
+it("any test name", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  // Now ALL variables are accessible: contract, owner, addr1, addr2
+  await contract.connect(addr1).someFunction(addr2.address);
 });
+
+// 2. CORRECT Chai revert patterns (universal):
+it("should revert with message", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  await expect(contract.connect(addr1).someFunction())
+    .to.be.revertedWith("Expected error message"); // ✅ CORRECT
+  // NEVER use: .to.be.revertedWithCustomError() // ❌ WRONG
+});
+
+// 3. CORRECT deployment test (universal):
+it("deployment", async function () {
+  const { contract } = await loadFixture(deployFixture);
+  expect(await contract.getAddress()).to.be.a("string"); // ✅ CORRECT
+  // NEVER use: .to.be.properAddress // ❌ WRONG
+});
+
+// 4. CORRECT number handling (universal):
+it("number operations", async function () {
+  const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+  const amount = BigInt(100); // ✅ For constructor params
+  const value = ethers.parseEther("1.0"); // ✅ For ether amounts
+  await contract.someFunction(amount);
+});
+
+// 5. ALWAYS complete the file properly:
+}); // ✅ MUST end with closing brace and semicolon
 ```
 
 MUST:
@@ -192,23 +235,23 @@ describe("MockERC20 — AI Generated Scaffold", function () {
   async function deployFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
     const Contract = await ethers.getContractFactory("contracts/MockERC20.sol:MockERC20");
-    const contract = await Contract.deploy(0n);
+    const contract = await Contract.deploy(BigInt(0));
     await contract.waitForDeployment();
     return { contract, owner, addr1, addr2 };
   }
 
   it("deployment", async function () {
     const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.be.properAddress;
+    expect(await contract.getAddress()).to.be.a('string');
   });
 
 
   describe("allowance(address,address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call allowance() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call allowance() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -240,10 +283,10 @@ describe("MockERC20 — AI Generated Scaffold", function () {
 
   describe("balanceOf(address)", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call balanceOf() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call balanceOf() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -254,10 +297,10 @@ describe("MockERC20 — AI Generated Scaffold", function () {
 
   describe("decimals()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call decimals() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call decimals() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -289,10 +332,10 @@ describe("MockERC20 — AI Generated Scaffold", function () {
 
   describe("name()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call name() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call name() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -303,10 +346,10 @@ describe("MockERC20 — AI Generated Scaffold", function () {
 
   describe("symbol()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call symbol() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call symbol() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
@@ -317,10 +360,10 @@ describe("MockERC20 — AI Generated Scaffold", function () {
 
   describe("totalSupply()", function () {
     it("happy path", async function () {
-      this.skip(); // TODO_AI: remove this.skip() when implementing
-      // TODO_AI: Arrange -> prepare preconditions if needed
-      // TODO_AI: Act -> call totalSupply() with valid inputs
-      // TODO_AI: Assert -> expect correct return values
+      // TODO_AI: Replace this entire comment block with working test code
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // TODO_AI: Call totalSupply() and add assertions
+      this.skip(); // TODO_AI: remove this line when implementing
     });
 
     it("edge cases", async function () {
