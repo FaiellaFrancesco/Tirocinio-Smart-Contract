@@ -1,2 +1,0 @@
-Network error: Cannot connect to Ollama at http://localhost:11434. Is Ollama running?
-Original: fetch failed

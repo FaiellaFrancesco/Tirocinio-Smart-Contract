@@ -1,1 +1,0 @@
-Ollama API error: 404 Not Found - {"error":{"message":"model 'deepseek-coder:6.7b' not found","type":"api_error","param":null,"code":null}}

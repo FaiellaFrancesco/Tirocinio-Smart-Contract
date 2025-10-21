@@ -1,1 +1,0 @@
-Ollama API error: 404 Not Found - {"error":{"message":"model 'codellama:13b' not found","type":"api_error","param":null,"code":null}}
