@@ -1,11 +1,20 @@
 /**
- * Come usare:
- * npx ts-node scripts/scaffold-from-abi.ts [artifacts-path] [output-path] [--include=regex]
+ * USO: Genera scaffolds di test per tutti i contratti Solidity divisi per dimensione.
+ *
+ * Avvio rapido:
+ *   npx ts-node scripts/generate-scaffolds-by-size.ts
+ *
+ * Opzioni:
+ *   [artifacts-path]   Percorso root degli artifact Hardhat (default: ./artifacts/contracts)
+ *   [output-path]      Cartella di output per i test scaffold (default: ./scaffolds)
+ *   --include=regex    Solo contratti che corrispondono al regex
  *
  * Esempi:
- * npx ts-node scripts/scaffold-from-abi.ts                      # usa defaults
- * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  test/llm
- * npx ts-node scripts/scaffold-from-abi.ts artifacts/contracts  test/llm --include=Token
+ *   npx ts-node scripts/generate-scaffolds-by-size.ts
+ *   npx ts-node scripts/generate-scaffolds-by-size.ts artifacts/contracts scaffolds --include=Token
+ *
+ * La cartella di output viene cancellata e ricreata ad ogni esecuzione.
+ * I file generati contengono stub di test per ogni funzione, commenti per eventi/errori, e TODO_AI da completare.
  */
 
 import * as fs from "fs";
@@ -166,6 +175,8 @@ function main() {
     medium: path.join(outDirBase, "medium"),
     large: path.join(outDirBase, "large"),
   };
+  // Crea solo le cartelle di destinazione effettive
+  // Nessuna cartella "scaffold-by-size" o simili
   Object.values(outDirs).forEach(dir => fs.mkdirSync(dir, { recursive: true }));
   const includeReArg = args.find(a => a.startsWith("--include="));
   const includeRe = includeReArg ? new RegExp(includeReArg.split("=")[1]) : null;
@@ -204,13 +215,13 @@ function main() {
       const name = (art.contractName ?? path.basename(entry, ".json")).trim();
       if (includeRe && !includeRe.test(name)) { skipped++; continue; }
 
-      // Determina la cartella di destinazione in base al path del sorgente
-      let sizeFolder = "other";
-      if (art.sourceName?.includes("/empty/")) sizeFolder = "empty";
-      else if (art.sourceName?.includes("/small/")) sizeFolder = "small";
-      else if (art.sourceName?.includes("/medium/")) sizeFolder = "medium";
-      else if (art.sourceName?.includes("/large/")) sizeFolder = "large";
-      const outDir = outDirs[sizeFolder] || outDirBase;
+  // Determina la cartella di destinazione in base al path del sorgente
+  let sizeFolder: string | undefined = undefined;
+  if (art.sourceName?.includes("/empty/")) sizeFolder = "empty";
+  else if (art.sourceName?.includes("/small/")) sizeFolder = "small";
+  else if (art.sourceName?.includes("/medium/")) sizeFolder = "medium";
+  else if (art.sourceName?.includes("/large/")) sizeFolder = "large";
+  const outDir = sizeFolder ? outDirs[sizeFolder] : outDirBase;
 
       // evita sovrascritture se esistono duplicati
       let outPath = path.join(outDir, `${name}.scaffold.spec.ts`);
