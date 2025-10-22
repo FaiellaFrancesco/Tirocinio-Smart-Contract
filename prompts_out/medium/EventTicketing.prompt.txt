@@ -1,0 +1,463 @@
+### Objective:
+Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
+
+### Input:
+1. Solidity Contract:
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
+
+/**
+ * @title EventTicketing
+ * @author akb
+ * @notice This contract allows the owner to manage ticket sales for an event with a maximum capacity.
+ * Users can buy tickets by paying Ether, tickets are tied to buyer addresses.
+ * The owner can refund tickets individually or in bulk.
+ * Tickets can be marked as used.
+ * Events are emitted for key actions.
+ */
+contract EventTicketing {
+    address public owner;
+    uint256 public maxCapacity;
+    uint256 public ticketPrice;
+    uint256 public ticketsSold;
+
+    struct Ticket {
+        bool exists;
+        bool used;
+    }
+
+    mapping(address => Ticket) private tickets;
+
+    event TicketPurchased(address indexed buyer);
+    event TicketRefunded(address indexed buyer);
+    event TicketUsed(address indexed buyer);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    modifier ticketExists(address buyer) {
+        require(tickets[buyer].exists, "Ticket does not exist for this address");
+        _;
+    }
+
+    constructor(uint256 _maxCapacity, uint256 _ticketPrice) {
+        require(_maxCapacity > 0, "Max capacity must be greater than zero");
+        require(_ticketPrice > 0, "Ticket price must be greater than zero");
+        owner = msg.sender;
+        maxCapacity = _maxCapacity;
+        ticketPrice = _ticketPrice;
+        ticketsSold = 0;
+    }
+
+    /**
+     * @notice Buy a ticket by sending the exact ticket price in Ether.
+     * @dev Reverts if max capacity is reached or if the buyer already has a ticket.
+     */
+    function buyTicket() external payable {
+        require(ticketsSold < maxCapacity, "All tickets sold");
+        require(msg.value == ticketPrice, "Incorrect Ether value sent");
+        require(!tickets[msg.sender].exists, "Ticket already purchased");
+
+        tickets[msg.sender] = Ticket({exists: true, used: false});
+        ticketsSold++;
+
+        emit TicketPurchased(msg.sender);
+    }
+
+    /**
+     * @notice Refund a ticket for a specific buyer address.
+     * @dev Only owner can call. Refunds the ticket price and marks ticket as non-existent.
+     * @param buyer The address of the ticket holder to refund.
+     */
+    function refundTicket(address payable buyer) external onlyOwner ticketExists(buyer) {
+        Ticket storage ticket = tickets[buyer];
+        require(!ticket.used, "Cannot refund a used ticket");
+
+        ticket.exists = false;
+        ticketsSold--;
+
+        (bool success, ) = buyer.call{value: ticketPrice}('');
+        require(success, "Refund transfer failed");
+
+        emit TicketRefunded(buyer);
+    }
+
+    /**
+     * @notice Refund multiple tickets in bulk.
+     * @dev Only owner can call. Refunds each ticket if valid.
+     * @param buyers Array of buyer addresses to refund.
+     */
+    function refundTicketsBulk(address payable[] calldata buyers) external onlyOwner {
+        for (uint256 i = 0; i < buyers.length; i++) {
+            address buyer = buyers[i];
+            if (tickets[buyer].exists && !tickets[buyer].used) {
+                tickets[buyer].exists = false;
+                ticketsSold--;
+
+                (bool success, ) = payable(buyer).call{value: ticketPrice}('');
+                require(success, "Refund transfer failed");
+
+                emit TicketRefunded(buyer);
+            }
+        }
+    }
+
+    /**
+     * @notice Check if an address owns a ticket.
+     * @param buyer The address to check.
+     * @return True if the address owns a ticket, false otherwise.
+     */
+    function ownsTicket(address buyer) external view returns (bool) {
+        return tickets[buyer].exists;
+    }
+
+    /**
+     * @notice Mark a ticket as used.
+     * @dev Only owner can call.
+     * @param buyer The address of the ticket holder.
+     */
+    function markTicketUsed(address buyer) external onlyOwner ticketExists(buyer) {
+        require(!tickets[buyer].used, "Ticket already used");
+        tickets[buyer].used = true;
+
+        emit TicketUsed(buyer);
+    }
+
+    /**
+     * @notice Withdraw contract balance to owner.
+     * @dev Only owner can call.
+     */
+    function withdraw() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No balance to withdraw");
+
+        (bool success, ) = owner.call{value: balance}('');
+        require(success, "Withdraw transfer failed");
+    }
+}
+
+2. Test Scaffold:
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+
+  /**
+   * Scaffold automatically generated for EventTicketing.
+   * Blocks marked // TODO_AI must be completed by the LLM.
+   */
+
+  describe("EventTicketing — LLM Scaffold", function () {
+    async function deployFixture() {
+      const [owner, addr1, addr2] = await ethers.getSigners();
+      const Factory = await ethers.getContractFactory("EventTicketing");
+      // TODO_AI: complete constructor parameters if present
+      const contract = await Factory.deploy();
+      await contract.waitForDeployment();
+      return { contract, owner, addr1, addr2 };
+    }
+
+    it("basic deployment", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.getAddress()).to.properAddress;
+    });
+
+    // Events in ABI: TicketPurchased, TicketRefunded, TicketUsed
+
+    
+  describe("buyTicket()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // state-changing transaction
+      const result = await contract.buyTicket({ value: 1n /* TODO_AI in wei */ });
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.buyTicket()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("markTicketUsed(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // state-changing transaction
+      const result = await contract.markTicketUsed(addr1.address /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.markTicketUsed("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("maxCapacity()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.maxCapacity();
+      // TODO_AI: expect(await contract.maxCapacity()).to.equal(/* atteso */);
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.maxCapacity()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("owner()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.owner();
+      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.owner()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("ownsTicket(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.ownsTicket(addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.ownsTicket(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.ownsTicket("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("refundTicket(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // state-changing transaction
+      const result = await contract.refundTicket(addr1.address /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.refundTicket("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("refundTicketsBulk(address[])", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // state-changing transaction
+      const result = await contract.refundTicketsBulk([] /* TODO_AI */);
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.refundTicketsBulk([] /* TODO_AI: make invalid/edge */)
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("ticketPrice()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.ticketPrice();
+      // TODO_AI: expect(await contract.ticketPrice()).to.equal(/* atteso */);
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.ticketPrice()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("ticketsSold()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.ticketsSold();
+      // TODO_AI: expect(await contract.ticketsSold()).to.equal(/* atteso */);
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.ticketsSold()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("withdraw()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // state-changing transaction
+      const result = await contract.withdraw();
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.withdraw()
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+  });
+
+
+### Instructions:
+- **Complete coverage**: You must generate test cases for every function in the contract, including:
+  - **State-modifying functions** (functions that change the state of the contract).
+  - **Getter and setter functions** (ensure getter functions return the correct values).
+  - **Pure and view functions** (functions that don't modify the state).
+  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
+  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
+  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
+  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
+  - **Edge cases**: Test scenarios such as:
+    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
+    - Boundary cases (e.g., maximum and minimum values for numeric types).
+    - Ensure that all conditions that may revert the function are tested.
+  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
+
+- Ensure that your tests include:
+  - Happy path (normal expected behavior).
+  - Error cases (invalid inputs, unauthorized access, etc.).
+  - Boundary cases (edge cases, limits, and expected values).
+  - Event emissions (verify that correct events are emitted).
+
+- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
+- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+
+### Output:
+Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
+
+### Example Test:
+
+```typescript
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+describe("ContractName", function () {
+  it("should return the correct owner", async function () {
+    const [owner, addr1] = await ethers.getSigners();
+    const Contract = await ethers.getContractFactory("ContractName");
+    const contract = await Contract.deploy();
+    await contract.deployed();
+    
+    expect(await contract.owner()).to.equal(owner.address);
+  });
+
+  it("should revert on invalid address", async function () {
+    const Contract = await ethers.getContractFactory("ContractName");
+    const contract = await Contract.deploy();
+    await contract.deployed();
+
+    await expect(
+      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
+    ).to.be.revertedWith("Invalid address");
+  });
+});
