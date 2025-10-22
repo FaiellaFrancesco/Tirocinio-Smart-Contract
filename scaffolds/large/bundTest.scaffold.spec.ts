@@ -108,7 +108,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract._updateDevWallet("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract._updateDevWallet("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -132,7 +132,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract._updatetaxWallet("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract._updatetaxWallet("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -204,7 +204,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.allowance("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.allowance("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -228,7 +228,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
+        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -252,7 +252,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.balanceOf("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.balanceOf("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -276,7 +276,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.blacklistedBots("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.blacklistedBots("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -372,7 +372,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.changeTransferTax(0n /* TODO_AI: rendi invalido/edge */)
+        contract.changeTransferTax(0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -396,7 +396,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.clearStuckTokens("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.clearStuckTokens("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -516,7 +516,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.excludeFromFees([] /* TODO_AI: rendi invalido/edge */, false /* TODO_AI */)
+        contract.excludeFromFees([] /* TODO_AI: make invalid/edge */, false /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -540,7 +540,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.excludeFromLimits([] /* TODO_AI: rendi invalido/edge */, false /* TODO_AI */)
+        contract.excludeFromLimits([] /* TODO_AI: make invalid/edge */, false /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -564,7 +564,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.excludedFromFees("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.excludedFromFees("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -588,7 +588,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.excludedFromLimits("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.excludedFromLimits("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -684,7 +684,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.marketPairs("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.marketPairs("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -876,7 +876,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setBlacklistedBots([] /* TODO_AI: rendi invalido/edge */, false /* TODO_AI */)
+        contract.setBlacklistedBots([] /* TODO_AI: make invalid/edge */, false /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -924,7 +924,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setMarketPair("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, false /* TODO_AI */)
+        contract.setMarketPair("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, false /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -948,7 +948,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setMaxBuyLimit(0n /* TODO_AI: rendi invalido/edge */)
+        contract.setMaxBuyLimit(0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -972,7 +972,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setMaxSellLimit(0n /* TODO_AI: rendi invalido/edge */)
+        contract.setMaxSellLimit(0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -996,7 +996,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setMaxWalletLimit(0n /* TODO_AI: rendi invalido/edge */)
+        contract.setMaxWalletLimit(0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -1020,7 +1020,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setTax(0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */)
+        contract.setTax(0n /* TODO_AI: make invalid/edge */, 0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -1044,7 +1044,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.setTokensForSwap(0n /* TODO_AI: rendi invalido/edge */)
+        contract.setTokensForSwap(0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -1212,7 +1212,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
+        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -1236,7 +1236,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */)
+        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -1260,7 +1260,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 

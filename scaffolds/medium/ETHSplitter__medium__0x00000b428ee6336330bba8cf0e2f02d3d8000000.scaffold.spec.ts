@@ -36,7 +36,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.claim(0n /* TODO_AI: rendi invalido/edge */)
+        contract.claim(0n /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -60,7 +60,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.splitETH([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */)
+        contract.splitETH([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 

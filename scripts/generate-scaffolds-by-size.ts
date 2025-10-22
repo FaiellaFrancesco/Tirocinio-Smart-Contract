@@ -1,20 +1,20 @@
 /**
- * USO: Genera scaffolds di test per tutti i contratti Solidity divisi per dimensione.
+ * USAGE: Generates test scaffolds for all Solidity contracts, organized by size.
  *
- * Avvio rapido:
+ * Quick start:
  *   npx ts-node scripts/generate-scaffolds-by-size.ts
  *
- * Opzioni:
- *   [artifacts-path]   Percorso root degli artifact Hardhat (default: ./artifacts/contracts)
- *   [output-path]      Cartella di output per i test scaffold (default: ./scaffolds)
- *   --include=regex    Solo contratti che corrispondono al regex
+ * Options:
+ *   [artifacts-path]   Hardhat artifacts root path (default: ./artifacts/contracts)
+ *   [output-path]      Output folder for test scaffolds (default: ./scaffolds)
+ *   --include=regex    Only contracts matching the regex
  *
- * Esempi:
+ * Examples:
  *   npx ts-node scripts/generate-scaffolds-by-size.ts
  *   npx ts-node scripts/generate-scaffolds-by-size.ts artifacts/contracts scaffolds --include=Token
  *
- * La cartella di output viene cancellata e ricreata ad ogni esecuzione.
- * I file generati contengono stub di test per ogni funzione, commenti per eventi/errori, e TODO_AI da completare.
+ * The output folder is deleted and recreated on each run.
+ * Generated files contain test stubs for every function, comments for events/errors, and TODO_AI blocks for LLM completion.
  */
 
 import * as fs from "fs";
@@ -55,15 +55,15 @@ function tsDefaultFor(solType: string): string {
   return "/* TODO_AI */";
 }
 function badTsDefaultFor(solType: string): string {
-  // Argomenti "edge/zero" validi a livello sintattico
-  if (solType.endsWith("[]")) return "[] /* TODO_AI: rendi invalido/edge */";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: rendi invalido/edge */";
+  // "edge/zero" arguments valid at syntax level
+  if (solType.endsWith("[]")) return "[] /* TODO_AI: make invalid/edge */";
+  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: make invalid/edge */";
   if (solType === "bool") return "false /* TODO_AI */";
-  if (solType === "address") return "\"0x0000000000000000000000000000000000000000\" /* TODO_AI: usa zero/non autorizzato */";
+  if (solType === "address") return '"0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */';
   if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
-  if (solType.startsWith("bytes")) return "\"0x\" /* TODO_AI */";
-  if (solType === "string") return `"" /* TODO_AI */`;
-  if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple invalida */ }";
+  if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
+  if (solType === "string") return '"" /* TODO_AI */';
+  if (solType.startsWith("tuple")) return "{ /* TODO_AI invalid tuple */ }";
   return tsDefaultFor(solType);
 }
 
@@ -85,7 +85,7 @@ function renderFunctionBlock(fn: AbiItem): string {
     ? `// TODO_AI: expect(await contract.${name}(${argsList})).to.equal(/* atteso */);`
     : `// TODO_AI: verifica stato/eventi dopo la tx`;
   const badArgs = (fn.inputs || []).map((i: any) => badTsDefaultFor(i.type)).join(", ");
-  const stateComment = isView ? "// chiamata di sola lettura" : "// transazione che modifica lo stato";
+  const stateComment = isView ? "// read-only call" : "// state-changing transaction";
 
   return `
   describe("${sig}", function () {
@@ -124,14 +124,14 @@ import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for ${name}.
+   * Scaffold automatically generated for ${contractName}.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("${name} — LLM Scaffold", function () {
+  describe("${contractName} — LLM Scaffold", function () {
     async function deployFixture() {
       const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("${name}");
+      const Factory = await ethers.getContractFactory("${contractName}");
       // TODO_AI: complete constructor parameters if present
       const contract = await Factory.deploy();
       await contract.waitForDeployment();
@@ -152,8 +152,8 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 function slugFromSource(sourceName?: string): string | null {
   if (!sourceName) return null;
-  // es. "contracts/tokens/v2/Token.sol" -> "tokens__v2__Token"
-  const parts = sourceName.replace(/^contracts\//, "").replace(/\.sol$/,"").split("/");
+  // e.g. "contracts/tokens/v2/Token.sol" -> "tokens__v2__Token"
+  const parts = sourceName.replace(/^contracts\//, "").replace(/\.sol$/, "").split("/");
   return parts.join("__");
 }
 
@@ -182,7 +182,7 @@ function main() {
   const includeRe = includeReArg ? new RegExp(includeReArg.split("=")[1]) : null;
 
   if (!fs.existsSync(artifactsRoot) || !fs.statSync(artifactsRoot).isDirectory()) {
-    console.error("❌ Non trovo la cartella artifact: " + artifactsRoot);
+    console.error("❌ Artifact folder not found: " + artifactsRoot);
     process.exit(1);
   }
   fs.mkdirSync(outDirBase, { recursive: true });
@@ -207,15 +207,15 @@ function main() {
       try { art = JSON.parse(rawData) as ArtifactJson; }
       catch { continue; }
 
-      // requisito minimo: ABI presente
-      if (!art.abi || !Array.isArray(art.abi) || art.abi.length === 0) { skipped++; continue; }
-      // **filtro chiave**: solo contratti deployabili (no interfacce/librerie/astratti)
-      if (typeof art.bytecode !== "string" || art.bytecode === "0x") { skipped++; continue; }
+  // Minimum requirement: ABI present
+  if (!art.abi || !Array.isArray(art.abi) || art.abi.length === 0) { skipped++; continue; }
+  // Key filter: only deployable contracts (no interfaces/libraries/abstract)
+  if (typeof art.bytecode !== "string" || art.bytecode === "0x") { skipped++; continue; }
 
-      const name = (art.contractName ?? path.basename(entry, ".json")).trim();
-      if (includeRe && !includeRe.test(name)) { skipped++; continue; }
+  const name = (art.contractName ?? path.basename(entry, ".json")).trim();
+  if (includeRe && !includeRe.test(name)) { skipped++; continue; }
 
-  // Determina la cartella di destinazione in base al path del sorgente
+  // Determine output folder by source path
   let sizeFolder: string | undefined = undefined;
   if (art.sourceName?.includes("/empty/")) sizeFolder = "empty";
   else if (art.sourceName?.includes("/small/")) sizeFolder = "small";
@@ -223,7 +223,7 @@ function main() {
   else if (art.sourceName?.includes("/large/")) sizeFolder = "large";
   const outDir = sizeFolder ? outDirs[sizeFolder] : outDirBase;
 
-      // evita sovrascritture se esistono duplicati
+      // Avoid overwriting if duplicates exist
       let outPath = path.join(outDir, `${name}.scaffold.spec.ts`);
       if (isReadableFile(outPath)) {
         const slug = slugFromSource(art.sourceName) ?? path.basename(fullPath, ".json");
@@ -238,7 +238,7 @@ function main() {
   }
 
   scanDir(artifactsRoot);
-  console.log(`\n📁 Creati ${count} scaffold. Saltati ${skipped} artifact (interfacce/astratti/bytecode "0x" o senza ABI).`);
+  console.log(`\n📁 Created ${count} scaffolds. Skipped ${skipped} artifacts (interfaces/abstract/bytecode '0x' or missing ABI).`);
   console.log(`Artifact root: ${path.resolve(artifactsRoot)}  |  Output base: ${path.resolve(outDirBase)}`);
 }
 

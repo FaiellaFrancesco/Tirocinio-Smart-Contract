@@ -36,7 +36,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.batchTransferERC1155([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.batchTransferERC1155([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -60,7 +60,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.batchTransferERC721([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.batchTransferERC721([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -84,7 +84,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.onERC1155BatchReceived("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x" /* TODO_AI */)
+        contract.onERC1155BatchReceived("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -108,7 +108,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.onERC1155Received("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */, 0n /* TODO_AI: rendi invalido/edge */, "0x" /* TODO_AI */)
+        contract.onERC1155Received("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */, 0n /* TODO_AI: make invalid/edge */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -132,7 +132,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.onERC721Received("0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, 0n /* TODO_AI: rendi invalido/edge */, "0x" /* TODO_AI */)
+        contract.onERC721Received("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 

@@ -60,7 +60,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.distributeContractTokens([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */)
+        contract.distributeContractTokens([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -84,7 +84,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.distributeTokens([] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */)
+        contract.distributeTokens([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
@@ -132,7 +132,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.vanilla({ /* TODO_AI tuple invalida */ }, [] /* TODO_AI: rendi invalido/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: usa zero/non autorizzato */, "0x" /* TODO_AI */)
+        contract.vanilla({ /* TODO_AI invalid tuple */ }, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x" /* TODO_AI */)
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 

@@ -1,4 +1,5 @@
 
+
 import { exec } from "child_process";
 import path from "path";
 
@@ -17,11 +18,31 @@ function runStep(cmd: string, descrizione: string) {
 	});
 }
 
+
+function parseArgs() {
+	const args = process.argv.slice(2);
+	const defaults = {
+		small: 70,
+		medium: 200,
+		large: 1000,
+		directory: "contracts"
+	};
+	const result = { ...defaults };
+	args.forEach(arg => {
+		if (arg.startsWith("--small=")) result.small = Number(arg.split("=")[1]);
+		if (arg.startsWith("--medium=")) result.medium = Number(arg.split("=")[1]);
+		if (arg.startsWith("--large=")) result.large = Number(arg.split("=")[1]);
+		if (arg.startsWith("--directory=")) result.directory = arg.split("=")[1];
+	});
+	return result;
+}
+
 async function main() {
+	const opts = parseArgs();
 	try {
 		// 1. Suddividi i contratti per dimensione
 		await runStep(
-			`npx ts-node scripts/dividi.ts --small=70 --medium=200 --directory=contracts`,
+			`npx ts-node scripts/dividi.ts --small=${opts.small} --medium=${opts.medium} --large=${opts.large} --directory=${opts.directory}`,
 			"Suddivisione contratti per dimensione"
 		);
 

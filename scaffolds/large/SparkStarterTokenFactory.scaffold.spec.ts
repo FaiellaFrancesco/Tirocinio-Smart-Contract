@@ -60,7 +60,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.generateToken({ /* TODO_AI tuple invalida */ })
+        contract.generateToken({ /* TODO_AI invalid tuple */ })
       ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
