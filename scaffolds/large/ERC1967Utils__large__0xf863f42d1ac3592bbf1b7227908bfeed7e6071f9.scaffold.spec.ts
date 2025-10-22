@@ -2,27 +2,27 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-/**
- * Scaffold generato automaticamente per ERC1967Utils.
- * I blocchi // TODO_AI vanno completati dall'LLM.
- */
+  /**
+   * Scaffold automatically generated for ERC1967Utils.
+   * Blocks marked // TODO_AI must be completed by the LLM.
+   */
 
-describe("ERC1967Utils — LLM Scaffold", function () {
-  async function deployFixture() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
-    const Factory = await ethers.getContractFactory("ERC1967Utils");
-    // TODO_AI: completa i parametri del costruttore se presenti
-    const contract = await Factory.deploy();
-    await contract.waitForDeployment();
-    return { contract, owner, addr1, addr2 };
-  }
+  describe("ERC1967Utils — LLM Scaffold", function () {
+    async function deployFixture() {
+      const [owner, addr1, addr2] = await ethers.getSigners();
+      const Factory = await ethers.getContractFactory("ERC1967Utils");
+      // TODO_AI: complete constructor parameters if present
+      const contract = await Factory.deploy();
+      await contract.waitForDeployment();
+      return { contract, owner, addr1, addr2 };
+    }
 
-  it("deployment di base", async function () {
-    const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.properAddress;
+    it("basic deployment", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.getAddress()).to.properAddress;
+    });
+
+    // Events in ABI: —
+
+    
   });
-
-  // Eventi in ABI: —
-
-  
-});

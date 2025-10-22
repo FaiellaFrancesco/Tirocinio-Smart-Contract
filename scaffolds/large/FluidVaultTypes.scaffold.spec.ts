@@ -2,27 +2,27 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-/**
- * Scaffold generato automaticamente per FluidVaultTypes.
- * I blocchi // TODO_AI vanno completati dall'LLM.
- */
+  /**
+   * Scaffold automatically generated for FluidVaultTypes.
+   * Blocks marked // TODO_AI must be completed by the LLM.
+   */
 
-describe("FluidVaultTypes — LLM Scaffold", function () {
-  async function deployFixture() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
-    const Factory = await ethers.getContractFactory("FluidVaultTypes");
-    // TODO_AI: completa i parametri del costruttore se presenti
-    const contract = await Factory.deploy();
-    await contract.waitForDeployment();
-    return { contract, owner, addr1, addr2 };
-  }
+  describe("FluidVaultTypes — LLM Scaffold", function () {
+    async function deployFixture() {
+      const [owner, addr1, addr2] = await ethers.getSigners();
+      const Factory = await ethers.getContractFactory("FluidVaultTypes");
+      // TODO_AI: complete constructor parameters if present
+      const contract = await Factory.deploy();
+      await contract.waitForDeployment();
+      return { contract, owner, addr1, addr2 };
+    }
 
-  it("deployment di base", async function () {
-    const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.properAddress;
+    it("basic deployment", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.getAddress()).to.properAddress;
+    });
+
+    // Events in ABI: —
+
+    
   });
-
-  // Eventi in ABI: —
-
-  
-});

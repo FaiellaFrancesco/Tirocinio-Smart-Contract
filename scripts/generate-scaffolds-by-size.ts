@@ -91,24 +91,24 @@ function renderFunctionBlock(fn: AbiItem): string {
   describe("${sig}", function () {
     it("happy path", async function () {
       const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      ${stateComment}
+      ${isView ? "// read-only call" : "// state-changing transaction"}
       const result = ${callLine};
       ${expectLine}
     });
 
-    it("reverts su input/ruolo non valido", async function () {
+    it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.${name}(${badArgs})
-      ).to.be.reverted; // TODO_AI: .with("MESSAGGIO")
+      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
     });
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), limiti ruoli, ecc.
+      // TODO_AI: 0, max, address(0), role limits, etc.
     });
 
-    // TODO_AI: se emette eventi: await expect(tx).to.emit(contract, "Evento").withArgs(...)
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
   });
 `;
 }
@@ -123,30 +123,30 @@ function renderFile(contractName: string, abi: AbiItem[]): string {
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-/**
- * Scaffold generato automaticamente per ${contractName}.
- * I blocchi // TODO_AI vanno completati dall'LLM.
- */
+  /**
+   * Scaffold automatically generated for ${name}.
+   * Blocks marked // TODO_AI must be completed by the LLM.
+   */
 
-describe("${contractName} — LLM Scaffold", function () {
-  async function deployFixture() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
-    const Factory = await ethers.getContractFactory("${contractName}");
-    // TODO_AI: completa i parametri del costruttore se presenti
-    const contract = await Factory.deploy(${ctorArgs});
-    await contract.waitForDeployment();
-    return { contract, owner, addr1, addr2 };
-  }
+  describe("${name} — LLM Scaffold", function () {
+    async function deployFixture() {
+      const [owner, addr1, addr2] = await ethers.getSigners();
+      const Factory = await ethers.getContractFactory("${name}");
+      // TODO_AI: complete constructor parameters if present
+      const contract = await Factory.deploy();
+      await contract.waitForDeployment();
+      return { contract, owner, addr1, addr2 };
+    }
 
-  it("deployment di base", async function () {
-    const { contract } = await loadFixture(deployFixture);
-    expect(await contract.getAddress()).to.properAddress;
+    it("basic deployment", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.getAddress()).to.properAddress;
+    });
+
+    // Events in ABI: ${events}
+
+    ${fns.map(renderFunctionBlock).join("\n")}
   });
-
-  // Eventi in ABI: ${events}
-
-  ${fns.map(renderFunctionBlock).join("\n")}
-});
 `;
 }
 
