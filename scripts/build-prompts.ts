@@ -30,32 +30,21 @@ function getSizeFromPath(p: string): string {
 }
 
 function findContractSource(name: string, size: string): string | null {
-  // Try to find the .sol file in contracts/{size}/
+  // Cerca il file .sol che contiene la dichiarazione 'contract {name}'
   const contractsDir = path.join("contracts", size);
   if (!fs.existsSync(contractsDir)) return null;
   const files = fs.readdirSync(contractsDir);
-  // 1. Exact match
   for (const file of files) {
-    if (file.endsWith(".sol") && file.replace(/\.sol$/,"") === name) {
-      console.log(`[findContractSource] Exact match: ${file}`);
-      return read(path.join(contractsDir, file));
+    if (!file.endsWith(".sol")) continue;
+    const filePath = path.join(contractsDir, file);
+    const content = read(filePath);
+    const contractRegex = new RegExp(`contract\\s+${name}\\b`);
+    if (contractRegex.test(content)) {
+      console.log(`[findContractSource] Found contract '${name}' in: ${file}`);
+      return content;
     }
   }
-  // 2. Case-insensitive match
-  for (const file of files) {
-    if (file.endsWith(".sol") && file.replace(/\.sol$/i,"").toLowerCase() === name.toLowerCase()) {
-      console.log(`[findContractSource] Case-insensitive match: ${file}`);
-      return read(path.join(contractsDir, file));
-    }
-  }
-  // 3. Partial match (contains)
-  for (const file of files) {
-    if (file.endsWith(".sol") && file.toLowerCase().includes(name.toLowerCase())) {
-      console.log(`[findContractSource] Partial match: ${file}`);
-      return read(path.join(contractsDir, file));
-    }
-  }
-  console.log(`[findContractSource] No match for: ${name} in ${contractsDir}`);
+  console.log(`[findContractSource] No contract '${name}' found in ${contractsDir}`);
   return null;
 }
 

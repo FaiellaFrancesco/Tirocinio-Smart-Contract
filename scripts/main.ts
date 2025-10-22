@@ -58,11 +58,13 @@ async function main() {
 			"Generazione prompt da scaffolds"
 		);
 
-		// 4. (Opzionale) Avvia lo script Python Colab
+		// 4. Genera test con LLM
 		await runStep(
-			`python3 colab-complete-setup.py`,
-			"Setup Colab/Ollama"
+			`npx ts-node scripts/run-all.ts`,
+			"Generazione test con LLM"
 		);
+
+		
 	} catch (e) {
 		process.exit(1);
 	}
