@@ -1,14 +1,15 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for BridgeableFlashUSDT.
+   * Scaffold automatically generated for contracts/large/0x9b0b71b1ce1efc017fab2b00666c3d4a981502c1.sol:BridgeableFlashUSDT.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("BridgeableFlashUSDT — LLM Scaffold", function () {
+  describe("contracts/large/0x9b0b71b1ce1efc017fab2b00666c3d4a981502c1.sol:BridgeableFlashUSDT — LLM Scaffold", function () {
     async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
       const Factory = await ethers.getContractFactory("BridgeableFlashUSDT");
       // TODO_AI: complete constructor parameters if present
@@ -19,7 +20,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
     it("basic deployment", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
     // Events in ABI: —
@@ -37,7 +38,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.start()
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {
@@ -57,12 +58,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.tokenName()).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.tokenName()
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -81,12 +77,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.tokenSymbol()).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.tokenSymbol()
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -109,7 +100,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.withdrawal()
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {

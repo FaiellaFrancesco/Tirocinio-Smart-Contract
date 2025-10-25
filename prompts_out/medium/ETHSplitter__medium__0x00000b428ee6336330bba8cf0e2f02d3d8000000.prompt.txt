@@ -7,16 +7,17 @@ Generate a test suite for the provided Solidity contract based on the provided s
 
 2. Test Scaffold:
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for ETHSplitter.
+   * Scaffold automatically generated for contracts/medium/0x00000b428ee6336330bba8cf0e2f02d3d8000000.sol:ETHSplitter.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("ETHSplitter — LLM Scaffold", function () {
+  describe("contracts/medium/0x00000b428ee6336330bba8cf0e2f02d3d8000000.sol:ETHSplitter — LLM Scaffold", function () {
     async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
       const Factory = await ethers.getContractFactory("ETHSplitter");
       // TODO_AI: complete constructor parameters if present
@@ -27,7 +28,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
     it("basic deployment", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
     // Events in ABI: ETHClaimed, OwnershipTransferred
@@ -45,7 +46,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.claim(0n /* TODO_AI: make invalid/edge */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {
@@ -69,7 +70,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.splitETH([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {

@@ -1,14 +1,15 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for NFTDistributor.
+   * Scaffold automatically generated for contracts/medium/0x086f95e1605dcdbfcab5fcfb287fb2a98bb30052.sol:NFTDistributor.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("NFTDistributor — LLM Scaffold", function () {
+  describe("contracts/medium/0x086f95e1605dcdbfcab5fcfb287fb2a98bb30052.sol:NFTDistributor — LLM Scaffold", function () {
     async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
       const Factory = await ethers.getContractFactory("NFTDistributor");
       // TODO_AI: complete constructor parameters if present
@@ -19,7 +20,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
     it("basic deployment", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
     // Events in ABI: —
@@ -37,7 +38,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.batchTransferERC1155([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {
@@ -61,7 +62,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.batchTransferERC721([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {
@@ -81,12 +82,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.onERC1155BatchReceived(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, [] /* TODO_AI */, [] /* TODO_AI */, "0x" /* TODO_AI */)).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.onERC1155BatchReceived("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x" /* TODO_AI */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -105,12 +101,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.onERC1155Received(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */, 1n /* TODO_AI */, "0x" /* TODO_AI */)).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.onERC1155Received("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */, 0n /* TODO_AI: make invalid/edge */, "0x" /* TODO_AI */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -129,12 +120,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.onERC721Received(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */, "0x" /* TODO_AI */)).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.onERC721Received("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */, "0x" /* TODO_AI */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -153,12 +139,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.owner()
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);

@@ -51,7 +51,7 @@ function tsDefaultFor(solType: string): string {
   if (solType === "string") return '"example" /* TODO_AI */';
   if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
   if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
-  if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple */ }";
+  if (solType.includes("tuple")) return "{ /* TODO_AI tuple */ }";
   return "/* TODO_AI */";
 }
 function badTsDefaultFor(solType: string): string {
@@ -63,7 +63,7 @@ function badTsDefaultFor(solType: string): string {
   if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
   if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
   if (solType === "string") return '"" /* TODO_AI */';
-  if (solType.startsWith("tuple")) return "{ /* TODO_AI invalid tuple */ }";
+  if (solType.includes("tuple")) return "{ /* TODO_AI invalid tuple */ }";
   return tsDefaultFor(solType);
 }
 
@@ -91,17 +91,17 @@ function renderFunctionBlock(fn: AbiItem): string {
   describe("${sig}", function () {
     it("happy path", async function () {
       const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      ${isView ? "// read-only call" : "// state-changing transaction"}
+      ${stateComment}
       const result = ${callLine};
       ${expectLine}
     });
 
-    it("reverts on invalid input/role", async function () {
+    ${!isView ? `it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.${name}(${badArgs})
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
+    });` : ""}
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -113,25 +113,31 @@ function renderFunctionBlock(fn: AbiItem): string {
 `;
 }
 
-function renderFile(contractName: string, abi: AbiItem[]): string {
+function renderFile(contractName: string, abi: AbiItem[], sourceName?: string): string {
   const fns = abi.filter(a => a.type === "function" && a.name);
   const events = abi.filter(a => a.type === "event").map(e => (e as any).name).join(", ") || "—";
   const ctor = abi.find(a => a.type === "constructor");
   const ctorArgs = (ctor?.inputs || []).map(i => tsDefaultFor(i.type as string)).join(", ");
+  const fqName = sourceName ? `${sourceName}:${contractName}` : contractName;
 
-  return `import { expect } from "chai";
-import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+  // Always use contractName for Hardhat getContractFactory
+  const factoryName = contractName;
+
+
+  let fileContent = `import { expect } from "chai";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for ${contractName}.
+   * Scaffold automatically generated for ${fqName}.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("${contractName} — LLM Scaffold", function () {
+  describe("${fqName} — LLM Scaffold", function () {
     async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("${contractName}");
+      const Factory = await ethers.getContractFactory("${factoryName}");
       // TODO_AI: complete constructor parameters if present
       const contract = await Factory.deploy();
       await contract.waitForDeployment();
@@ -140,14 +146,17 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
     it("basic deployment", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
     // Events in ABI: ${events}
 
-    ${fns.map(renderFunctionBlock).join("\n")}
+    ${fns.length > 0 ? fns.map(renderFunctionBlock).join("\n") : `it("placeholder", async function () { /* TODO_AI: No functions in ABI */ });`}
   });
 `;
+  // Add final newline for linter compliance
+  if (!fileContent.endsWith("\n")) fileContent += "\n";
+  return fileContent;
 }
 
 function slugFromSource(sourceName?: string): string | null {
@@ -163,23 +172,37 @@ function removeOutputBase(outDirBase: string) {
   }
 }
 
+
 function main() {
   const args = process.argv.slice(2);
   const artifactsRoot = args[0] && !args[0].startsWith("--") ? args[0] : DEFAULT_ARTIFACTS_ROOT;
-  // Directory base per output
   const outDirBase = args[1] && !args[1].startsWith("--") ? args[1] : DEFAULT_OUTDIR;
-  removeOutputBase(outDirBase);
+
+  // Output folder cleaning: only if --clean is provided
+  const cleanFlag = args.includes("--clean");
+  if (cleanFlag) {
+    removeOutputBase(outDirBase);
+  }
+
   const outDirs = {
     empty: path.join(outDirBase, "empty"),
     small: path.join(outDirBase, "small"),
     medium: path.join(outDirBase, "medium"),
     large: path.join(outDirBase, "large"),
   };
-  // Crea solo le cartelle di destinazione effettive
-  // Nessuna cartella "scaffold-by-size" o simili
   Object.values(outDirs).forEach(dir => fs.mkdirSync(dir, { recursive: true }));
+
+  // Safe regex handling for --include
   const includeReArg = args.find(a => a.startsWith("--include="));
-  const includeRe = includeReArg ? new RegExp(includeReArg.split("=")[1]) : null;
+  let includeRe: RegExp | null = null;
+  if (includeReArg) {
+    try {
+      includeRe = new RegExp(includeReArg.split("=")[1]);
+    } catch (err) {
+      console.error("❌ Invalid --include regex:", err);
+      includeRe = null;
+    }
+  }
 
   if (!fs.existsSync(artifactsRoot) || !fs.statSync(artifactsRoot).isDirectory()) {
     console.error("❌ Artifact folder not found: " + artifactsRoot);
@@ -207,38 +230,41 @@ function main() {
       try { art = JSON.parse(rawData) as ArtifactJson; }
       catch { continue; }
 
-  // Minimum requirement: ABI present
-  if (!art.abi || !Array.isArray(art.abi) || art.abi.length === 0) { skipped++; continue; }
-  // Key filter: only deployable contracts (no interfaces/libraries/abstract)
-  if (typeof art.bytecode !== "string" || art.bytecode === "0x") { skipped++; continue; }
+      // Minimum requirement: ABI present
+      if (!art.abi || !Array.isArray(art.abi) || art.abi.length === 0) { skipped++; continue; }
+      // Key filter: only deployable contracts (no interfaces/libraries/abstract)
+      if (typeof art.bytecode !== "string" || art.bytecode === "0x") { skipped++; continue; }
 
-  const name = (art.contractName ?? path.basename(entry, ".json")).trim();
-  if (includeRe && !includeRe.test(name)) { skipped++; continue; }
+      const name = (art.contractName ?? path.basename(entry, ".json")).trim();
+      if (includeRe && !includeRe.test(name)) { skipped++; continue; }
 
-  // Determine output folder by source path
-  let sizeFolder: string | undefined = undefined;
-  if (art.sourceName?.includes("/empty/")) sizeFolder = "empty";
-  else if (art.sourceName?.includes("/small/")) sizeFolder = "small";
-  else if (art.sourceName?.includes("/medium/")) sizeFolder = "medium";
-  else if (art.sourceName?.includes("/large/")) sizeFolder = "large";
-  const outDir = sizeFolder ? outDirs[sizeFolder] : outDirBase;
+      // Determine output folder by source path
+      let sizeFolder: string | undefined = undefined;
+      if (art.sourceName?.includes("/empty/")) sizeFolder = "empty";
+      else if (art.sourceName?.includes("/small/")) sizeFolder = "small";
+      else if (art.sourceName?.includes("/medium/")) sizeFolder = "medium";
+      else if (art.sourceName?.includes("/large/")) sizeFolder = "large";
+      const outDir = sizeFolder ? outDirs[sizeFolder] : outDirBase;
 
-      // Avoid overwriting if duplicates exist
-      let outPath = path.join(outDir, `${name}.scaffold.spec.ts`);
-      if (isReadableFile(outPath)) {
-        const slug = slugFromSource(art.sourceName) ?? path.basename(fullPath, ".json");
-        outPath = path.join(outDir, `${name}__${slug}.scaffold.spec.ts`);
+      // Always generate a unique output filename using the source slug
+      const slug = slugFromSource(art.sourceName) ?? path.basename(fullPath, ".json");
+      const outPath = path.join(outDir, `${name}__${slug}.scaffold.spec.ts`);
+
+      const content = renderFile(name, art.abi as AbiItem[], art.sourceName);
+      try {
+        fs.writeFileSync(outPath, content, "utf-8");
+        console.log(`✅ ${name} (${art.sourceName})  →  ${outPath}`);
+        count++;
+      } catch (err) {
+        console.error(`❌ Write failed for ${outPath}:`, err);
+        skipped++;
+        continue;
       }
-
-      const content = renderFile(name, art.abi as AbiItem[]);
-      fs.writeFileSync(outPath, content, "utf-8");
-      console.log(`✅ ${name}  →  ${outPath}`);
-      count++;
     }
   }
 
   scanDir(artifactsRoot);
-  console.log(`\n📁 Created ${count} scaffolds. Skipped ${skipped} artifacts (interfaces/abstract/bytecode '0x' or missing ABI).`);
+  console.log(`\n📁 Created ${count} scaffolds. Skipped ${skipped} artifacts (interfaces/abstract/bytecode '0x' or missing ABI, or write errors).`);
   console.log(`Artifact root: ${path.resolve(artifactsRoot)}  |  Output base: ${path.resolve(outDirBase)}`);
 }
 

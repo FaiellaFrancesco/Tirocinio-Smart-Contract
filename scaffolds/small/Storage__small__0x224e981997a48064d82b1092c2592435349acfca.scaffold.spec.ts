@@ -1,14 +1,15 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for Storage.
+   * Scaffold automatically generated for contracts/small/0x224e981997a48064d82b1092c2592435349acfca.sol:Storage.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("Storage — LLM Scaffold", function () {
+  describe("contracts/small/0x224e981997a48064d82b1092c2592435349acfca.sol:Storage — LLM Scaffold", function () {
     async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
       const Factory = await ethers.getContractFactory("Storage");
       // TODO_AI: complete constructor parameters if present
@@ -19,7 +20,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
     it("basic deployment", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
     // Events in ABI: —
@@ -33,12 +34,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       // TODO_AI: expect(await contract.retrieve()).to.equal(/* atteso */);
     });
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.retrieve()
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
+    
 
     it("boundary cases", async function () {
       const { contract } = await loadFixture(deployFixture);
@@ -61,7 +57,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
       const { contract } = await loadFixture(deployFixture);
       await expect(
         contract.store(0n /* TODO_AI: make invalid/edge */)
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
     it("boundary cases", async function () {

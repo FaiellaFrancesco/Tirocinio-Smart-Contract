@@ -1,14 +1,15 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for Address.
+   * Scaffold automatically generated for contracts/large/0xf863f42d1ac3592bbf1b7227908bfeed7e6071f9.sol:Address.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("Address — LLM Scaffold", function () {
+  describe("contracts/large/0xf863f42d1ac3592bbf1b7227908bfeed7e6071f9.sol:Address — LLM Scaffold", function () {
     async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
       const Factory = await ethers.getContractFactory("Address");
       // TODO_AI: complete constructor parameters if present
@@ -19,10 +20,10 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
     it("basic deployment", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
     // Events in ABI: —
 
-    
+    it("placeholder", async function () { /* TODO_AI: No functions in ABI */ });
   });

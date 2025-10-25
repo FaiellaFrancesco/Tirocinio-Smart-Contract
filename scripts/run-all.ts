@@ -10,10 +10,8 @@ import { existsSync, writeFileSync, readFileSync } from 'fs';
 // Configurazione base, modificabile da CLI
 const DEFAULT_FOLDER = 'small';
 const DEFAULT_MODEL = 'qwen2.5-coder:3b';
-const DEFAULT_TEMPLATES = './prompts/templates';
 const config = {
   promptsDir: '', // impostato dopo aver letto CLI
-  templatesDir: DEFAULT_TEMPLATES,
   outputDir: './llm-out/temp',
   validOutputDir: './llm-out/valid',
   invalidOutputDir: './llm-out/invalid',
@@ -342,10 +340,8 @@ async function main() {
   const folder = folderArg ? folderArg.split('=')[1] : DEFAULT_FOLDER;
   const model = modelArg ? modelArg.split('=')[1] : DEFAULT_MODEL;
   const target = targetArg ? targetArg.split('=')[1] : '';
-  const templatesDir = templatesArg ? templatesArg.split('=')[1] : DEFAULT_TEMPLATES;
   config.promptsDir = `./prompts_out/${folder}`;
   config.model = model;
-  config.templatesDir = templatesDir;
 
   if (!process.env.OLLAMA_URL) {
     console.error('❌ OLLAMA_URL non impostata. Esempio: export OLLAMA_URL="https://<ngrok>.ngrok-free.app"');
