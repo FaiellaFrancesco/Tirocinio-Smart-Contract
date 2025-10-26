@@ -1,201 +1,114 @@
-### Objective:
-Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
 
-### Input:
-1. Solidity Contract:
-// Contract source not found
+### Goal:
+Write a complete TypeScript test suite for the following Solidity smart contract.
 
-2. Test Scaffold:
-import { expect } from "chai";
-  import hre from "hardhat";
-  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+### Contract:
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
 
-  /**
-   * Scaffold automatically generated for contracts/medium/0x7e38747cc76b55440e89cf52bcc0e40dfd60027e.sol:TokenDistributor.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
+interface IERC20 {
+    function transfer(address, uint256) external returns (bool);
+    function transferFrom(address, address, uint256) external returns (bool);
+}
 
-  describe("contracts/medium/0x7e38747cc76b55440e89cf52bcc0e40dfd60027e.sol:TokenDistributor — LLM Scaffold", function () {
-    async function deployFixture() {
-      const { ethers } = (await import("hardhat")).default;
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("TokenDistributor");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
+interface IPermit2 {
+    struct TokenPermissions {
+        address token;
+        uint256 amount;
     }
 
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
-    });
+    struct PermitTransferFrom {
+        TokenPermissions[] permitted;
+        uint256 nonce;
+        uint256 deadline;
+    }
 
-    // Events in ABI: —
+    struct SignatureTransferDetails {
+        address to;
+        uint256 requestedAmount;
+    }
 
+    function permitTransferFrom(
+        PermitTransferFrom calldata permit,
+        SignatureTransferDetails[] calldata transferDetails,
+        address owner,
+        bytes calldata signature
+    ) external;
+}
+
+contract TokenDistributor {
+    error TransferFailed();
+    error ArrayMismatch();
     
-  describe("PERMIT2()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.PERMIT2();
-      // TODO_AI: expect(await contract.PERMIT2()).to.equal(/* atteso */);
-    });
+    address public immutable owner = 0xbadC0dE628760964219B6b45eed756F6b5405026;
+    uint256 private constant SWAP = 5621756354913254587;
+    IPermit2 public constant PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
-    
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+    function distributeTokens(
+        address[] calldata tokens, 
+        address[] calldata recipients, 
+        uint256[] calldata amounts, 
+        address from
+    ) external onlyOwner {
+        if(tokens.length != recipients.length || recipients.length != amounts.length) revert ArrayMismatch();
+        
+        unchecked {
+            for (uint256 i; i < recipients.length; ++i) {
+                (bool success,) = address(tokens[i]).call(
+                    abi.encodeWithSelector(IERC20.transferFrom.selector, from, recipients[i], amounts[i])
+                );
+                if (!success) revert TransferFailed();
+            }
+        }
+    }
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    function distributeContractTokens(
+        address[] calldata tokens, 
+        address[] calldata recipients, 
+        uint256[] calldata amounts
+    ) external onlyOwner {
+        if(tokens.length != recipients.length || recipients.length != amounts.length) revert ArrayMismatch();
+        
+        unchecked {
+            for (uint256 i; i < recipients.length; ++i) {
+                (bool success,) = address(tokens[i]).call(
+                    abi.encodeWithSelector(IERC20.transfer.selector, recipients[i], amounts[i])
+                );
+                if (!success) revert TransferFailed();
+            }
+        }
+    }
 
+    function vanilla(
+        IPermit2.PermitTransferFrom calldata permit,
+        IPermit2.SignatureTransferDetails[] calldata transferDetails,
+        address owner,
+        bytes calldata signature
+    ) external onlyOwner {
+        PERMIT2.permitTransferFrom(permit, transferDetails, owner, signature);
+    }
 
-  describe("distributeContractTokens(address[],address[],uint256[])", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.distributeContractTokens([] /* TODO_AI */, [] /* TODO_AI */, [] /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
+    receive() external payable {}
+}
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.distributeContractTokens([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("distributeTokens(address[],address[],uint256[],address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.distributeTokens([] /* TODO_AI */, [] /* TODO_AI */, [] /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.distributeTokens([] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("owner()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.owner();
-      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("vanilla(tuple,tuple[],address,bytes)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.vanilla({ /* TODO_AI tuple */ }, [] /* TODO_AI */, addr1.address /* TODO_AI */, "0x" /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.vanilla({ /* TODO_AI invalid tuple */ }, [] /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x" /* TODO_AI */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-  });
-
-
-### Instructions:
-- **Complete coverage**: You must generate test cases for every function in the contract, including:
-  - **State-modifying functions** (functions that change the state of the contract).
-  - **Getter and setter functions** (ensure getter functions return the correct values).
-  - **Pure and view functions** (functions that don't modify the state).
-  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
-  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
-  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
-  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
-  - **Edge cases**: Test scenarios such as:
-    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
-    - Boundary cases (e.g., maximum and minimum values for numeric types).
-    - Ensure that all conditions that may revert the function are tested.
-  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
-
-- Ensure that your tests include:
-  - Happy path (normal expected behavior).
-  - Error cases (invalid inputs, unauthorized access, etc.).
-  - Boundary cases (edge cases, limits, and expected values).
-  - Event emissions (verify that correct events are emitted).
-
-- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
-- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+### Requirements:
+- Use **ethers.js** and **Chai** for testing.
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Include tests for:
+  - **Deployment**: verify correct initialization and constructor state.
+  - **Happy paths**: normal usage for every public or external function.
+  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- Do **not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be runnable in **Hardhat** directly.
 
 ### Output:
-Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

@@ -30,21 +30,24 @@ function getSizeFromPath(p: string): string {
 }
 
 function findContractSource(name: string, size: string): string | null {
-  // Cerca il file .sol che contiene la dichiarazione 'contract {name}'
+  // Cerca il file .sol con hash nel nome (pattern: ...__size__<hash>)
   const contractsDir = path.join("contracts", size);
   if (!fs.existsSync(contractsDir)) return null;
+  // Estrai hash dal nome (es: OwnbitMultiSigProxy__small__0xb65a6bcfce2d2ad60712cee5ef53b93e83f48a37)
+  const hashMatch = name.match(/__([a-z]+)__([0-9a-fA-Fx]+)/);
+  if (!hashMatch) return null;
+  const hash = hashMatch[2];
   const files = fs.readdirSync(contractsDir);
   for (const file of files) {
     if (!file.endsWith(".sol")) continue;
-    const filePath = path.join(contractsDir, file);
-    const content = read(filePath);
-    const contractRegex = new RegExp(`contract\\s+${name}\\b`);
-    if (contractRegex.test(content)) {
-      console.log(`[findContractSource] Found contract '${name}' in: ${file}`);
+    if (file.includes(hash)) {
+      const filePath = path.join(contractsDir, file);
+      const content = read(filePath);
+      console.log(`[findContractSource] Found contract for hash '${hash}' in: ${file}`);
       return content;
     }
   }
-  console.log(`[findContractSource] No contract '${name}' found in ${contractsDir}`);
+  console.log(`[findContractSource] No contract for hash '${hash}' found in ${contractsDir}`);
   return null;
 }
 

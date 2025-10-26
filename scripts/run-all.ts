@@ -6,10 +6,11 @@ import { join, basename } from 'path';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
+import fetch from 'node-fetch';
 
 // Configurazione base, modificabile da CLI
 const DEFAULT_FOLDER = 'small';
-const DEFAULT_MODEL = 'qwen2.5-coder:3b';
+const DEFAULT_MODEL = 'qwen2.5-coder:32b';
 const config = {
   promptsDir: '', // impostato dopo aver letto CLI
   outputDir: './llm-out/temp',
@@ -205,73 +206,86 @@ function findBestArtifactForScaffold(contractName: string, scaffoldOrSpec: strin
  * Supporta sia risposte testuali "plain" sia lo streaming NDJSON dell'API /api/generate (campi "response").
  */
 async function callRemoteOllama(model: string, prompt: string): Promise<{ success: boolean; output: string }> {
-  const endpoint = process.env.OLLAMA_URL || '';
+  // 1. Normalize endpoint (remove trailing slash)
+  let endpoint = process.env.OLLAMA_URL || '';
   if (!endpoint) {
     return { success: false, output: '❌ Missing OLLAMA_URL (remote Colab endpoint).' };
   }
+  endpoint = endpoint.replace(/\/+$/, '');
 
+  // Timeout support (config.timeout in seconds)
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), config.timeout * 1000);
 
   try {
+    const url = `${endpoint}/api/generate`;
     console.log(`🔍 Invio prompt al modello ${model} (${prompt.length} caratteri)`);
-    const res = await fetch(`${endpoint}/api/generate`, {
+    console.log(`🌐 Endpoint: ${url}`);
+
+    // 2. Remove stream: false from request body
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        model, 
+      body: JSON.stringify({
+        model,
         prompt,
-        stream: false,
         options: {
-          temperature: 0.1,    // Più deterministico
-          top_k: 10,          // Meno opzioni = più veloce
-          top_p: 0.8,         
-          num_predict: 2048,  // Limite ragionevole
-          num_ctx: 4096       // Contesto più piccolo
+          temperature: 0.1,
+          top_k: 10,
+          top_p: 0.8,
+          num_predict: 2048,
+          num_ctx: 4096
         }
       }),
       signal: controller.signal
     });
 
     const status = res.status;
-    const contentType = res.headers.get('content-type') || '';
     const text = await res.text();
 
+    // 4. Error handling for non-2xx responses
     if (status < 200 || status >= 300) {
-      return { success: false, output: `HTTP ${status}: ${text.slice(0, 500)}` };
+      clearTimeout(id);
+      return { success: false, output: `HTTP ${status}: ${text.slice(0, 300)}` };
     }
 
-    // 1) Prova JSON singolo
+    // 5. NDJSON support: collect all "response" fields
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    let ndjsonOutput = '';
+    let foundNdjson = false;
+    for (const line of lines) {
+      try {
+        const obj = JSON.parse(line);
+        if (typeof obj.response === 'string') {
+          ndjsonOutput += obj.response;
+          foundNdjson = true;
+        }
+      } catch { /* skip non-JSON lines */ }
+    }
+    if (foundNdjson) {
+      clearTimeout(id);
+      return { success: true, output: ndjsonOutput };
+    }
+
+    // Try single JSON response
     try {
       const obj = JSON.parse(text);
       if (obj && typeof obj === 'object') {
-        if (typeof obj.response === 'string') return { success: true, output: obj.response };
-        if (typeof obj.message === 'string')  return { success: true, output: obj.message };
+        if (typeof obj.response === 'string') { clearTimeout(id); return { success: true, output: obj.response }; }
+        if (typeof obj.message === 'string')  { clearTimeout(id); return { success: true, output: obj.message }; }
       }
     } catch {
-      // non JSON singolo, potrebbe essere NDJSON
+      // Not a single JSON object, fallback to plain text
     }
 
-    // 2) Prova NDJSON (una JSON per riga) – tipico di Ollama streaming
-    const lines = text.split(/\r?\n/).filter(Boolean);
-    let acc = '';
-    let parsedSomething = false;
-    for (const line of lines) {
-      try {
-        const j = JSON.parse(line);
-        if (typeof j.response === 'string') { acc += j.response; parsedSomething = true; }
-      } catch { /* non-json line, skip */ }
-    }
-    if (parsedSomething) return { success: true, output: acc };
-
-    // 3) Fallback: plain text
+    // Fallback: plain text
+    clearTimeout(id);
     return { success: true, output: text };
 
   } catch (err: any) {
+    clearTimeout(id);
     if (err?.name === 'AbortError') return { success: false, output: 'TIMEOUT: Remote Ollama request aborted' };
     return { success: false, output: `Error calling remote Ollama: ${err?.message || String(err)}` };
-  } finally {
-    clearTimeout(id);
   }
 }
 
@@ -343,9 +357,10 @@ async function main() {
   config.promptsDir = `./prompts_out/${folder}`;
   config.model = model;
 
+  // Imposta OLLAMA_URL di default se non è già impostata
   if (!process.env.OLLAMA_URL) {
-    console.error('❌ OLLAMA_URL non impostata. Esempio: export OLLAMA_URL="https://<ngrok>.ngrok-free.app"');
-    process.exit(1);
+    process.env.OLLAMA_URL = "https://pomologically-unexpunged-nicolette.ngrok-free.dev";
+    console.log('ℹ️  OLLAMA_URL non impostata, uso endpoint ngrok di default:', process.env.OLLAMA_URL);
   }
 
   console.log(`🚀 Generazione test LLM su prompts_out/${folder} con modello ${model}`);

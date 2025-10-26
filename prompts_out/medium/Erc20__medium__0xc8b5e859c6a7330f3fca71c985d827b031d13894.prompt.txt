@@ -1,387 +1,311 @@
-### Objective:
-Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
-
-### Input:
-1. Solidity Contract:
-// Contract source not found
-
-2. Test Scaffold:
-import { expect } from "chai";
-  import hre from "hardhat";
-  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-
-  /**
-   * Scaffold automatically generated for contracts/medium/0xc8b5e859c6a7330f3fca71c985d827b031d13894.sol:Erc20.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
-
-  describe("contracts/medium/0xc8b5e859c6a7330f3fca71c985d827b031d13894.sol:Erc20 — LLM Scaffold", function () {
-    async function deployFixture() {
-      const { ethers } = (await import("hardhat")).default;
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("Erc20");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
-    }
-
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
-    });
-
-    // Events in ABI: Approval, OwnershipTransferred, Transfer
-
-    
-  describe("allowance(address,address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("approve(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.approve(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("balanceOf(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.balanceOf(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.balanceOf(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("decimals()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.decimals();
-      // TODO_AI: expect(await contract.decimals()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("launch()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.launch();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.launch()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("launched()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.launched();
-      // TODO_AI: expect(await contract.launched()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("name()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.name();
-      // TODO_AI: expect(await contract.name()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("owner()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.owner();
-      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("renounceOwnership()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.renounceOwnership();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.renounceOwnership()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("symbol()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.symbol();
-      // TODO_AI: expect(await contract.symbol()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("totalSupply()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.totalSupply();
-      // TODO_AI: expect(await contract.totalSupply()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transfer(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transfer(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transferFrom(address,address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transferFrom(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transferOwnership(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transferOwnership(addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-  });
-
-
-### Instructions:
-- **Complete coverage**: You must generate test cases for every function in the contract, including:
-  - **State-modifying functions** (functions that change the state of the contract).
-  - **Getter and setter functions** (ensure getter functions return the correct values).
-  - **Pure and view functions** (functions that don't modify the state).
-  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
-  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
-  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
-  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
-  - **Edge cases**: Test scenarios such as:
-    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
-    - Boundary cases (e.g., maximum and minimum values for numeric types).
-    - Ensure that all conditions that may revert the function are tested.
-  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
-
-- Ensure that your tests include:
-  - Happy path (normal expected behavior).
-  - Error cases (invalid inputs, unauthorized access, etc.).
-  - Boundary cases (edge cases, limits, and expected values).
-  - Event emissions (verify that correct events are emitted).
-
-- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
-- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
+
+### Goal:
+Write a complete TypeScript test suite for the following Solidity smart contract.
+
+### Contract:
+//SPDX-License-Identifier: UNLICENSED
+
+/*
+Created on Ape.Store
+*/
+
+pragma solidity 0.8.24;
+
+library Address {
+    function isContract(address account) internal view returns (bool) {
+        return account.code.length > 0;
+    }
+
+    function sendValue(address payable recipient, uint256 amount) internal {
+        require(address(this).balance >= amount, "Address: insufficient balance");
+
+        (bool success, ) = recipient.call{value: amount}("");
+        require(success, "Address: unable to send value, recipient may have reverted");
+    }
+
+    function functionCall(address target, bytes memory data) internal returns (bytes memory) {
+        return functionCallWithValue(target, data, 0, "Address: low-level call failed");
+    }
+
+    function functionCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
+        return functionCallWithValue(target, data, 0, errorMessage);
+    }
+
+    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
+        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
+    }
+
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
+        require(address(this).balance >= value, "Address: insufficient balance for call");
+        (bool success, bytes memory returndata) = target.call{value: value}(data);
+        return verifyCallResultFromTarget(target, success, returndata, errorMessage);
+    }
+
+    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
+        return functionStaticCall(target, data, "Address: low-level static call failed");
+    }
+
+    function functionStaticCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal view returns (bytes memory) {
+        (bool success, bytes memory returndata) = target.staticcall(data);
+        return verifyCallResultFromTarget(target, success, returndata, errorMessage);
+    }
+
+    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {
+        return functionDelegateCall(target, data, "Address: low-level delegate call failed");
+    }
+
+    function functionDelegateCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
+        (bool success, bytes memory returndata) = target.delegatecall(data);
+        return verifyCallResultFromTarget(target, success, returndata, errorMessage);
+    }
+
+    function verifyCallResultFromTarget(
+        address target,
+        bool success,
+        bytes memory returndata,
+        string memory errorMessage
+    ) internal view returns (bytes memory) {
+        if (success) {
+            if (returndata.length == 0) {
+                require(isContract(target), "Address: call to non-contract");
+            }
+            return returndata;
+        } else {
+            _revert(returndata, errorMessage);
+        }
+    }
+
+    function verifyCallResult(
+        bool success,
+        bytes memory returndata,
+        string memory errorMessage
+    ) internal pure returns (bytes memory) {
+        if (success) {
+            return returndata;
+        } else {
+            _revert(returndata, errorMessage);
+        }
+    }
+
+    function _revert(bytes memory returndata, string memory errorMessage) private pure {
+        if (returndata.length > 0) {
+            assembly {
+                let returndata_size := mload(returndata)
+                revert(add(32, returndata), returndata_size)
+            }
+        } else {
+            revert(errorMessage);
+        }
+    }
+}
+
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address who) external view returns (uint256);
+    function allowance(address _owner, address spender) external view returns (uint256);
+    function transfer(address to, uint256 value) external returns (bool);
+    function approve(address spender, uint256 value) external returns (bool);
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+interface ApeRouter {
+    function AllowedProxies(address) external view returns (bool);
+}
+
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
+
+abstract contract Ownable is Context {
+    address private _owner;
+
+    error OwnableUnauthorizedAccount(address account);
+    error OwnableInvalidOwner(address owner);
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    constructor(address initialOwner) {
+        if (initialOwner == address(0)) {
+            revert OwnableInvalidOwner(address(0));
+        }
+        _transferOwnership(initialOwner);
+    }
+
+    modifier onlyOwner() {
+        _checkOwner();
+        _;
+    }
+
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    function _checkOwner() internal view virtual {
+        if (owner() != _msgSender()) {
+            revert OwnableUnauthorizedAccount(_msgSender());
+        }
+    }
+
+    function renounceOwnership() public virtual onlyOwner {
+        _transferOwnership(address(0));
+    }
+
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        if (newOwner == address(0)) {
+            revert OwnableInvalidOwner(address(0));
+        }
+        _transferOwnership(newOwner);
+    }
+
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+}
+
+contract Erc20 is IERC20, Ownable {
+    using Address for address;
+    mapping (address => uint256) internal _balances;
+    mapping (address => mapping (address => uint256)) internal _allowed;
+
+    uint256 immutable public totalSupply;
+    string public symbol;
+    string public name;
+    uint8 immutable public decimals;
+    bool public launched;
+    
+    mapping (address => bool) internal exchanges;
+    
+    constructor(string memory _symbol, string memory _name, uint8 _decimals, uint256 _totalSupply) Ownable(msg.sender)   {
+        symbol = _symbol;
+        name = _name;
+        decimals = _decimals;
+        totalSupply = _totalSupply;
+        _balances[owner()] += _totalSupply;
+        emit Transfer(address(0), owner(), _totalSupply);
+    }
+
+    /**
+    * @dev Gets the balance of the specified address.
+    * @param _owner The address to query the balance of.
+    * @return An uint256 representing the amount owned by the passed address.
+    */
+    function balanceOf(address _owner) external override view returns (uint256) {
+        return _balances[_owner];
+    }
+
+    /**
+     * @dev Function to check the amount of tokens that an owner allowed to a spender.
+     * @param _owner address The address which owns the funds.
+     * @param spender address The address which will spend the funds.
+     * @return A uint256 specifying the amount of tokens still available for the spender.
+     */
+    function allowance(address _owner, address spender) external override view returns (uint256) {
+        return _allowed[_owner][spender];
+    }
+
+    /**
+    * @dev Transfer token for a specified address
+    * @param to The address to transfer to.
+    * @param value The amount to be transferred.
+    */
+    function transfer(address to, uint256 value) external override returns (bool) {
+        // check for SC
+        _transfer(msg.sender, to, value);
+        return true;
+    }
+
+    /**
+     * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+     * Beware that changing an allowance with this method brings the risk that someone may use both the old
+     * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+     * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+     * @param spender The address which will spend the funds.
+     * @param value The amount of tokens to be spent.
+     */
+    function approve(address spender, uint256 value) external override returns (bool) {
+        require(spender != address(0), "cannot approve the 0 address");
+
+        _allowed[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) external override returns (bool) {
+        if (launched == false && to == owner() && msg.sender == owner()) {
+            _transfer(from, to, value);
+            return true;
+        } else {    
+            _allowed[from][msg.sender] = _allowed[from][msg.sender] - value;
+            _transfer(from, to, value);
+            emit Approval(from, msg.sender, _allowed[from][msg.sender]);
+            return true;
+        }
+    }
+
+    function launch() virtual external onlyOwner {
+        require(launched == false, "contract already launched");
+        launched = true;
+    }
+
+    function _transfer(address from, address to, uint256 value) private {
+        require(to != address(0), "cannot be zero address");
+        require(from != to, "you cannot transfer to yourself");
+        require(_transferAllowed(from, to), "This token is not launched and cannot be listed on dexes yet.");
+        _balances[from] -= value;
+        _balances[to] += value;
+        emit Transfer(from, to, value);
+    }
+
+    function _transferAllowed(address from, address to) private view returns (bool) {
+      if (launched) return true;
+      if (from == owner() || to == owner()) return true;
+      if (from.isContract() || to.isContract()) return true;
+      return true;
+    }
+}
+
+### Requirements:
+- Use **ethers.js** and **Chai** for testing.
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Include tests for:
+  - **Deployment**: verify correct initialization and constructor state.
+  - **Happy paths**: normal usage for every public or external function.
+  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- Do **not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be runnable in **Hardhat** directly.
 
 ### Output:
-Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

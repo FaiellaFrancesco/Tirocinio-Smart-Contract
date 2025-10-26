@@ -1,736 +1,275 @@
-### Objective:
-Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
-
-### Input:
-1. Solidity Contract:
-// Contract source not found
-
-2. Test Scaffold:
-import { expect } from "chai";
-  import hre from "hardhat";
-  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-
-  /**
-   * Scaffold automatically generated for contracts/medium/0xb88124e8464f0c1b1078911f57561c96de400c31.sol:CoinToken.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
-
-  describe("contracts/medium/0xb88124e8464f0c1b1078911f57561c96de400c31.sol:CoinToken — LLM Scaffold", function () {
-    async function deployFixture() {
-      const { ethers } = (await import("hardhat")).default;
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("CoinToken");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
-    }
-
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
-    });
-
-    // Events in ABI: Approval, Blacklist, Burn, Mint, OwnershipTransferred, Transfer
-
-    
-  describe("FeeAddress()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.FeeAddress();
-      // TODO_AI: expect(await contract.FeeAddress()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("allowance(address,address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("approve(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.approve(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("balanceOf(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.balanceOf(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.balanceOf(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("blackListAddress(address,bool)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.blackListAddress(addr1.address /* TODO_AI */, true /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.blackListAddress("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, false /* TODO_AI */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("burn(uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.burn(1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.burn(0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("burnFee()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.burnFee();
-      // TODO_AI: expect(await contract.burnFee()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("decimals()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.decimals();
-      // TODO_AI: expect(await contract.decimals()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("decreaseApproval(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.decreaseApproval(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.decreaseApproval("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("excludeMultipleAccountsFromFees(address[],bool)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.excludeMultipleAccountsFromFees([] /* TODO_AI */, true /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.excludeMultipleAccountsFromFees([] /* TODO_AI: make invalid/edge */, false /* TODO_AI */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("getTime()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.getTime();
-      // TODO_AI: expect(await contract.getTime()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("getUnlockTime()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.getUnlockTime();
-      // TODO_AI: expect(await contract.getUnlockTime()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("increaseApproval(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.increaseApproval(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.increaseApproval("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("isExcludedFromFee(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.isExcludedFromFee(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.isExcludedFromFee(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("lock(uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.lock(1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.lock(0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("name()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.name();
-      // TODO_AI: expect(await contract.name()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("owner()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.owner();
-      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("pause()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.pause();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.pause()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("paused()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.paused();
-      // TODO_AI: expect(await contract.paused()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("symbol()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.symbol();
-      // TODO_AI: expect(await contract.symbol()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("tokenBlacklist(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.tokenBlacklist(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.tokenBlacklist(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("totalSupply()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.totalSupply();
-      // TODO_AI: expect(await contract.totalSupply()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transfer(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transfer(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transferFrom(address,address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transferFrom(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transferOwnership(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transferOwnership(addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transferOwnership("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("txFee()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.txFee();
-      // TODO_AI: expect(await contract.txFee()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("unlock()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.unlock();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.unlock()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("unpause()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.unpause();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.unpause()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("updateFee(uint256,uint256,address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.updateFee(1n /* TODO_AI */, 1n /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.updateFee(0n /* TODO_AI: make invalid/edge */, 0n /* TODO_AI: make invalid/edge */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("waiveOwnership()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.waiveOwnership();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.waiveOwnership()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-  });
-
-
-### Instructions:
-- **Complete coverage**: You must generate test cases for every function in the contract, including:
-  - **State-modifying functions** (functions that change the state of the contract).
-  - **Getter and setter functions** (ensure getter functions return the correct values).
-  - **Pure and view functions** (functions that don't modify the state).
-  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
-  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
-  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
-  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
-  - **Edge cases**: Test scenarios such as:
-    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
-    - Boundary cases (e.g., maximum and minimum values for numeric types).
-    - Ensure that all conditions that may revert the function are tested.
-  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
-
-- Ensure that your tests include:
-  - Happy path (normal expected behavior).
-  - Error cases (invalid inputs, unauthorized access, etc.).
-  - Boundary cases (edge cases, limits, and expected values).
-  - Event emissions (verify that correct events are emitted).
-
-- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
-- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
+
+### Goal:
+Write a complete TypeScript test suite for the following Solidity smart contract.
+
+### Contract:
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.7;
+
+library SafeMath {
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a * b;
+    }
+
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b > 0, "SafeMath: division by zero");
+        return a / b;
+    }
+
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b <= a, "SafeMath: subtraction overflow");
+        return a - b;
+    }
+
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a + b;
+    }
+}
+
+contract Ownable {
+    address public owner;
+    address private _previousOwner;
+    uint256 private _lockTime;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Ownable: caller is not the owner");
+        _;
+    }
+
+    function waiveOwnership() public onlyOwner {
+        emit OwnershipTransferred(owner, address(0));
+        owner = address(0);
+    }
+
+    function getUnlockTime() public view returns (uint256) {
+        return _lockTime;
+    }
+
+    function getTime() public view returns (uint256) {
+        return block.timestamp;
+    }
+
+    function lock(uint256 time) public onlyOwner {
+        _previousOwner = owner;
+        owner = address(0);
+        _lockTime = block.timestamp + time;
+        emit OwnershipTransferred(owner, address(0));
+    }
+
+    function unlock() public {
+        require(_previousOwner == msg.sender, "Ownable: caller is not the previous owner");
+        require(block.timestamp > _lockTime, "Ownable: contract is locked, time is not up");
+        emit OwnershipTransferred(owner, _previousOwner);
+        owner = _previousOwner;
+    }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        emit OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+}
+
+
+interface ERC20Basic {
+    function balanceOf(address who) external view returns (uint);
+    function transfer(address to, uint value) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint value);
+}
+
+interface ERC20 is ERC20Basic {
+    function allowance(address owner, address spender) external view returns (uint);
+    function transferFrom(address from, address to, uint value) external returns (bool);
+    function approve(address spender, uint value) external returns (bool);
+
+    event Approval(address indexed owner, address indexed spender, uint value);
+}
+
+
+contract StandardToken is ERC20 {
+    using SafeMath for uint256;
+
+    uint256 public txFee;
+    uint256 public burnFee;
+    address public FeeAddress;
+    uint256 public totalSupply;
+    mapping (address => bool) public isExcludedFromFee;
+    mapping (address => mapping (address => uint256)) internal allowed;
+    mapping(address => bool) public  tokenBlacklist;
+    event Blacklist(address indexed blackListed, bool value);
+    bool public paused;
+    mapping(address => uint256) balances;
+
+
+    function _transfer(address sender, address recipient, uint256 amount) private returns (bool) {
+        require(!tokenBlacklist[sender], "StandardToken: sender is blacklisted");
+        require(recipient != address(0), "StandardToken: transfer to the zero address");
+        require(amount <= balances[sender], "StandardToken: transfer amount exceeds balance");
+        if((!isExcludedFromFee[sender] && !isExcludedFromFee[recipient]) ){
+            require(!paused, "not start");
+        }
+
+        balances[sender] = balances[sender].sub(amount);
+        uint256 finalAmount = (isExcludedFromFee[sender] || isExcludedFromFee[recipient]) ?
+                                        amount : takeFee(sender, amount);
+
+
+        balances[recipient] = balances[recipient].add(finalAmount);
+
+        emit Transfer(sender, recipient, finalAmount);
+        return true;
+    }
+    function takeFee(address sender, uint256 amount) internal returns (uint256) {
+
+        uint256 feeAmount = 0;
+        uint256 destAmount = 0;
+        if(burnFee > 0) {
+            destAmount = amount.mul(burnFee).div(100);
+        }
+        
+        if(txFee > 0) {
+            feeAmount = amount.mul(txFee).div(100);
+        }
+
+        if(feeAmount > 0) {
+            balances[FeeAddress] = balances[FeeAddress].add(feeAmount);
+            emit Transfer(sender, FeeAddress, feeAmount);
+        }
+        if(destAmount >0){
+            balances[address(0)] = balances[address(0)].add(destAmount);
+            emit Transfer(sender, address(0), destAmount);
+        }
+
+        return amount.sub(feeAmount.add(destAmount));
+    }
+
+
+    function transfer(address _to, uint256 _value) public virtual override returns (bool) {
+        _transfer(msg.sender, _to, _value);
+        return true;
+    }
+
+    function balanceOf(address _owner) public view virtual override returns (uint256 balance) {
+        return balances[_owner];
+    }
+
+    function transferFrom(address _from, address _to, uint256 _value) public virtual override returns (bool) {
+        _transfer(_from,_to,_value);
+        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+        return true;
+    }
+
+    function approve(address _spender, uint256 _value) public virtual override returns (bool) {
+        allowed[msg.sender][_spender] = _value;
+        emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    function allowance(address _owner, address _spender) public view virtual override returns (uint256) {
+        return allowed[_owner][_spender];
+    }
+
+    function increaseApproval(address _spender, uint256 _addedValue) public virtual returns (bool) {
+        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
+
+    function decreaseApproval(address _spender, uint256 _subtractedValue) public virtual returns (bool) {
+        uint256 oldValue = allowed[msg.sender][_spender];
+        if (_subtractedValue > oldValue) {
+            allowed[msg.sender][_spender] = 0;
+        } else {
+            allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+        }
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
+
+   
+}
+
+
+contract CoinToken is StandardToken,Ownable {
+    string public name;
+    string public symbol;
+    uint public decimals;
+
+    event Mint(address indexed from, address indexed to, uint256 value);
+    event Burn(address indexed burner, uint256 value);
+
+    constructor(string memory _name, string memory _symbol, uint256 _decimals, uint256 _supply, uint256 _txFee, uint256 _burnFee, address _FeeAddress, address tokenOwner, address service) payable {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
+        totalSupply = _supply * 10**_decimals;
+        balances[tokenOwner] = totalSupply;
+        owner = tokenOwner;
+        txFee = _txFee;
+        burnFee = _burnFee;
+        FeeAddress = _FeeAddress;
+        isExcludedFromFee[tokenOwner] = true;
+        isExcludedFromFee[address(this)] = true;
+        payable(service).transfer(msg.value);
+        emit Transfer(address(0), tokenOwner, totalSupply);
+    }
+
+    function burn(uint256 _value) public {
+        _burn(msg.sender, _value);
+    }
+
+    function updateFee(uint256 _txFee, uint256 _burnFee, address _FeeAddress) onlyOwner public {
+        txFee = _txFee;
+        burnFee = _burnFee;
+        FeeAddress = _FeeAddress;
+    }
+
+    function _burn(address _who, uint256 _value) internal virtual {
+        require(_value <= balances[_who], "CoinToken: burn amount exceeds balance");
+        balances[_who] -= _value;
+        totalSupply -= _value;
+        emit Burn(_who, _value);
+        emit Transfer(_who, address(0), _value);
+    }
+    
+    function excludeMultipleAccountsFromFees(address[] calldata accounts, bool excluded) public onlyOwner {
+        for(uint256 i = 0; i < accounts.length; i++) {
+            isExcludedFromFee[accounts[i]] = excluded;
+        }
+    }
+    
+    function pause() onlyOwner public {
+        paused = true;
+    }
+
+    function unpause() onlyOwner public {
+        paused = false;
+    }
+
+    function blackListAddress(address listAddress,  bool isBlackListed) public onlyOwner {
+        tokenBlacklist[listAddress] = isBlackListed;
+
+    }
+
+}
+
+### Requirements:
+- Use **ethers.js** and **Chai** for testing.
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Include tests for:
+  - **Deployment**: verify correct initialization and constructor state.
+  - **Happy paths**: normal usage for every public or external function.
+  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- Do **not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be runnable in **Hardhat** directly.
 
 ### Output:
-Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

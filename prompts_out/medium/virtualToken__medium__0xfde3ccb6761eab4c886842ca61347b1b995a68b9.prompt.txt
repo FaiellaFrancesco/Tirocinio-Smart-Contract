@@ -1,277 +1,424 @@
-### Objective:
-Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
 
-### Input:
-1. Solidity Contract:
-// Contract source not found
+### Goal:
+Write a complete TypeScript test suite for the following Solidity smart contract.
 
-2. Test Scaffold:
-import { expect } from "chai";
-  import hre from "hardhat";
-  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+### Contract:
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-  /**
-   * Scaffold automatically generated for contracts/medium/0xfde3ccb6761eab4c886842ca61347b1b995a68b9.sol:virtualToken.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
+/**
+ * @dev Standard ERC20 Errors
+ * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC20 tokens.
+ */
+interface IERC20Errors {
+    /**
+     * @dev Indicates an error related to the current `balance` of a `sender`. Used in transfers.
+     * @param sender Address whose tokens are being transferred.
+     * @param balance Current balance for the interacting account.
+     * @param needed Minimum amount required to perform a transfer.
+     */
+    error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
 
-  describe("contracts/medium/0xfde3ccb6761eab4c886842ca61347b1b995a68b9.sol:virtualToken — LLM Scaffold", function () {
-    async function deployFixture() {
-      const { ethers } = (await import("hardhat")).default;
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("virtualToken");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
+    /**
+     * @dev Indicates a failure with the token `sender`. Used in transfers.
+     * @param sender Address whose tokens are being transferred.
+     */
+    error ERC20InvalidSender(address sender);
+
+    /**
+     * @dev Indicates a failure with the token `receiver`. Used in transfers.
+     * @param receiver Address to which tokens are being transferred.
+     */
+    error ERC20InvalidReceiver(address receiver);
+
+    /**
+     * @dev Indicates a failure with the `spender`�s `allowance`. Used in transfers.
+     * @param spender Address that may be allowed to operate on tokens without being their owner.
+     * @param allowance Amount of tokens a `spender` is allowed to operate with.
+     * @param needed Minimum amount required to perform a transfer.
+     */
+    error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
+
+    /**
+     * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.
+     * @param approver Address initiating an approval operation.
+     */
+    error ERC20InvalidApprover(address approver);
+
+    /**
+     * @dev Indicates a failure with the `spender` to be approved. Used in approvals.
+     * @param spender Address that may be allowed to operate on tokens without being their owner.
+     */
+    error ERC20InvalidSpender(address spender);
+}
+
+/**
+ * @dev Standard ERC721 Errors
+ * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC721 tokens.
+ */
+interface IERC721Errors {
+    /**
+     * @dev Indicates that an address can't be an owner. For example, `address(0)` is a forbidden owner in EIP-20.
+     * Used in balance queries.
+     * @param owner Address of the current owner of a token.
+     */
+    error ERC721InvalidOwner(address owner);
+
+    /**
+     * @dev Indicates a `tokenId` whose `owner` is the zero address.
+     * @param tokenId Identifier number of a token.
+     */
+    error ERC721NonexistentToken(uint256 tokenId);
+
+    /**
+     * @dev Indicates an error related to the ownership over a particular token. Used in transfers.
+     * @param sender Address whose tokens are being transferred.
+     * @param tokenId Identifier number of a token.
+     * @param owner Address of the current owner of a token.
+     */
+    error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
+
+    /**
+     * @dev Indicates a failure with the token `sender`. Used in transfers.
+     * @param sender Address whose tokens are being transferred.
+     */
+    error ERC721InvalidSender(address sender);
+
+    /**
+     * @dev Indicates a failure with the token `receiver`. Used in transfers.
+     * @param receiver Address to which tokens are being transferred.
+     */
+    error ERC721InvalidReceiver(address receiver);
+
+    /**
+     * @dev Indicates a failure with the `operator`�s approval. Used in transfers.
+     * @param operator Address that may be allowed to operate on tokens without being their owner.
+     * @param tokenId Identifier number of a token.
+     */
+    error ERC721InsufficientApproval(address operator, uint256 tokenId);
+
+    /**
+     * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.
+     * @param approver Address initiating an approval operation.
+     */
+    error ERC721InvalidApprover(address approver);
+
+    /**
+     * @dev Indicates a failure with the `operator` to be approved. Used in approvals.
+     * @param operator Address that may be allowed to operate on tokens without being their owner.
+     */
+    error ERC721InvalidOperator(address operator);
+}
+
+/**
+ * @dev Standard ERC1155 Errors
+ * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC1155 tokens.
+ */
+interface IERC1155Errors {
+    /**
+     * @dev Indicates an error related to the current `balance` of a `sender`. Used in transfers.
+     * @param sender Address whose tokens are being transferred.
+     * @param balance Current balance for the interacting account.
+     * @param needed Minimum amount required to perform a transfer.
+     * @param tokenId Identifier number of a token.
+     */
+    error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
+
+    /**
+     * @dev Indicates a failure with the token `sender`. Used in transfers.
+     * @param sender Address whose tokens are being transferred.
+     */
+    error ERC1155InvalidSender(address sender);
+
+    /**
+     * @dev Indicates a failure with the token `receiver`. Used in transfers.
+     * @param receiver Address to which tokens are being transferred.
+     */
+    error ERC1155InvalidReceiver(address receiver);
+
+    /**
+     * @dev Indicates a failure with the `operator`�s approval. Used in transfers.
+     * @param operator Address that may be allowed to operate on tokens without being their owner.
+     * @param owner Address of the current owner of a token.
+     */
+    error ERC1155MissingApprovalForAll(address operator, address owner);
+
+    /**
+     * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.
+     * @param approver Address initiating an approval operation.
+     */
+    error ERC1155InvalidApprover(address approver);
+
+    /**
+     * @dev Indicates a failure with the `operator` to be approved. Used in approvals.
+     * @param operator Address that may be allowed to operate on tokens without being their owner.
+     */
+    error ERC1155InvalidOperator(address operator);
+
+    /**
+     * @dev Indicates an array length mismatch between ids and values in a safeBatchTransferFrom operation.
+     * Used in batch transfers.
+     * @param idsLength Length of the array of token identifiers
+     * @param valuesLength Length of the array of token amounts
+     */
+    error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength);
+}
+pragma solidity ^0.8.20;
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
     }
 
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
-    });
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
 
-    // Events in ABI: Approval, Transfer
+    function _contextSuffixLength() internal view virtual returns (uint256) {
+        return 0;
+    }
+}
 
-    
-  describe("allowance(address,address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
+pragma solidity ^0.8.20;
 
-    
+interface IERC20 {
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address to, uint256 value) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 value) external returns (bool);
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
+}
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+pragma solidity ^0.8.20;
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("approve(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.approve(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+interface IERC20Metadata is IERC20 {
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external view returns (uint8);
+}
 
 
-  describe("balanceOf(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.balanceOf(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.balanceOf(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
+pragma solidity ^0.8.20;
 
-    
+abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
+    mapping(address account => uint256) private _balances;
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+    mapping(address account => mapping(address spender => uint256)) private _allowances;
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    uint256 private _totalSupply;
+
+    string private _name;
+    string private _symbol;
+
+    /**
+     * @dev Sets the values for {name} and {symbol}.
+     *
+     * All two of these values are immutable: they can only be set once during
+     * construction.
+     */
+    constructor(string memory name_, string memory symbol_) {
+        _name = name_;
+        _symbol = symbol_;
+    }
+
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() public view virtual returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev Returns the symbol of the token, usually a shorter version of the
+     * name.
+     */
+    function symbol() public view virtual returns (string memory) {
+        return _symbol;
+    }
+    function decimals() public view virtual returns (uint8) {
+        return 18;
+    }
+
+    /**
+     * @dev See {IERC20-totalSupply}.
+     */
+    function totalSupply() public view virtual returns (uint256) {
+        return _totalSupply;
+    }
+
+    /**
+     * @dev See {IERC20-balanceOf}.
+     */
+    function balanceOf(address account) public view virtual returns (uint256) {
+        return _balances[account];
+    }
+
+    /**
+     * @dev See {IERC20-transfer}.
+     *
+     * Requirements:
+     *
+     * - `to` cannot be the zero address.
+     * - the caller must have a balance of at least `value`.
+     */
+    function transfer(address to, uint256 value) public virtual returns (bool) {
+        address owner = _msgSender();
+        _transfer(owner, to, value);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-allowance}.
+     */
+    function allowance(address owner, address spender) public view virtual returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    /**
+     * @dev See {IERC20-approve}.
+     *
+     * NOTE: If `value` is the maximum `uint256`, the allowance is not updated on
+     * `transferFrom`. This is semantically equivalent to an infinite approval.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     */
+    function approve(address spender, uint256 value) public virtual returns (bool) {
+        address owner = _msgSender();
+        _approve(owner, spender, value);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-transferFrom}.
+     *
+     * Emits an {Approval} event indicating the updated allowance. This is not
+     * required by the EIP. See the note at the beginning of {ERC20}.
+     *
+     * NOTE: Does not update the allowance if the current allowance
+     * is the maximum `uint256`.
+     *
+     * Requirements:
+     *
+     * - `from` and `to` cannot be the zero address.
+     * - `from` must have a balance of at least `value`.
+     * - the caller must have allowance for ``from``'s tokens of at least
+     * `value`.
+     */
+    function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
+        address spender = _msgSender();
+        _spendAllowance(from, spender, value);
+        _transfer(from, to, value);
+        return true;
+    }
+
+    function _transfer(address from, address to, uint256 value) internal {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+        _update(from, to, value);
+    }
+
+    function _update(address from, address to, uint256 value) internal virtual {
+        if (from == address(0)) {
+            // Overflow check required: The rest of the code assumes that totalSupply never overflows
+            _totalSupply += value;
+        } else {
+            uint256 fromBalance = _balances[from];
+            if (fromBalance < value) {
+                revert ERC20InsufficientBalance(from, fromBalance, value);
+            }
+            unchecked {
+                _balances[from] = fromBalance - value;
+            }
+        }
+
+        if (to == address(0)) {
+            unchecked {
+                _totalSupply -= value;
+            }
+        } else {
+            unchecked {
+                _balances[to] += value;
+            }
+        }
+
+        emit Transfer(from, to, value);
+    }
+
+    function _mint(address account, uint256 value) internal {
+        if (account == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+        _update(address(0), account, value);
+    }
+
+    function _burn(address account, uint256 value) internal {
+        if (account == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        _update(account, address(0), value);
+    }
+
+    function _approve(address owner, address spender, uint256 value) internal {
+        _approve(owner, spender, value, true);
+    }
+
+    function _approve(address owner, address spender, uint256 value, bool emitEvent) internal virtual {
+        if (owner == address(0)) {
+            revert ERC20InvalidApprover(address(0));
+        }
+        if (spender == address(0)) {
+            revert ERC20InvalidSpender(address(0));
+        }
+        _allowances[owner][spender] = value;
+        if (emitEvent) {
+            emit Approval(owner, spender, value);
+        }
+    }
+
+    function _spendAllowance(address owner, address spender, uint256 value) internal virtual {
+        uint256 currentAllowance = allowance(owner, spender);
+        if (currentAllowance != type(uint256).max) {
+            if (currentAllowance < value) {
+                revert ERC20InsufficientAllowance(spender, currentAllowance, value);
+            }
+            unchecked {
+                _approve(owner, spender, currentAllowance - value, false);
+            }
+        }
+    }
+}
+
+pragma solidity ^0.8.20;
+
+contract virtualToken is ERC20 {
+
+    constructor(string memory name, string memory symbol, uint256 initialSupply) ERC20(name, symbol) {
+        _mint(msg.sender, initialSupply * (10 ** uint256(decimals())));
+    }
+}
 
 
-  describe("decimals()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.decimals();
-      // TODO_AI: expect(await contract.decimals()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("name()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.name();
-      // TODO_AI: expect(await contract.name()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("symbol()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.symbol();
-      // TODO_AI: expect(await contract.symbol()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("totalSupply()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.totalSupply();
-      // TODO_AI: expect(await contract.totalSupply()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transfer(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transfer(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("transferFrom(address,address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transferFrom(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-  });
-
-
-### Instructions:
-- **Complete coverage**: You must generate test cases for every function in the contract, including:
-  - **State-modifying functions** (functions that change the state of the contract).
-  - **Getter and setter functions** (ensure getter functions return the correct values).
-  - **Pure and view functions** (functions that don't modify the state).
-  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
-  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
-  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
-  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
-  - **Edge cases**: Test scenarios such as:
-    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
-    - Boundary cases (e.g., maximum and minimum values for numeric types).
-    - Ensure that all conditions that may revert the function are tested.
-  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
-
-- Ensure that your tests include:
-  - Happy path (normal expected behavior).
-  - Error cases (invalid inputs, unauthorized access, etc.).
-  - Boundary cases (edge cases, limits, and expected values).
-  - Event emissions (verify that correct events are emitted).
-
-- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
-- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+### Requirements:
+- Use **ethers.js** and **Chai** for testing.
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Include tests for:
+  - **Deployment**: verify correct initialization and constructor state.
+  - **Happy paths**: normal usage for every public or external function.
+  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- Do **not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be runnable in **Hardhat** directly.
 
 ### Output:
-Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

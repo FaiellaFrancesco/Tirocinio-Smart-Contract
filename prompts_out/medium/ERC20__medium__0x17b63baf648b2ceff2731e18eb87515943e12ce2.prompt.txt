@@ -1,277 +1,438 @@
-### Objective:
-Generate a test suite for the provided Solidity contract based on the provided scaffold. The scaffold already contains sections with `// TODO_AI` comments indicating where you need to complete the test. Your task is to complete these sections with valid test code.
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
 
-### Input:
-1. Solidity Contract:
-// Contract source not found
+### Goal:
+Write a complete TypeScript test suite for the following Solidity smart contract.
 
-2. Test Scaffold:
-import { expect } from "chai";
-  import hre from "hardhat";
-  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+### Contract:
+/*
 
-  /**
-   * Scaffold automatically generated for contracts/medium/0x17b63baf648b2ceff2731e18eb87515943e12ce2.sol:ERC20.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
+https://opensea.io/item/ethereum/0x808e5cd160d8819ca24c2053037049eb611d0542/102
 
-  describe("contracts/medium/0x17b63baf648b2ceff2731e18eb87515943e12ce2.sol:ERC20 — LLM Scaffold", function () {
-    async function deployFixture() {
-      const { ethers } = (await import("hardhat")).default;
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("ERC20");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
+https://t.me/killerpepeoneth
+
+https://x.com/KillerPepe_ERC
+
+https://killerpepe.fun/
+
+*/
+
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.22;
+
+interface IUniswapV2Factory {
+    function getPair(address tokenA, address tokenB) external view returns (address pair);
+}
+
+interface IUniswapV2Router02 {
+    function factory() external pure returns (address);
+    function WETH() external pure returns (address);
+        function addLiquidityETH(
+        address token,
+        uint amountTokenDesired,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+}
+
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
     }
 
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
-    });
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
 
-    // Events in ABI: Approval, Transfer
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
 
-    
-  describe("allowance(address,address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.allowance(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
 
-    
+interface IERC20Metadata is IERC20 {
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external view returns (uint8);
+}
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+contract ERC20 is Context, IERC20, IERC20Metadata {
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    uint256 private _totalSupply;
 
+    string private _name;
+    string private _symbol;
 
-  describe("approve(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.approve(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
+    constructor(string memory name_, string memory symbol_) {
+        _name = name_;
+        _symbol = symbol_;
+    }
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.approve("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
+    }
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    function decimals() public view virtual override returns (uint8) {
+        return 9;
+    }
 
+    function totalSupply() public view virtual override returns (uint256) {
+        return _totalSupply;
+    }
 
-  describe("balanceOf(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.balanceOf(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.balanceOf(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
+    function balanceOf(address account) public view virtual override returns (uint256) {
+        return _balances[account];
+    }
 
-    
+    function transfer(address to, uint256 amount) public virtual override returns (bool) {
+        address owner = _msgSender();
+        _transfer(owner, to, amount);
+        return true;
+    }
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+    function allowance(address owner, address spender) public view virtual override returns (uint256) {
+        return _allowances[owner][spender];
+    }
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+        address owner = _msgSender();
+        _approve(owner, spender, amount);
+        return true;
+    }
 
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual override returns (bool) {
+        address spender = _msgSender();
+        _spendAllowance(from, spender, amount);
+        _transfer(from, to, amount);
+        return true;
+    }
 
-  describe("decimals()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.decimals();
-      // TODO_AI: expect(await contract.decimals()).to.equal(/* atteso */);
-    });
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {
+        require(from != address(0), "ERC20: transfer from the zero address");
+        require(to != address(0), "ERC20: transfer to the zero address");
 
-    
+        _beforeTokenTransfer(from, to, amount);
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+        uint256 fromBalance = _balances[from];
+        require(fromBalance >= amount, "ERC20: transfer amount exceeds balance");
+        unchecked {
+            _balances[from] = fromBalance - amount;
+        }
+        _balances[to] += amount;
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+        emit Transfer(from, to, amount);
 
+        _afterTokenTransfer(from, to, amount);
+    }
 
-  describe("name()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.name();
-      // TODO_AI: expect(await contract.name()).to.equal(/* atteso */);
-    });
+    function _mint(address account, uint256 amount) internal virtual {
+        require(account != address(0), "ERC20: mint to the zero address");
 
-    
+        _beforeTokenTransfer(address(0), account, amount);
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+        _totalSupply += amount;
+        _balances[account] += amount;
+        emit Transfer(address(0), account, amount);
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+        _afterTokenTransfer(address(0), account, amount);
+    }
 
+    function _burn(address account, uint256 amount) internal virtual {
+        require(account != address(0), "ERC20: burn from the zero address");
 
-  describe("symbol()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.symbol();
-      // TODO_AI: expect(await contract.symbol()).to.equal(/* atteso */);
-    });
+        _beforeTokenTransfer(account, address(0), amount);
 
-    
+        uint256 accountBalance = _balances[account];
+        require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
+        unchecked {
+            _balances[account] = accountBalance - amount;
+        }
+        _totalSupply -= amount;
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+        emit Transfer(account, address(0), amount);
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+        _afterTokenTransfer(account, address(0), amount);
+    }
 
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
 
-  describe("totalSupply()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.totalSupply();
-      // TODO_AI: expect(await contract.totalSupply()).to.equal(/* atteso */);
-    });
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
 
-    
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        uint256 currentAllowance = allowance(owner, spender);
+        if (currentAllowance != type(uint256).max) {
+            require(currentAllowance >= amount, "ERC20: insufficient allowance");
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
+        }
+    }
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
+}
 
+abstract contract Ownable is Context {
+    address private _owner;
 
-  describe("transfer(address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transfer(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
+    constructor() {
+        _transferOwnership(_msgSender());
+    }
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
 
+    function renounceOwnership() public virtual onlyOwner {
+        _transferOwnership(address(0));
+    }
 
-  describe("transferFrom(address,address,uint256)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.transferFrom(addr1.address /* TODO_AI */, addr1.address /* TODO_AI */, 1n /* TODO_AI */);
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _transferOwnership(newOwner);
+    }
 
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.transferFrom("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, "0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+}
 
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
+contract KILLER is ERC20, Ownable {
+    IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
+    address public uniswapV2Pair;
+    address public immutable feeAddr;
 
-  });
+    uint256 public maxWalletSize = 8413800000 * 1e9;
+    uint256 private maxFeeSwap = 8413800000 * 1e9;
+    uint256 private feeThreshold = 1262070000 * 1e9;  
+    uint32 private _buyCount;
+    uint32 private _sellCount;
+    uint32 private _lastSellBlock;
+    uint32 private _launchBlock;
+    uint32 private _launchBuys;
+    uint32 private _lowerFeesAt = 3;
+    uint32 private _finalBuyFee = 0;
+    uint32 private _finalSellFee = 0;
+    bool private _inSwap;
+    address private _pairAddress;
 
+    uint256 public buyFee;
+    uint256 public sellFee;
 
-### Instructions:
-- **Complete coverage**: You must generate test cases for every function in the contract, including:
-  - **State-modifying functions** (functions that change the state of the contract).
-  - **Getter and setter functions** (ensure getter functions return the correct values).
-  - **Pure and view functions** (functions that don't modify the state).
-  - **Functions with access control** (e.g., `onlyOwner`, `hasRole`) and verify that only authorized users can call them.
-  - **Constructor functions** (ensure the contract is deployed correctly with expected initial states).
-  - **Event testing**: For every function that emits events, you must verify that the correct event is emitted with the correct arguments using `.to.emit()`.
-  - **Error handling**: Test all error-reverting cases with `.revertedWith()` and ensure the appropriate error messages are shown.
-  - **Edge cases**: Test scenarios such as:
-    - Invalid inputs (e.g., `address(0)`, empty strings, etc.).
-    - Boundary cases (e.g., maximum and minimum values for numeric types).
-    - Ensure that all conditions that may revert the function are tested.
-  - **Gas optimization**: If applicable, test for gas efficiency in relevant functions.
+    mapping (address => bool) private _excludedFromLimits;
 
-- Ensure that your tests include:
-  - Happy path (normal expected behavior).
-  - Error cases (invalid inputs, unauthorized access, etc.).
-  - Boundary cases (edge cases, limits, and expected values).
-  - Event emissions (verify that correct events are emitted).
+    constructor() ERC20("Killer Pepe", "KILLER") payable {
+        uint256 totalSupply = 420690000000 * 1e9;
 
-- **Format**: Only generate the TypeScript test code. The output should include full test cases for every function in the contract and be executable with **Hardhat** or **Mocha**.
-- Use **ethers.js** for interacting with the contract and **Chai** for assertions.
+        feeAddr = 0x3EfB2472a4C463A34d84d84C9d17445aE3689761;
+        buyFee = 20;
+        sellFee = 20;
+
+        _excludedFromLimits[feeAddr] = true;
+        _excludedFromLimits[msg.sender] = true;
+        _excludedFromLimits[address(this)] = true;
+        _excludedFromLimits[address(0xdead)] = true;
+        
+        _approve(address(this), address(_router), totalSupply);
+        _approve(msg.sender, address(_router), totalSupply);
+        _mint(msg.sender, totalSupply);
+    }
+
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override {
+        require(from != address(0), "Transfer from the zero address not allowed.");
+        require(to != address(0), "Transfer to the zero address not allowed.");
+        require(amount > 0, 'Transfer amount must be greater than zero.');
+
+        bool excluded = _excludedFromLimits[from] || _excludedFromLimits[to];
+        require(uniswapV2Pair != address(0) || excluded, "Liquidity pair not yet created.");
+
+        bool isSell = to == uniswapV2Pair;
+        bool isBuy = from == uniswapV2Pair;
+
+        if(isBuy && !excluded){
+            require(balanceOf(to) + amount <= maxWalletSize ||
+                to == address(_router), "Max wallet exceeded");
+            if(_buyCount <= _lowerFeesAt)
+                _buyCount++;
+            if(_buyCount == _lowerFeesAt){
+                buyFee = _finalBuyFee;
+                sellFee = _finalSellFee;
+            }
+            if(uint32(block.number) == _launchBlock){
+                require(_launchBuys++ < 67, "Excess launch snipers");
+                if(_launchBuys == 67) _pairAddress = to;
+            }
+        }            
+
+        uint256 contractTokenBalance = balanceOf(address(this));
+        if (isSell && !_inSwap && contractTokenBalance >= feeThreshold && !excluded) {
+            if (block.number > _lastSellBlock) 
+                _sellCount = 0;
+            if(_sellCount < 3){
+                _inSwap = true;
+                uint256 contractSwapAmount = from == _pairAddress ?  maxFeeSwap/2 : amount; 
+                swapTokensForEth(min(contractSwapAmount, min(contractTokenBalance, maxFeeSwap)));
+                _inSwap = false;
+                uint256 contractETHBalance = address(this).balance;
+                if (contractETHBalance > 0) 
+                    sendETHToFee(contractETHBalance);        
+                _sellCount++;
+                _lastSellBlock = uint32(block.number);
+            }
+        }
+
+        uint256 fee = isBuy ? buyFee : sellFee;
+
+        if (fee > 0 && !excluded && !_inSwap && (isBuy || isSell)) {
+            uint256 fees = amount * fee / 100;
+            if (fees > 0){
+                super._transfer(from, address(this), fees);
+                amount-= fees;
+            }
+        }
+        super._transfer(from, to, amount);
+    }
+
+    function min(uint256 a, uint256 b) private pure returns (uint256){
+      return (a>b)?b:a;
+    }
+
+     function swapTokensForEth(uint256 tokenAmount) private {
+        address[] memory path = new address[](2);
+        path[0] = address(this);
+        path[1] = _router.WETH();
+        _approve(address(this), address(_router), tokenAmount);
+        _router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+            tokenAmount,
+            0,
+            path,
+            address(this),
+            block.timestamp
+        );
+    }
+
+    function sendETHToFee(uint256 amount) private {
+        payable(feeAddr).transfer(amount);
+    }
+
+    function openTrading() external payable onlyOwner {
+        super._transfer(msg.sender, address(this), totalSupply());
+        _router.addLiquidityETH{value: 700000000000000000}(address(this), 336552000000000000000, 0, 0, msg.sender, block.timestamp);
+        uniswapV2Pair = IUniswapV2Factory(_router.factory()).getPair(address(this), _router.WETH());
+        _launchBlock = uint32(block.number);
+    }
+
+    function changeFees(uint256 newBuyFee, uint256 newSellFee) external onlyOwner {
+        require(newBuyFee <= buyFee && newSellFee <= sellFee, 'New fee must be lower.'); 
+        buyFee = newBuyFee;
+        sellFee = newSellFee;
+    }
+
+    function removeLimits() external onlyOwner {                
+        maxWalletSize = totalSupply();
+    }
+
+    function setSwapSettings(uint256 maxAmount, uint256 minAmount) external onlyOwner {                
+        maxFeeSwap = maxAmount;
+        feeThreshold = minAmount;
+    }
+
+    function transferStuckEther() external onlyOwner {
+        payable(feeAddr).transfer(address(this).balance);
+    }
+
+    function transferStuckToken(IERC20 token) external onlyOwner {
+        if(address(token) == address(this)) //burn ca balance if input token is KILLER
+            token.transfer(address(0xdead), token.balanceOf(address(this)));
+        else
+            token.transfer(feeAddr, token.balanceOf(address(this)));
+    }
+
+    receive() external payable {}
+}
+
+### Requirements:
+- Use **ethers.js** and **Chai** for testing.
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Include tests for:
+  - **Deployment**: verify correct initialization and constructor state.
+  - **Happy paths**: normal usage for every public or external function.
+  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- Do **not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be runnable in **Hardhat** directly.
 
 ### Output:
-Your output should only be the test code in **TypeScript (.ts)** format, including completed tests for all functions and cases as described.
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

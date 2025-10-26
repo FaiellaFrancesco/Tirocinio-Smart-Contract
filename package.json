@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@typechain/ethers-v6": "^0.5.1",
@@ -22,13 +23,15 @@
     "@types/node": "^24.7.0",
     "@types/yargs": "^17.0.33",
     "chai": "^4.3.10",
-    "hardhat": "^2.26.2",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.26.3",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "@morenabarboni/sumo": "^3.2.1",
+    "node-fetch": "^3.3.2",
     "yargs": "^18.0.0"
   }
 }
