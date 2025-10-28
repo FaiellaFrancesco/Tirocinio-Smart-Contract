@@ -1,4 +1,23 @@
 #!/usr/bin/env ts-node
+/**
+ * build-prompts.ts
+ *
+ * Questo script genera i file di prompt per LLM a partire dai contratti Solidity e dagli scaffold di test.
+ * Per ogni scaffold trovato nella cartella indicata, cerca il relativo contratto Solidity, carica il template scelto
+ * e sostituisce i placeholder {CONTRACT} e {SCAFFOLD} con il codice del contratto e dello scaffold.
+ *
+ * I prompt generati vengono salvati nella cartella di output, suddivisi per dimensione (small, medium, large, ...).
+ *
+ * Uso:
+ *   npx ts-node scripts/build-prompts.ts [scaffoldDir] [outDir] [templatePath] [--include=regex]
+ *   - scaffoldDir: cartella degli scaffold di test (default: scaffolds)
+ *   - outDir: cartella di output per i prompt generati (default: prompts_out)
+ *   - templatePath: percorso del template da usare (default: prompts/templates/coverage.txt)
+ *   - --include=regex: (opzionale) genera solo i prompt che corrispondono al regex
+ *
+ * Esempio:
+ *   npx ts-node scripts/build-prompts.ts scaffolds prompts_out prompts/templates/only-sol.template.txt
+ */
 import * as fs from "fs";
 import * as path from "path";
 
@@ -55,7 +74,7 @@ function main() {
   const args = process.argv.slice(2);
   const scaffoldDir = args[0] || DEFAULT_SCAFFOLD_DIR;
   const outDir = args[1] || DEFAULT_OUT_DIR;
-  const templatePath = args[2] || DEFAULT_TEMPLATE_PATH;
+  const templatePath = path.resolve(args[2] || DEFAULT_TEMPLATE_PATH);
   const includeArg = args.find(a => a.startsWith("--include="));
   const includeRe = includeArg ? new RegExp(includeArg.split("=")[1]) : null;
 

@@ -8,6 +8,18 @@ import { spawn } from 'child_process';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
 import fetch from 'node-fetch';
 
+/**
+ * run-all.ts
+ *
+ * Questo script esegue la generazione automatica dei test per tutti i contratti Solidity usando i prompt generati.
+ * Per ogni prompt nella cartella scelta, invia la richiesta al modello LLM (locale o remoto) e salva il test generato.
+ *
+ * Uso:
+ *   npx ts-node scripts/run-all.ts
+ *
+ * Puoi modificare la cartella dei prompt o la configurazione LLM direttamente nel codice o tramite opzioni (se previste).
+ */
+
 // Configurazione base, modificabile da CLI
 const DEFAULT_FOLDER = 'small';
 const DEFAULT_MODEL = 'qwen2.5-coder:32b';
@@ -347,14 +359,14 @@ async function main() {
     return;
   }
   // Leggi parametri da CLI
-  const folderArg = process.argv.find(arg => arg.startsWith('--folder='));
+  const promptsFolderArg = process.argv.find(arg => arg.startsWith('--promptsFolder='));
   const modelArg = process.argv.find(arg => arg.startsWith('--model='));
   const targetArg = process.argv.find(arg => arg.startsWith('--target='));
   const templatesArg = process.argv.find(arg => arg.startsWith('--templates='));
-  const folder = folderArg ? folderArg.split('=')[1] : DEFAULT_FOLDER;
+  const promptsFolder = promptsFolderArg ? promptsFolderArg.split('=')[1] : `./prompts_out/${DEFAULT_FOLDER}`;
   const model = modelArg ? modelArg.split('=')[1] : DEFAULT_MODEL;
   const target = targetArg ? targetArg.split('=')[1] : '';
-  config.promptsDir = `./prompts_out/${folder}`;
+  config.promptsDir = promptsFolder;
   config.model = model;
 
   // Imposta OLLAMA_URL di default se non è già impostata
@@ -363,7 +375,7 @@ async function main() {
     console.log('ℹ️  OLLAMA_URL non impostata, uso endpoint ngrok di default:', process.env.OLLAMA_URL);
   }
 
-  console.log(`🚀 Generazione test LLM su prompts_out/${folder} con modello ${model}`);
+  console.log(`🚀 Generazione test LLM su ${promptsFolder} con modello ${model}`);
 
   try {
     await fs.access(config.promptsDir);
