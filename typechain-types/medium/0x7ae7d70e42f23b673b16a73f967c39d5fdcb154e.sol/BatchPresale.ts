@@ -3,29 +3,64 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface BatchPresaleInterface extends Interface {
+export interface BatchPresaleInterface extends utils.Interface {
+  functions: {
+    "addStage(uint256,uint256,uint256,uint256)": FunctionFragment;
+    "buyToken(uint256)": FunctionFragment;
+    "convertEthToUsd(uint256)": FunctionFragment;
+    "flipPresaleActive()": FunctionFragment;
+    "getCurrentStageIdActive()": FunctionFragment;
+    "getEthToUsdPrice()": FunctionFragment;
+    "maxStage()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "paymentAddress()": FunctionFragment;
+    "presaleActive()": FunctionFragment;
+    "presaleTokenAmount()": FunctionFragment;
+    "priceFeed()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "setMaxStage(uint256)": FunctionFragment;
+    "setPaymentAddress(address)": FunctionFragment;
+    "setPresaleTokenAmount(uint256)": FunctionFragment;
+    "setPriceFeed(address)": FunctionFragment;
+    "setStage(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "setToken(address)": FunctionFragment;
+    "setTotalSold(uint256)": FunctionFragment;
+    "stages(uint256)": FunctionFragment;
+    "token()": FunctionFragment;
+    "tokenMetadata()": FunctionFragment;
+    "totalSold()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "withdrawFunds()": FunctionFragment;
+    "withdrawTokens(address,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "addStage"
       | "buyToken"
       | "convertEthToUsd"
@@ -55,19 +90,22 @@ export interface BatchPresaleInterface extends Interface {
       | "withdrawTokens"
   ): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-
   encodeFunctionData(
     functionFragment: "addStage",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "buyToken",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "convertEthToUsd",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "flipPresaleActive",
@@ -102,41 +140,41 @@ export interface BatchPresaleInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxStage",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setPaymentAddress",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setPresaleTokenAmount",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setPriceFeed",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setStage",
     values: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "setToken",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setTotalSold",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "stages",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
@@ -146,7 +184,7 @@ export interface BatchPresaleInterface extends Interface {
   encodeFunctionData(functionFragment: "totalSold", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawFunds",
@@ -154,7 +192,7 @@ export interface BatchPresaleInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawTokens",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(functionFragment: "addStage", data: BytesLike): Result;
@@ -235,320 +273,625 @@ export interface BatchPresaleInterface extends Interface {
     functionFragment: "withdrawTokens",
     data: BytesLike
   ): Result;
+
+  events: {
+    "OwnershipTransferred(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface BatchPresale extends BaseContract {
-  connect(runner?: ContractRunner | null): BatchPresale;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: BatchPresaleInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    addStage(
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    buyToken(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  addStage: TypedContractMethod<
-    [
-      _bonus: BigNumberish,
-      _price: BigNumberish,
-      _start: BigNumberish,
-      _end: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+    convertEthToUsd(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  buyToken: TypedContractMethod<[_amount: BigNumberish], [void], "payable">;
+    flipPresaleActive(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  convertEthToUsd: TypedContractMethod<
-    [ethAmount: BigNumberish],
-    [bigint],
-    "view"
-  >;
+    getCurrentStageIdActive(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  flipPresaleActive: TypedContractMethod<[], [void], "nonpayable">;
+    getEthToUsdPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getCurrentStageIdActive: TypedContractMethod<[], [bigint], "view">;
+    maxStage(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getEthToUsdPrice: TypedContractMethod<[], [bigint], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  maxStage: TypedContractMethod<[], [bigint], "view">;
+    paymentAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    presaleActive(overrides?: CallOverrides): Promise<[boolean]>;
 
-  paymentAddress: TypedContractMethod<[], [string], "view">;
+    presaleTokenAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  presaleActive: TypedContractMethod<[], [boolean], "view">;
+    priceFeed(overrides?: CallOverrides): Promise<[string]>;
 
-  presaleTokenAmount: TypedContractMethod<[], [bigint], "view">;
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  priceFeed: TypedContractMethod<[], [string], "view">;
+    setMaxStage(
+      _maxStage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+    setPaymentAddress(
+      _paymentAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setMaxStage: TypedContractMethod<
-    [_maxStage: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    setPresaleTokenAmount(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setPaymentAddress: TypedContractMethod<
-    [_paymentAddress: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    setPriceFeed(
+      _priceFeed: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setPresaleTokenAmount: TypedContractMethod<
-    [_amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    setStage(
+      _id: PromiseOrValue<BigNumberish>,
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setPriceFeed: TypedContractMethod<
-    [_priceFeed: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    setToken(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setStage: TypedContractMethod<
-    [
-      _id: BigNumberish,
-      _bonus: BigNumberish,
-      _price: BigNumberish,
-      _start: BigNumberish,
-      _end: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+    setTotalSold(
+      _totalSold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setToken: TypedContractMethod<[_token: AddressLike], [void], "nonpayable">;
-
-  setTotalSold: TypedContractMethod<
-    [_totalSold: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  stages: TypedContractMethod<
-    [arg0: BigNumberish],
-    [
-      [bigint, bigint, bigint, bigint, bigint] & {
-        id: bigint;
-        bonus: bigint;
-        price: bigint;
-        start: bigint;
-        end: bigint;
+    stages(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        id: BigNumber;
+        bonus: BigNumber;
+        price: BigNumber;
+        start: BigNumber;
+        end: BigNumber;
       }
-    ],
-    "view"
+    >;
+
+    token(overrides?: CallOverrides): Promise<[string]>;
+
+    tokenMetadata(overrides?: CallOverrides): Promise<[string]>;
+
+    totalSold(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawFunds(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawTokens(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  addStage(
+    _bonus: PromiseOrValue<BigNumberish>,
+    _price: PromiseOrValue<BigNumberish>,
+    _start: PromiseOrValue<BigNumberish>,
+    _end: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  buyToken(
+    _amount: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  convertEthToUsd(
+    ethAmount: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  flipPresaleActive(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getCurrentStageIdActive(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getEthToUsdPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxStage(overrides?: CallOverrides): Promise<BigNumber>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  paymentAddress(overrides?: CallOverrides): Promise<string>;
+
+  presaleActive(overrides?: CallOverrides): Promise<boolean>;
+
+  presaleTokenAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  priceFeed(overrides?: CallOverrides): Promise<string>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxStage(
+    _maxStage: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setPaymentAddress(
+    _paymentAddress: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setPresaleTokenAmount(
+    _amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setPriceFeed(
+    _priceFeed: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setStage(
+    _id: PromiseOrValue<BigNumberish>,
+    _bonus: PromiseOrValue<BigNumberish>,
+    _price: PromiseOrValue<BigNumberish>,
+    _start: PromiseOrValue<BigNumberish>,
+    _end: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setToken(
+    _token: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setTotalSold(
+    _totalSold: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  stages(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      id: BigNumber;
+      bonus: BigNumber;
+      price: BigNumber;
+      start: BigNumber;
+      end: BigNumber;
+    }
   >;
 
-  token: TypedContractMethod<[], [string], "view">;
+  token(overrides?: CallOverrides): Promise<string>;
 
-  tokenMetadata: TypedContractMethod<[], [string], "view">;
+  tokenMetadata(overrides?: CallOverrides): Promise<string>;
 
-  totalSold: TypedContractMethod<[], [bigint], "view">;
+  totalSold(overrides?: CallOverrides): Promise<BigNumber>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  withdrawFunds: TypedContractMethod<[], [void], "nonpayable">;
+  withdrawFunds(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  withdrawTokens: TypedContractMethod<
-    [_to: AddressLike, _amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  withdrawTokens(
+    _to: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    addStage(
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-  getFunction(
-    nameOrSignature: "addStage"
-  ): TypedContractMethod<
-    [
-      _bonus: BigNumberish,
-      _price: BigNumberish,
-      _start: BigNumberish,
-      _end: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "buyToken"
-  ): TypedContractMethod<[_amount: BigNumberish], [void], "payable">;
-  getFunction(
-    nameOrSignature: "convertEthToUsd"
-  ): TypedContractMethod<[ethAmount: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "flipPresaleActive"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "getCurrentStageIdActive"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getEthToUsdPrice"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "maxStage"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "paymentAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "presaleActive"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "presaleTokenAmount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "priceFeed"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setMaxStage"
-  ): TypedContractMethod<[_maxStage: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setPaymentAddress"
-  ): TypedContractMethod<[_paymentAddress: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setPresaleTokenAmount"
-  ): TypedContractMethod<[_amount: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setPriceFeed"
-  ): TypedContractMethod<[_priceFeed: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setStage"
-  ): TypedContractMethod<
-    [
-      _id: BigNumberish,
-      _bonus: BigNumberish,
-      _price: BigNumberish,
-      _start: BigNumberish,
-      _end: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setToken"
-  ): TypedContractMethod<[_token: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setTotalSold"
-  ): TypedContractMethod<[_totalSold: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "stages"
-  ): TypedContractMethod<
-    [arg0: BigNumberish],
-    [
-      [bigint, bigint, bigint, bigint, bigint] & {
-        id: bigint;
-        bonus: bigint;
-        price: bigint;
-        start: bigint;
-        end: bigint;
+    buyToken(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    convertEthToUsd(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    flipPresaleActive(overrides?: CallOverrides): Promise<void>;
+
+    getCurrentStageIdActive(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getEthToUsdPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxStage(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    paymentAddress(overrides?: CallOverrides): Promise<string>;
+
+    presaleActive(overrides?: CallOverrides): Promise<boolean>;
+
+    presaleTokenAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    priceFeed(overrides?: CallOverrides): Promise<string>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setMaxStage(
+      _maxStage: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setPaymentAddress(
+      _paymentAddress: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setPresaleTokenAmount(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setPriceFeed(
+      _priceFeed: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setStage(
+      _id: PromiseOrValue<BigNumberish>,
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setToken(
+      _token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setTotalSold(
+      _totalSold: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    stages(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        id: BigNumber;
+        bonus: BigNumber;
+        price: BigNumber;
+        start: BigNumber;
+        end: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "token"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tokenMetadata"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "totalSold"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "withdrawFunds"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "withdrawTokens"
-  ): TypedContractMethod<
-    [_to: AddressLike, _amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    >;
 
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
+    token(overrides?: CallOverrides): Promise<string>;
+
+    tokenMetadata(overrides?: CallOverrides): Promise<string>;
+
+    totalSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawFunds(overrides?: CallOverrides): Promise<void>;
+
+    withdrawTokens(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+  };
+
+  estimateGas: {
+    addStage(
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    buyToken(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    convertEthToUsd(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    flipPresaleActive(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getCurrentStageIdActive(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getEthToUsdPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxStage(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    paymentAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    presaleActive(overrides?: CallOverrides): Promise<BigNumber>;
+
+    presaleTokenAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    priceFeed(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setMaxStage(
+      _maxStage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setPaymentAddress(
+      _paymentAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setPresaleTokenAmount(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setPriceFeed(
+      _priceFeed: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setStage(
+      _id: PromiseOrValue<BigNumberish>,
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setToken(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setTotalSold(
+      _totalSold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    stages(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenMetadata(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawFunds(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawTokens(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    addStage(
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    buyToken(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    convertEthToUsd(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    flipPresaleActive(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getCurrentStageIdActive(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getEthToUsdPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    maxStage(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    paymentAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    presaleActive(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    presaleTokenAmount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    priceFeed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxStage(
+      _maxStage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPaymentAddress(
+      _paymentAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPresaleTokenAmount(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPriceFeed(
+      _priceFeed: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setStage(
+      _id: PromiseOrValue<BigNumberish>,
+      _bonus: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
+      _start: PromiseOrValue<BigNumberish>,
+      _end: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setToken(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setTotalSold(
+      _totalSold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    stages(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokenMetadata(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSold(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawFunds(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawTokens(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

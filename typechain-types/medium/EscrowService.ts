@@ -3,29 +3,44 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
-export interface EscrowServiceInterface extends Interface {
+export interface EscrowServiceInterface extends utils.Interface {
+  functions: {
+    "amount()": FunctionFragment;
+    "buyer()": FunctionFragment;
+    "fund()": FunctionFragment;
+    "funded()": FunctionFragment;
+    "getStatus()": FunctionFragment;
+    "release()": FunctionFragment;
+    "released()": FunctionFragment;
+    "seller()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "amount"
       | "buyer"
       | "fund"
@@ -35,8 +50,6 @@ export interface EscrowServiceInterface extends Interface {
       | "released"
       | "seller"
   ): FunctionFragment;
-
-  getEvent(nameOrSignatureOrTopic: "Funded" | "Released"): EventFragment;
 
   encodeFunctionData(functionFragment: "amount", values?: undefined): string;
   encodeFunctionData(functionFragment: "buyer", values?: undefined): string;
@@ -55,158 +68,182 @@ export interface EscrowServiceInterface extends Interface {
   decodeFunctionResult(functionFragment: "release", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "released", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "seller", data: BytesLike): Result;
+
+  events: {
+    "Funded(address,uint256)": EventFragment;
+    "Released(address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Funded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Released"): EventFragment;
 }
 
-export namespace FundedEvent {
-  export type InputTuple = [buyer: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [buyer: string, amount: bigint];
-  export interface OutputObject {
-    buyer: string;
-    amount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface FundedEventObject {
+  buyer: string;
+  amount: BigNumber;
 }
+export type FundedEvent = TypedEvent<[string, BigNumber], FundedEventObject>;
 
-export namespace ReleasedEvent {
-  export type InputTuple = [seller: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [seller: string, amount: bigint];
-  export interface OutputObject {
-    seller: string;
-    amount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type FundedEventFilter = TypedEventFilter<FundedEvent>;
+
+export interface ReleasedEventObject {
+  seller: string;
+  amount: BigNumber;
 }
+export type ReleasedEvent = TypedEvent<
+  [string, BigNumber],
+  ReleasedEventObject
+>;
+
+export type ReleasedEventFilter = TypedEventFilter<ReleasedEvent>;
 
 export interface EscrowService extends BaseContract {
-  connect(runner?: ContractRunner | null): EscrowService;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: EscrowServiceInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    amount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    buyer(overrides?: CallOverrides): Promise<[string]>;
 
-  amount: TypedContractMethod<[], [bigint], "view">;
+    fund(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  buyer: TypedContractMethod<[], [string], "view">;
+    funded(overrides?: CallOverrides): Promise<[boolean]>;
 
-  fund: TypedContractMethod<[], [void], "payable">;
+    getStatus(overrides?: CallOverrides): Promise<[string]>;
 
-  funded: TypedContractMethod<[], [boolean], "view">;
+    release(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  getStatus: TypedContractMethod<[], [string], "view">;
+    released(overrides?: CallOverrides): Promise<[boolean]>;
 
-  release: TypedContractMethod<[], [void], "nonpayable">;
+    seller(overrides?: CallOverrides): Promise<[string]>;
+  };
 
-  released: TypedContractMethod<[], [boolean], "view">;
+  amount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  seller: TypedContractMethod<[], [string], "view">;
+  buyer(overrides?: CallOverrides): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  fund(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "amount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "buyer"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "fund"
-  ): TypedContractMethod<[], [void], "payable">;
-  getFunction(
-    nameOrSignature: "funded"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "getStatus"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "release"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "released"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "seller"
-  ): TypedContractMethod<[], [string], "view">;
+  funded(overrides?: CallOverrides): Promise<boolean>;
 
-  getEvent(
-    key: "Funded"
-  ): TypedContractEvent<
-    FundedEvent.InputTuple,
-    FundedEvent.OutputTuple,
-    FundedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Released"
-  ): TypedContractEvent<
-    ReleasedEvent.InputTuple,
-    ReleasedEvent.OutputTuple,
-    ReleasedEvent.OutputObject
-  >;
+  getStatus(overrides?: CallOverrides): Promise<string>;
+
+  release(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  released(overrides?: CallOverrides): Promise<boolean>;
+
+  seller(overrides?: CallOverrides): Promise<string>;
+
+  callStatic: {
+    amount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyer(overrides?: CallOverrides): Promise<string>;
+
+    fund(overrides?: CallOverrides): Promise<void>;
+
+    funded(overrides?: CallOverrides): Promise<boolean>;
+
+    getStatus(overrides?: CallOverrides): Promise<string>;
+
+    release(overrides?: CallOverrides): Promise<void>;
+
+    released(overrides?: CallOverrides): Promise<boolean>;
+
+    seller(overrides?: CallOverrides): Promise<string>;
+  };
 
   filters: {
-    "Funded(address,uint256)": TypedContractEvent<
-      FundedEvent.InputTuple,
-      FundedEvent.OutputTuple,
-      FundedEvent.OutputObject
-    >;
-    Funded: TypedContractEvent<
-      FundedEvent.InputTuple,
-      FundedEvent.OutputTuple,
-      FundedEvent.OutputObject
-    >;
+    "Funded(address,uint256)"(
+      buyer?: PromiseOrValue<string> | null,
+      amount?: null
+    ): FundedEventFilter;
+    Funded(
+      buyer?: PromiseOrValue<string> | null,
+      amount?: null
+    ): FundedEventFilter;
 
-    "Released(address,uint256)": TypedContractEvent<
-      ReleasedEvent.InputTuple,
-      ReleasedEvent.OutputTuple,
-      ReleasedEvent.OutputObject
-    >;
-    Released: TypedContractEvent<
-      ReleasedEvent.InputTuple,
-      ReleasedEvent.OutputTuple,
-      ReleasedEvent.OutputObject
-    >;
+    "Released(address,uint256)"(
+      seller?: PromiseOrValue<string> | null,
+      amount?: null
+    ): ReleasedEventFilter;
+    Released(
+      seller?: PromiseOrValue<string> | null,
+      amount?: null
+    ): ReleasedEventFilter;
+  };
+
+  estimateGas: {
+    amount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyer(overrides?: CallOverrides): Promise<BigNumber>;
+
+    fund(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    funded(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getStatus(overrides?: CallOverrides): Promise<BigNumber>;
+
+    release(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    released(overrides?: CallOverrides): Promise<BigNumber>;
+
+    seller(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    amount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    buyer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    fund(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    funded(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getStatus(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    release(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    released(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    seller(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

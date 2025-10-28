@@ -3,65 +3,75 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IPermit2 {
   export type TokenPermissionsStruct = {
-    token: AddressLike;
-    amount: BigNumberish;
+    token: PromiseOrValue<string>;
+    amount: PromiseOrValue<BigNumberish>;
   };
 
-  export type TokenPermissionsStructOutput = [token: string, amount: bigint] & {
+  export type TokenPermissionsStructOutput = [string, BigNumber] & {
     token: string;
-    amount: bigint;
+    amount: BigNumber;
   };
 
   export type PermitTransferFromStruct = {
     permitted: IPermit2.TokenPermissionsStruct[];
-    nonce: BigNumberish;
-    deadline: BigNumberish;
+    nonce: PromiseOrValue<BigNumberish>;
+    deadline: PromiseOrValue<BigNumberish>;
   };
 
   export type PermitTransferFromStructOutput = [
-    permitted: IPermit2.TokenPermissionsStructOutput[],
-    nonce: bigint,
-    deadline: bigint
+    IPermit2.TokenPermissionsStructOutput[],
+    BigNumber,
+    BigNumber
   ] & {
     permitted: IPermit2.TokenPermissionsStructOutput[];
-    nonce: bigint;
-    deadline: bigint;
+    nonce: BigNumber;
+    deadline: BigNumber;
   };
 
   export type SignatureTransferDetailsStruct = {
-    to: AddressLike;
-    requestedAmount: BigNumberish;
+    to: PromiseOrValue<string>;
+    requestedAmount: PromiseOrValue<BigNumberish>;
   };
 
-  export type SignatureTransferDetailsStructOutput = [
-    to: string,
-    requestedAmount: bigint
-  ] & { to: string; requestedAmount: bigint };
+  export type SignatureTransferDetailsStructOutput = [string, BigNumber] & {
+    to: string;
+    requestedAmount: BigNumber;
+  };
 }
 
-export interface TokenDistributorInterface extends Interface {
+export interface TokenDistributorInterface extends utils.Interface {
+  functions: {
+    "PERMIT2()": FunctionFragment;
+    "distributeContractTokens(address[],address[],uint256[])": FunctionFragment;
+    "distributeTokens(address[],address[],uint256[],address)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "vanilla(((address,uint256)[],uint256,uint256),(address,uint256)[],address,bytes)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "PERMIT2"
       | "distributeContractTokens"
       | "distributeTokens"
@@ -72,11 +82,20 @@ export interface TokenDistributorInterface extends Interface {
   encodeFunctionData(functionFragment: "PERMIT2", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "distributeContractTokens",
-    values: [AddressLike[], AddressLike[], BigNumberish[]]
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "distributeTokens",
-    values: [AddressLike[], AddressLike[], BigNumberish[], AddressLike]
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -84,8 +103,8 @@ export interface TokenDistributorInterface extends Interface {
     values: [
       IPermit2.PermitTransferFromStruct,
       IPermit2.SignatureTransferDetailsStruct[],
-      AddressLike,
-      BytesLike
+      PromiseOrValue<string>,
+      PromiseOrValue<BytesLike>
     ]
   ): string;
 
@@ -100,124 +119,178 @@ export interface TokenDistributorInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "vanilla", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface TokenDistributor extends BaseContract {
-  connect(runner?: ContractRunner | null): TokenDistributor;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: TokenDistributorInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    PERMIT2(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    distributeContractTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  PERMIT2: TypedContractMethod<[], [string], "view">;
+    distributeTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  distributeContractTokens: TypedContractMethod<
-    [tokens: AddressLike[], recipients: AddressLike[], amounts: BigNumberish[]],
-    [void],
-    "nonpayable"
-  >;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  distributeTokens: TypedContractMethod<
-    [
-      tokens: AddressLike[],
-      recipients: AddressLike[],
-      amounts: BigNumberish[],
-      from: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  owner: TypedContractMethod<[], [string], "view">;
-
-  vanilla: TypedContractMethod<
-    [
+    vanilla(
       permit: IPermit2.PermitTransferFromStruct,
       transferDetails: IPermit2.SignatureTransferDetailsStruct[],
-      owner: AddressLike,
-      signature: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  PERMIT2(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "PERMIT2"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "distributeContractTokens"
-  ): TypedContractMethod<
-    [tokens: AddressLike[], recipients: AddressLike[], amounts: BigNumberish[]],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "distributeTokens"
-  ): TypedContractMethod<
-    [
-      tokens: AddressLike[],
-      recipients: AddressLike[],
-      amounts: BigNumberish[],
-      from: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "vanilla"
-  ): TypedContractMethod<
-    [
+  distributeContractTokens(
+    tokens: PromiseOrValue<string>[],
+    recipients: PromiseOrValue<string>[],
+    amounts: PromiseOrValue<BigNumberish>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  distributeTokens(
+    tokens: PromiseOrValue<string>[],
+    recipients: PromiseOrValue<string>[],
+    amounts: PromiseOrValue<BigNumberish>[],
+    from: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  vanilla(
+    permit: IPermit2.PermitTransferFromStruct,
+    transferDetails: IPermit2.SignatureTransferDetailsStruct[],
+    owner: PromiseOrValue<string>,
+    signature: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    PERMIT2(overrides?: CallOverrides): Promise<string>;
+
+    distributeContractTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    distributeTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      from: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    vanilla(
       permit: IPermit2.PermitTransferFromStruct,
       transferDetails: IPermit2.SignatureTransferDetailsStruct[],
-      owner: AddressLike,
-      signature: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    PERMIT2(overrides?: CallOverrides): Promise<BigNumber>;
+
+    distributeContractTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    distributeTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    vanilla(
+      permit: IPermit2.PermitTransferFromStruct,
+      transferDetails: IPermit2.SignatureTransferDetailsStruct[],
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    PERMIT2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    distributeContractTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    distributeTokens(
+      tokens: PromiseOrValue<string>[],
+      recipients: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    vanilla(
+      permit: IPermit2.PermitTransferFromStruct,
+      transferDetails: IPermit2.SignatureTransferDetailsStruct[],
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

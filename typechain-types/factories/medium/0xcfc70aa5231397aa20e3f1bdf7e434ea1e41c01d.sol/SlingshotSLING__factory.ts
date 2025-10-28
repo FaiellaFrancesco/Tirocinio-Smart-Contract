@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   SlingshotSLING,
   SlingshotSLINGInterface,
@@ -231,17 +232,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class SlingshotSLING__factory {
   static readonly abi = _abi;
   static createInterface(): SlingshotSLINGInterface {
-    return new Interface(_abi) as SlingshotSLINGInterface;
+    return new utils.Interface(_abi) as SlingshotSLINGInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): SlingshotSLING {
-    return new Contract(address, _abi, runner) as unknown as SlingshotSLING;
+    return new Contract(address, _abi, signerOrProvider) as SlingshotSLING;
   }
 }

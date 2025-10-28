@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   MetricBase,
   MetricBaseInterface,
@@ -165,14 +166,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class MetricBase__factory {
   static readonly abi = _abi;
   static createInterface(): MetricBaseInterface {
-    return new Interface(_abi) as MetricBaseInterface;
+    return new utils.Interface(_abi) as MetricBaseInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): MetricBase {
-    return new Contract(address, _abi, runner) as unknown as MetricBase;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): MetricBase {
+    return new Contract(address, _abi, signerOrProvider) as MetricBase;
   }
 }

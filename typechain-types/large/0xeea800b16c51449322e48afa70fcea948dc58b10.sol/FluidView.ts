@@ -3,446 +3,471 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace FluidView {
   export type FTokenDataStruct = {
-    tokenAddress: AddressLike;
-    isNativeUnderlying: boolean;
-    name: string;
-    symbol: string;
-    decimals: BigNumberish;
-    asset: AddressLike;
-    totalAssets: BigNumberish;
-    totalSupply: BigNumberish;
-    convertToShares: BigNumberish;
-    convertToAssets: BigNumberish;
-    rewardsRate: BigNumberish;
-    supplyRate: BigNumberish;
-    withdrawable: BigNumberish;
-    modeWithInterest: boolean;
-    expandPercent: BigNumberish;
-    expandDuration: BigNumberish;
+    tokenAddress: PromiseOrValue<string>;
+    isNativeUnderlying: PromiseOrValue<boolean>;
+    name: PromiseOrValue<string>;
+    symbol: PromiseOrValue<string>;
+    decimals: PromiseOrValue<BigNumberish>;
+    asset: PromiseOrValue<string>;
+    totalAssets: PromiseOrValue<BigNumberish>;
+    totalSupply: PromiseOrValue<BigNumberish>;
+    convertToShares: PromiseOrValue<BigNumberish>;
+    convertToAssets: PromiseOrValue<BigNumberish>;
+    rewardsRate: PromiseOrValue<BigNumberish>;
+    supplyRate: PromiseOrValue<BigNumberish>;
+    withdrawable: PromiseOrValue<BigNumberish>;
+    modeWithInterest: PromiseOrValue<boolean>;
+    expandPercent: PromiseOrValue<BigNumberish>;
+    expandDuration: PromiseOrValue<BigNumberish>;
   };
 
   export type FTokenDataStructOutput = [
-    tokenAddress: string,
-    isNativeUnderlying: boolean,
-    name: string,
-    symbol: string,
-    decimals: bigint,
-    asset: string,
-    totalAssets: bigint,
-    totalSupply: bigint,
-    convertToShares: bigint,
-    convertToAssets: bigint,
-    rewardsRate: bigint,
-    supplyRate: bigint,
-    withdrawable: bigint,
-    modeWithInterest: boolean,
-    expandPercent: bigint,
-    expandDuration: bigint
+    string,
+    boolean,
+    string,
+    string,
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    boolean,
+    BigNumber,
+    BigNumber
   ] & {
     tokenAddress: string;
     isNativeUnderlying: boolean;
     name: string;
     symbol: string;
-    decimals: bigint;
+    decimals: BigNumber;
     asset: string;
-    totalAssets: bigint;
-    totalSupply: bigint;
-    convertToShares: bigint;
-    convertToAssets: bigint;
-    rewardsRate: bigint;
-    supplyRate: bigint;
-    withdrawable: bigint;
+    totalAssets: BigNumber;
+    totalSupply: BigNumber;
+    convertToShares: BigNumber;
+    convertToAssets: BigNumber;
+    rewardsRate: BigNumber;
+    supplyRate: BigNumber;
+    withdrawable: BigNumber;
     modeWithInterest: boolean;
-    expandPercent: bigint;
-    expandDuration: bigint;
+    expandPercent: BigNumber;
+    expandDuration: BigNumber;
   };
 
   export type UserEarnPositionStruct = {
-    fTokenShares: BigNumberish;
-    underlyingAssets: BigNumberish;
-    underlyingBalance: BigNumberish;
-    allowance: BigNumberish;
+    fTokenShares: PromiseOrValue<BigNumberish>;
+    underlyingAssets: PromiseOrValue<BigNumberish>;
+    underlyingBalance: PromiseOrValue<BigNumberish>;
+    allowance: PromiseOrValue<BigNumberish>;
   };
 
   export type UserEarnPositionStructOutput = [
-    fTokenShares: bigint,
-    underlyingAssets: bigint,
-    underlyingBalance: bigint,
-    allowance: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    fTokenShares: bigint;
-    underlyingAssets: bigint;
-    underlyingBalance: bigint;
-    allowance: bigint;
+    fTokenShares: BigNumber;
+    underlyingAssets: BigNumber;
+    underlyingBalance: BigNumber;
+    allowance: BigNumber;
   };
 
   export type UserPositionStruct = {
-    nftId: BigNumberish;
-    owner: AddressLike;
-    isLiquidated: boolean;
-    isSupplyPosition: boolean;
-    supply: BigNumberish;
-    borrow: BigNumberish;
-    ratio: BigNumberish;
-    tick: BigNumberish;
-    tickId: BigNumberish;
+    nftId: PromiseOrValue<BigNumberish>;
+    owner: PromiseOrValue<string>;
+    isLiquidated: PromiseOrValue<boolean>;
+    isSupplyPosition: PromiseOrValue<boolean>;
+    supply: PromiseOrValue<BigNumberish>;
+    borrow: PromiseOrValue<BigNumberish>;
+    ratio: PromiseOrValue<BigNumberish>;
+    tick: PromiseOrValue<BigNumberish>;
+    tickId: PromiseOrValue<BigNumberish>;
   };
 
   export type UserPositionStructOutput = [
-    nftId: bigint,
-    owner: string,
-    isLiquidated: boolean,
-    isSupplyPosition: boolean,
-    supply: bigint,
-    borrow: bigint,
-    ratio: bigint,
-    tick: bigint,
-    tickId: bigint
+    BigNumber,
+    string,
+    boolean,
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    nftId: bigint;
+    nftId: BigNumber;
     owner: string;
     isLiquidated: boolean;
     isSupplyPosition: boolean;
-    supply: bigint;
-    borrow: bigint;
-    ratio: bigint;
-    tick: bigint;
-    tickId: bigint;
+    supply: BigNumber;
+    borrow: BigNumber;
+    ratio: BigNumber;
+    tick: BigNumber;
+    tickId: BigNumber;
   };
 
   export type DexSupplyDataStruct = {
-    dexPool: AddressLike;
-    dexId: BigNumberish;
-    fee: BigNumberish;
-    lastStoredPrice: BigNumberish;
-    centerPrice: BigNumberish;
-    token0Utilization: BigNumberish;
-    token1Utilization: BigNumberish;
-    totalSupplyShares: BigNumberish;
-    maxSupplyShares: BigNumberish;
-    token0Supplied: BigNumberish;
-    token1Supplied: BigNumberish;
-    sharesWithdrawable: BigNumberish;
-    token0Withdrawable: BigNumberish;
-    token1Withdrawable: BigNumberish;
-    token0PerSupplyShare: BigNumberish;
-    token1PerSupplyShare: BigNumberish;
-    token0SupplyRate: BigNumberish;
-    token1SupplyRate: BigNumberish;
-    quoteToken: AddressLike;
-    quoteTokensPerShare: BigNumberish;
-    supplyToken0Reserves: BigNumberish;
-    supplyToken1Reserves: BigNumberish;
+    dexPool: PromiseOrValue<string>;
+    dexId: PromiseOrValue<BigNumberish>;
+    fee: PromiseOrValue<BigNumberish>;
+    lastStoredPrice: PromiseOrValue<BigNumberish>;
+    centerPrice: PromiseOrValue<BigNumberish>;
+    token0Utilization: PromiseOrValue<BigNumberish>;
+    token1Utilization: PromiseOrValue<BigNumberish>;
+    totalSupplyShares: PromiseOrValue<BigNumberish>;
+    maxSupplyShares: PromiseOrValue<BigNumberish>;
+    token0Supplied: PromiseOrValue<BigNumberish>;
+    token1Supplied: PromiseOrValue<BigNumberish>;
+    sharesWithdrawable: PromiseOrValue<BigNumberish>;
+    token0Withdrawable: PromiseOrValue<BigNumberish>;
+    token1Withdrawable: PromiseOrValue<BigNumberish>;
+    token0PerSupplyShare: PromiseOrValue<BigNumberish>;
+    token1PerSupplyShare: PromiseOrValue<BigNumberish>;
+    token0SupplyRate: PromiseOrValue<BigNumberish>;
+    token1SupplyRate: PromiseOrValue<BigNumberish>;
+    quoteToken: PromiseOrValue<string>;
+    quoteTokensPerShare: PromiseOrValue<BigNumberish>;
+    supplyToken0Reserves: PromiseOrValue<BigNumberish>;
+    supplyToken1Reserves: PromiseOrValue<BigNumberish>;
   };
 
   export type DexSupplyDataStructOutput = [
-    dexPool: string,
-    dexId: bigint,
-    fee: bigint,
-    lastStoredPrice: bigint,
-    centerPrice: bigint,
-    token0Utilization: bigint,
-    token1Utilization: bigint,
-    totalSupplyShares: bigint,
-    maxSupplyShares: bigint,
-    token0Supplied: bigint,
-    token1Supplied: bigint,
-    sharesWithdrawable: bigint,
-    token0Withdrawable: bigint,
-    token1Withdrawable: bigint,
-    token0PerSupplyShare: bigint,
-    token1PerSupplyShare: bigint,
-    token0SupplyRate: bigint,
-    token1SupplyRate: bigint,
-    quoteToken: string,
-    quoteTokensPerShare: bigint,
-    supplyToken0Reserves: bigint,
-    supplyToken1Reserves: bigint
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     dexPool: string;
-    dexId: bigint;
-    fee: bigint;
-    lastStoredPrice: bigint;
-    centerPrice: bigint;
-    token0Utilization: bigint;
-    token1Utilization: bigint;
-    totalSupplyShares: bigint;
-    maxSupplyShares: bigint;
-    token0Supplied: bigint;
-    token1Supplied: bigint;
-    sharesWithdrawable: bigint;
-    token0Withdrawable: bigint;
-    token1Withdrawable: bigint;
-    token0PerSupplyShare: bigint;
-    token1PerSupplyShare: bigint;
-    token0SupplyRate: bigint;
-    token1SupplyRate: bigint;
+    dexId: BigNumber;
+    fee: BigNumber;
+    lastStoredPrice: BigNumber;
+    centerPrice: BigNumber;
+    token0Utilization: BigNumber;
+    token1Utilization: BigNumber;
+    totalSupplyShares: BigNumber;
+    maxSupplyShares: BigNumber;
+    token0Supplied: BigNumber;
+    token1Supplied: BigNumber;
+    sharesWithdrawable: BigNumber;
+    token0Withdrawable: BigNumber;
+    token1Withdrawable: BigNumber;
+    token0PerSupplyShare: BigNumber;
+    token1PerSupplyShare: BigNumber;
+    token0SupplyRate: BigNumber;
+    token1SupplyRate: BigNumber;
     quoteToken: string;
-    quoteTokensPerShare: bigint;
-    supplyToken0Reserves: bigint;
-    supplyToken1Reserves: bigint;
+    quoteTokensPerShare: BigNumber;
+    supplyToken0Reserves: BigNumber;
+    supplyToken1Reserves: BigNumber;
   };
 
   export type DexBorrowDataStruct = {
-    dexPool: AddressLike;
-    dexId: BigNumberish;
-    fee: BigNumberish;
-    lastStoredPrice: BigNumberish;
-    centerPrice: BigNumberish;
-    token0Utilization: BigNumberish;
-    token1Utilization: BigNumberish;
-    totalBorrowShares: BigNumberish;
-    maxBorrowShares: BigNumberish;
-    token0Borrowed: BigNumberish;
-    token1Borrowed: BigNumberish;
-    sharesBorrowable: BigNumberish;
-    token0Borrowable: BigNumberish;
-    token1Borrowable: BigNumberish;
-    token0PerBorrowShare: BigNumberish;
-    token1PerBorrowShare: BigNumberish;
-    token0BorrowRate: BigNumberish;
-    token1BorrowRate: BigNumberish;
-    quoteToken: AddressLike;
-    quoteTokensPerShare: BigNumberish;
-    borrowToken0Reserves: BigNumberish;
-    borrowToken1Reserves: BigNumberish;
+    dexPool: PromiseOrValue<string>;
+    dexId: PromiseOrValue<BigNumberish>;
+    fee: PromiseOrValue<BigNumberish>;
+    lastStoredPrice: PromiseOrValue<BigNumberish>;
+    centerPrice: PromiseOrValue<BigNumberish>;
+    token0Utilization: PromiseOrValue<BigNumberish>;
+    token1Utilization: PromiseOrValue<BigNumberish>;
+    totalBorrowShares: PromiseOrValue<BigNumberish>;
+    maxBorrowShares: PromiseOrValue<BigNumberish>;
+    token0Borrowed: PromiseOrValue<BigNumberish>;
+    token1Borrowed: PromiseOrValue<BigNumberish>;
+    sharesBorrowable: PromiseOrValue<BigNumberish>;
+    token0Borrowable: PromiseOrValue<BigNumberish>;
+    token1Borrowable: PromiseOrValue<BigNumberish>;
+    token0PerBorrowShare: PromiseOrValue<BigNumberish>;
+    token1PerBorrowShare: PromiseOrValue<BigNumberish>;
+    token0BorrowRate: PromiseOrValue<BigNumberish>;
+    token1BorrowRate: PromiseOrValue<BigNumberish>;
+    quoteToken: PromiseOrValue<string>;
+    quoteTokensPerShare: PromiseOrValue<BigNumberish>;
+    borrowToken0Reserves: PromiseOrValue<BigNumberish>;
+    borrowToken1Reserves: PromiseOrValue<BigNumberish>;
   };
 
   export type DexBorrowDataStructOutput = [
-    dexPool: string,
-    dexId: bigint,
-    fee: bigint,
-    lastStoredPrice: bigint,
-    centerPrice: bigint,
-    token0Utilization: bigint,
-    token1Utilization: bigint,
-    totalBorrowShares: bigint,
-    maxBorrowShares: bigint,
-    token0Borrowed: bigint,
-    token1Borrowed: bigint,
-    sharesBorrowable: bigint,
-    token0Borrowable: bigint,
-    token1Borrowable: bigint,
-    token0PerBorrowShare: bigint,
-    token1PerBorrowShare: bigint,
-    token0BorrowRate: bigint,
-    token1BorrowRate: bigint,
-    quoteToken: string,
-    quoteTokensPerShare: bigint,
-    borrowToken0Reserves: bigint,
-    borrowToken1Reserves: bigint
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     dexPool: string;
-    dexId: bigint;
-    fee: bigint;
-    lastStoredPrice: bigint;
-    centerPrice: bigint;
-    token0Utilization: bigint;
-    token1Utilization: bigint;
-    totalBorrowShares: bigint;
-    maxBorrowShares: bigint;
-    token0Borrowed: bigint;
-    token1Borrowed: bigint;
-    sharesBorrowable: bigint;
-    token0Borrowable: bigint;
-    token1Borrowable: bigint;
-    token0PerBorrowShare: bigint;
-    token1PerBorrowShare: bigint;
-    token0BorrowRate: bigint;
-    token1BorrowRate: bigint;
+    dexId: BigNumber;
+    fee: BigNumber;
+    lastStoredPrice: BigNumber;
+    centerPrice: BigNumber;
+    token0Utilization: BigNumber;
+    token1Utilization: BigNumber;
+    totalBorrowShares: BigNumber;
+    maxBorrowShares: BigNumber;
+    token0Borrowed: BigNumber;
+    token1Borrowed: BigNumber;
+    sharesBorrowable: BigNumber;
+    token0Borrowable: BigNumber;
+    token1Borrowable: BigNumber;
+    token0PerBorrowShare: BigNumber;
+    token1PerBorrowShare: BigNumber;
+    token0BorrowRate: BigNumber;
+    token1BorrowRate: BigNumber;
     quoteToken: string;
-    quoteTokensPerShare: bigint;
-    borrowToken0Reserves: bigint;
-    borrowToken1Reserves: bigint;
+    quoteTokensPerShare: BigNumber;
+    borrowToken0Reserves: BigNumber;
+    borrowToken1Reserves: BigNumber;
   };
 
   export type VaultDataStruct = {
-    vault: AddressLike;
-    vaultId: BigNumberish;
-    vaultType: BigNumberish;
-    isSmartColl: boolean;
-    isSmartDebt: boolean;
-    supplyToken0: AddressLike;
-    supplyToken1: AddressLike;
-    borrowToken0: AddressLike;
-    borrowToken1: AddressLike;
-    supplyToken0Decimals: BigNumberish;
-    supplyToken1Decimals: BigNumberish;
-    borrowToken0Decimals: BigNumberish;
-    borrowToken1Decimals: BigNumberish;
-    collateralFactor: BigNumberish;
-    liquidationThreshold: BigNumberish;
-    liquidationMaxLimit: BigNumberish;
-    withdrawalGap: BigNumberish;
-    liquidationPenalty: BigNumberish;
-    borrowFee: BigNumberish;
-    oracle: AddressLike;
-    oraclePriceOperate: BigNumberish;
-    oraclePriceLiquidate: BigNumberish;
-    vaultSupplyExchangePrice: BigNumberish;
-    vaultBorrowExchangePrice: BigNumberish;
-    supplyRateVault: BigNumberish;
-    borrowRateVault: BigNumberish;
-    rewardsOrFeeRateSupply: BigNumberish;
-    rewardsOrFeeRateBorrow: BigNumberish;
-    totalPositions: BigNumberish;
-    totalSupplyVault: BigNumberish;
-    totalBorrowVault: BigNumberish;
-    withdrawalLimit: BigNumberish;
-    withdrawableUntilLimit: BigNumberish;
-    withdrawable: BigNumberish;
-    baseWithdrawalLimit: BigNumberish;
-    withdrawExpandPercent: BigNumberish;
-    withdrawExpandDuration: BigNumberish;
-    borrowLimit: BigNumberish;
-    borrowableUntilLimit: BigNumberish;
-    borrowable: BigNumberish;
-    borrowLimitUtilization: BigNumberish;
-    maxBorrowLimit: BigNumberish;
-    borrowExpandPercent: BigNumberish;
-    borrowExpandDuration: BigNumberish;
-    baseBorrowLimit: BigNumberish;
-    minimumBorrowing: BigNumberish;
+    vault: PromiseOrValue<string>;
+    vaultId: PromiseOrValue<BigNumberish>;
+    vaultType: PromiseOrValue<BigNumberish>;
+    isSmartColl: PromiseOrValue<boolean>;
+    isSmartDebt: PromiseOrValue<boolean>;
+    supplyToken0: PromiseOrValue<string>;
+    supplyToken1: PromiseOrValue<string>;
+    borrowToken0: PromiseOrValue<string>;
+    borrowToken1: PromiseOrValue<string>;
+    supplyToken0Decimals: PromiseOrValue<BigNumberish>;
+    supplyToken1Decimals: PromiseOrValue<BigNumberish>;
+    borrowToken0Decimals: PromiseOrValue<BigNumberish>;
+    borrowToken1Decimals: PromiseOrValue<BigNumberish>;
+    collateralFactor: PromiseOrValue<BigNumberish>;
+    liquidationThreshold: PromiseOrValue<BigNumberish>;
+    liquidationMaxLimit: PromiseOrValue<BigNumberish>;
+    withdrawalGap: PromiseOrValue<BigNumberish>;
+    liquidationPenalty: PromiseOrValue<BigNumberish>;
+    borrowFee: PromiseOrValue<BigNumberish>;
+    oracle: PromiseOrValue<string>;
+    oraclePriceOperate: PromiseOrValue<BigNumberish>;
+    oraclePriceLiquidate: PromiseOrValue<BigNumberish>;
+    vaultSupplyExchangePrice: PromiseOrValue<BigNumberish>;
+    vaultBorrowExchangePrice: PromiseOrValue<BigNumberish>;
+    supplyRateVault: PromiseOrValue<BigNumberish>;
+    borrowRateVault: PromiseOrValue<BigNumberish>;
+    rewardsOrFeeRateSupply: PromiseOrValue<BigNumberish>;
+    rewardsOrFeeRateBorrow: PromiseOrValue<BigNumberish>;
+    totalPositions: PromiseOrValue<BigNumberish>;
+    totalSupplyVault: PromiseOrValue<BigNumberish>;
+    totalBorrowVault: PromiseOrValue<BigNumberish>;
+    withdrawalLimit: PromiseOrValue<BigNumberish>;
+    withdrawableUntilLimit: PromiseOrValue<BigNumberish>;
+    withdrawable: PromiseOrValue<BigNumberish>;
+    baseWithdrawalLimit: PromiseOrValue<BigNumberish>;
+    withdrawExpandPercent: PromiseOrValue<BigNumberish>;
+    withdrawExpandDuration: PromiseOrValue<BigNumberish>;
+    borrowLimit: PromiseOrValue<BigNumberish>;
+    borrowableUntilLimit: PromiseOrValue<BigNumberish>;
+    borrowable: PromiseOrValue<BigNumberish>;
+    borrowLimitUtilization: PromiseOrValue<BigNumberish>;
+    maxBorrowLimit: PromiseOrValue<BigNumberish>;
+    borrowExpandPercent: PromiseOrValue<BigNumberish>;
+    borrowExpandDuration: PromiseOrValue<BigNumberish>;
+    baseBorrowLimit: PromiseOrValue<BigNumberish>;
+    minimumBorrowing: PromiseOrValue<BigNumberish>;
     dexSupplyData: FluidView.DexSupplyDataStruct;
     dexBorrowData: FluidView.DexBorrowDataStruct;
   };
 
   export type VaultDataStructOutput = [
-    vault: string,
-    vaultId: bigint,
-    vaultType: bigint,
-    isSmartColl: boolean,
-    isSmartDebt: boolean,
-    supplyToken0: string,
-    supplyToken1: string,
-    borrowToken0: string,
-    borrowToken1: string,
-    supplyToken0Decimals: bigint,
-    supplyToken1Decimals: bigint,
-    borrowToken0Decimals: bigint,
-    borrowToken1Decimals: bigint,
-    collateralFactor: bigint,
-    liquidationThreshold: bigint,
-    liquidationMaxLimit: bigint,
-    withdrawalGap: bigint,
-    liquidationPenalty: bigint,
-    borrowFee: bigint,
-    oracle: string,
-    oraclePriceOperate: bigint,
-    oraclePriceLiquidate: bigint,
-    vaultSupplyExchangePrice: bigint,
-    vaultBorrowExchangePrice: bigint,
-    supplyRateVault: bigint,
-    borrowRateVault: bigint,
-    rewardsOrFeeRateSupply: bigint,
-    rewardsOrFeeRateBorrow: bigint,
-    totalPositions: bigint,
-    totalSupplyVault: bigint,
-    totalBorrowVault: bigint,
-    withdrawalLimit: bigint,
-    withdrawableUntilLimit: bigint,
-    withdrawable: bigint,
-    baseWithdrawalLimit: bigint,
-    withdrawExpandPercent: bigint,
-    withdrawExpandDuration: bigint,
-    borrowLimit: bigint,
-    borrowableUntilLimit: bigint,
-    borrowable: bigint,
-    borrowLimitUtilization: bigint,
-    maxBorrowLimit: bigint,
-    borrowExpandPercent: bigint,
-    borrowExpandDuration: bigint,
-    baseBorrowLimit: bigint,
-    minimumBorrowing: bigint,
-    dexSupplyData: FluidView.DexSupplyDataStructOutput,
-    dexBorrowData: FluidView.DexBorrowDataStructOutput
+    string,
+    BigNumber,
+    BigNumber,
+    boolean,
+    boolean,
+    string,
+    string,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    FluidView.DexSupplyDataStructOutput,
+    FluidView.DexBorrowDataStructOutput
   ] & {
     vault: string;
-    vaultId: bigint;
-    vaultType: bigint;
+    vaultId: BigNumber;
+    vaultType: BigNumber;
     isSmartColl: boolean;
     isSmartDebt: boolean;
     supplyToken0: string;
     supplyToken1: string;
     borrowToken0: string;
     borrowToken1: string;
-    supplyToken0Decimals: bigint;
-    supplyToken1Decimals: bigint;
-    borrowToken0Decimals: bigint;
-    borrowToken1Decimals: bigint;
-    collateralFactor: bigint;
-    liquidationThreshold: bigint;
-    liquidationMaxLimit: bigint;
-    withdrawalGap: bigint;
-    liquidationPenalty: bigint;
-    borrowFee: bigint;
+    supplyToken0Decimals: BigNumber;
+    supplyToken1Decimals: BigNumber;
+    borrowToken0Decimals: BigNumber;
+    borrowToken1Decimals: BigNumber;
+    collateralFactor: number;
+    liquidationThreshold: number;
+    liquidationMaxLimit: number;
+    withdrawalGap: number;
+    liquidationPenalty: number;
+    borrowFee: number;
     oracle: string;
-    oraclePriceOperate: bigint;
-    oraclePriceLiquidate: bigint;
-    vaultSupplyExchangePrice: bigint;
-    vaultBorrowExchangePrice: bigint;
-    supplyRateVault: bigint;
-    borrowRateVault: bigint;
-    rewardsOrFeeRateSupply: bigint;
-    rewardsOrFeeRateBorrow: bigint;
-    totalPositions: bigint;
-    totalSupplyVault: bigint;
-    totalBorrowVault: bigint;
-    withdrawalLimit: bigint;
-    withdrawableUntilLimit: bigint;
-    withdrawable: bigint;
-    baseWithdrawalLimit: bigint;
-    withdrawExpandPercent: bigint;
-    withdrawExpandDuration: bigint;
-    borrowLimit: bigint;
-    borrowableUntilLimit: bigint;
-    borrowable: bigint;
-    borrowLimitUtilization: bigint;
-    maxBorrowLimit: bigint;
-    borrowExpandPercent: bigint;
-    borrowExpandDuration: bigint;
-    baseBorrowLimit: bigint;
-    minimumBorrowing: bigint;
+    oraclePriceOperate: BigNumber;
+    oraclePriceLiquidate: BigNumber;
+    vaultSupplyExchangePrice: BigNumber;
+    vaultBorrowExchangePrice: BigNumber;
+    supplyRateVault: BigNumber;
+    borrowRateVault: BigNumber;
+    rewardsOrFeeRateSupply: BigNumber;
+    rewardsOrFeeRateBorrow: BigNumber;
+    totalPositions: BigNumber;
+    totalSupplyVault: BigNumber;
+    totalBorrowVault: BigNumber;
+    withdrawalLimit: BigNumber;
+    withdrawableUntilLimit: BigNumber;
+    withdrawable: BigNumber;
+    baseWithdrawalLimit: BigNumber;
+    withdrawExpandPercent: BigNumber;
+    withdrawExpandDuration: BigNumber;
+    borrowLimit: BigNumber;
+    borrowableUntilLimit: BigNumber;
+    borrowable: BigNumber;
+    borrowLimitUtilization: BigNumber;
+    maxBorrowLimit: BigNumber;
+    borrowExpandPercent: BigNumber;
+    borrowExpandDuration: BigNumber;
+    baseBorrowLimit: BigNumber;
+    minimumBorrowing: BigNumber;
     dexSupplyData: FluidView.DexSupplyDataStructOutput;
     dexBorrowData: FluidView.DexBorrowDataStructOutput;
   };
 
   export type NftWithVaultStruct = {
-    nftId: BigNumberish;
-    vaultId: BigNumberish;
-    vaultAddr: AddressLike;
+    nftId: PromiseOrValue<BigNumberish>;
+    vaultId: PromiseOrValue<BigNumberish>;
+    vaultAddr: PromiseOrValue<string>;
   };
 
-  export type NftWithVaultStructOutput = [
-    nftId: bigint,
-    vaultId: bigint,
-    vaultAddr: string
-  ] & { nftId: bigint; vaultId: bigint; vaultAddr: string };
+  export type NftWithVaultStructOutput = [BigNumber, BigNumber, string] & {
+    nftId: BigNumber;
+    vaultId: BigNumber;
+    vaultAddr: string;
+  };
 }
 
-export interface FluidViewInterface extends Interface {
+export interface FluidViewInterface extends utils.Interface {
+  functions: {
+    "estimateBorrow(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimateDeposit(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimateDexPositionCollateralInOneToken(uint256,uint256,uint256)": FunctionFragment;
+    "estimateDexPositionDebtInOneToken(uint256,uint256,uint256)": FunctionFragment;
+    "estimatePayback(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimateWithdraw(address,uint256,uint256,uint256)": FunctionFragment;
+    "getAllFTokens()": FunctionFragment;
+    "getAllFTokensData()": FunctionFragment;
+    "getAllUserEarnPositionsWithFTokens(address)": FunctionFragment;
+    "getDexShareRates(address)": FunctionFragment;
+    "getFTokenData(address)": FunctionFragment;
+    "getPositionByNftId(uint256)": FunctionFragment;
+    "getRatio(uint256)": FunctionFragment;
+    "getUserEarnPosition(address,address)": FunctionFragment;
+    "getUserEarnPositionWithFToken(address,address)": FunctionFragment;
+    "getUserNftIds(address)": FunctionFragment;
+    "getUserNftIdsWithVaultIds(address)": FunctionFragment;
+    "getUserPositions(address)": FunctionFragment;
+    "getVaultData(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "estimateBorrow"
       | "estimateDeposit"
       | "estimateDexPositionCollateralInOneToken"
@@ -466,27 +491,55 @@ export interface FluidViewInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "estimateBorrow",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateDeposit",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateDexPositionCollateralInOneToken",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateDexPositionDebtInOneToken",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimatePayback",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateWithdraw",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getAllFTokens",
@@ -498,47 +551,47 @@ export interface FluidViewInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getAllUserEarnPositionsWithFTokens",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getDexShareRates",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getFTokenData",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getPositionByNftId",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getRatio",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserEarnPosition",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserEarnPositionWithFToken",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserNftIds",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserNftIdsWithVaultIds",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserPositions",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getVaultData",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -614,126 +667,93 @@ export interface FluidViewInterface extends Interface {
     functionFragment: "getVaultData",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface FluidView extends BaseContract {
-  connect(runner?: ContractRunner | null): FluidView;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: FluidViewInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    estimateBorrow(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    estimateDeposit(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateBorrow: TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _maxSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    estimateDexPositionCollateralInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _minToken0AmountToAccept: PromiseOrValue<BigNumberish>,
+      _minToken1AmountToAccept: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateDeposit: TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _minSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
+    estimateDexPositionDebtInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _maxToken0AmountToPayback: PromiseOrValue<BigNumberish>,
+      _maxToken1AmountToPayback: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateDexPositionCollateralInOneToken: TypedContractMethod<
-    [
-      _nftId: BigNumberish,
-      _minToken0AmountToAccept: BigNumberish,
-      _minToken1AmountToAccept: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    estimatePayback(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateDexPositionDebtInOneToken: TypedContractMethod<
-    [
-      _nftId: BigNumberish,
-      _maxToken0AmountToPayback: BigNumberish,
-      _maxToken1AmountToPayback: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    estimateWithdraw(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimatePayback: TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _minSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    getAllFTokens(overrides?: CallOverrides): Promise<[string[]]>;
 
-  estimateWithdraw: TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _maxSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    getAllFTokensData(
+      overrides?: CallOverrides
+    ): Promise<[FluidView.FTokenDataStructOutput[]]>;
 
-  getAllFTokens: TypedContractMethod<[], [string[]], "view">;
-
-  getAllFTokensData: TypedContractMethod<
-    [],
-    [FluidView.FTokenDataStructOutput[]],
-    "view"
-  >;
-
-  getAllUserEarnPositionsWithFTokens: TypedContractMethod<
-    [_user: AddressLike],
-    [
+    getAllUserEarnPositionsWithFTokens(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         FluidView.UserEarnPositionStructOutput[],
         FluidView.FTokenDataStructOutput[]
@@ -741,51 +761,43 @@ export interface FluidView extends BaseContract {
         userPositions: FluidView.UserEarnPositionStructOutput[];
         fTokensData: FluidView.FTokenDataStructOutput[];
       }
-    ],
-    "view"
-  >;
+    >;
 
-  getDexShareRates: TypedContractMethod<
-    [_vault: AddressLike],
-    [
-      [bigint, bigint, bigint, bigint] & {
-        token0PerSupplyShare: bigint;
-        token1PerSupplyShare: bigint;
-        token0PerBorrowShare: bigint;
-        token1PerBorrowShare: bigint;
+    getDexShareRates(
+      _vault: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    getFTokenData(
+      _fToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [FluidView.FTokenDataStructOutput] & {
+        fTokenData: FluidView.FTokenDataStructOutput;
       }
-    ],
-    "nonpayable"
-  >;
+    >;
 
-  getFTokenData: TypedContractMethod<
-    [_fToken: AddressLike],
-    [FluidView.FTokenDataStructOutput],
-    "view"
-  >;
+    getPositionByNftId(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  getPositionByNftId: TypedContractMethod<
-    [_nftId: BigNumberish],
-    [
-      [FluidView.UserPositionStructOutput, FluidView.VaultDataStructOutput] & {
-        position: FluidView.UserPositionStructOutput;
-        vault: FluidView.VaultDataStructOutput;
-      }
-    ],
-    "nonpayable"
-  >;
+    getRatio(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { ratio: BigNumber }>;
 
-  getRatio: TypedContractMethod<[_nftId: BigNumberish], [bigint], "view">;
+    getUserEarnPosition(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[FluidView.UserEarnPositionStructOutput]>;
 
-  getUserEarnPosition: TypedContractMethod<
-    [_fToken: AddressLike, _user: AddressLike],
-    [FluidView.UserEarnPositionStructOutput],
-    "view"
-  >;
-
-  getUserEarnPositionWithFToken: TypedContractMethod<
-    [_fToken: AddressLike, _user: AddressLike],
-    [
+    getUserEarnPositionWithFToken(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         FluidView.UserEarnPositionStructOutput,
         FluidView.FTokenDataStructOutput
@@ -793,123 +805,215 @@ export interface FluidView extends BaseContract {
         userPosition: FluidView.UserEarnPositionStructOutput;
         fTokenData: FluidView.FTokenDataStructOutput;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  getUserNftIds: TypedContractMethod<[_user: AddressLike], [bigint[]], "view">;
+    getUserNftIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]]>;
 
-  getUserNftIdsWithVaultIds: TypedContractMethod<
-    [_user: AddressLike],
-    [FluidView.NftWithVaultStructOutput[]],
-    "view"
-  >;
-
-  getUserPositions: TypedContractMethod<
-    [_user: AddressLike],
-    [
-      [
-        FluidView.UserPositionStructOutput[],
-        FluidView.VaultDataStructOutput[]
-      ] & {
-        positions: FluidView.UserPositionStructOutput[];
-        vaults: FluidView.VaultDataStructOutput[];
+    getUserNftIdsWithVaultIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [FluidView.NftWithVaultStructOutput[]] & {
+        retVal: FluidView.NftWithVaultStructOutput[];
       }
-    ],
-    "nonpayable"
+    >;
+
+    getUserPositions(
+      _user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    getVaultData(
+      _vault: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  estimateBorrow(
+    _vault: PromiseOrValue<string>,
+    _token0Amount: PromiseOrValue<BigNumberish>,
+    _token1Amount: PromiseOrValue<BigNumberish>,
+    _maxSharesAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimateDeposit(
+    _vault: PromiseOrValue<string>,
+    _token0Amount: PromiseOrValue<BigNumberish>,
+    _token1Amount: PromiseOrValue<BigNumberish>,
+    _minSharesAmount: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimateDexPositionCollateralInOneToken(
+    _nftId: PromiseOrValue<BigNumberish>,
+    _minToken0AmountToAccept: PromiseOrValue<BigNumberish>,
+    _minToken1AmountToAccept: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimateDexPositionDebtInOneToken(
+    _nftId: PromiseOrValue<BigNumberish>,
+    _maxToken0AmountToPayback: PromiseOrValue<BigNumberish>,
+    _maxToken1AmountToPayback: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimatePayback(
+    _vault: PromiseOrValue<string>,
+    _token0Amount: PromiseOrValue<BigNumberish>,
+    _token1Amount: PromiseOrValue<BigNumberish>,
+    _minSharesAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimateWithdraw(
+    _vault: PromiseOrValue<string>,
+    _token0Amount: PromiseOrValue<BigNumberish>,
+    _token1Amount: PromiseOrValue<BigNumberish>,
+    _maxSharesAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getAllFTokens(overrides?: CallOverrides): Promise<string[]>;
+
+  getAllFTokensData(
+    overrides?: CallOverrides
+  ): Promise<FluidView.FTokenDataStructOutput[]>;
+
+  getAllUserEarnPositionsWithFTokens(
+    _user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      FluidView.UserEarnPositionStructOutput[],
+      FluidView.FTokenDataStructOutput[]
+    ] & {
+      userPositions: FluidView.UserEarnPositionStructOutput[];
+      fTokensData: FluidView.FTokenDataStructOutput[];
+    }
   >;
 
-  getVaultData: TypedContractMethod<
-    [_vault: AddressLike],
-    [FluidView.VaultDataStructOutput],
-    "nonpayable"
+  getDexShareRates(
+    _vault: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getFTokenData(
+    _fToken: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FluidView.FTokenDataStructOutput>;
+
+  getPositionByNftId(
+    _nftId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getRatio(
+    _nftId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getUserEarnPosition(
+    _fToken: PromiseOrValue<string>,
+    _user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FluidView.UserEarnPositionStructOutput>;
+
+  getUserEarnPositionWithFToken(
+    _fToken: PromiseOrValue<string>,
+    _user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      FluidView.UserEarnPositionStructOutput,
+      FluidView.FTokenDataStructOutput
+    ] & {
+      userPosition: FluidView.UserEarnPositionStructOutput;
+      fTokenData: FluidView.FTokenDataStructOutput;
+    }
   >;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  getUserNftIds(
+    _user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
 
-  getFunction(
-    nameOrSignature: "estimateBorrow"
-  ): TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _maxSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateDeposit"
-  ): TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _minSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateDexPositionCollateralInOneToken"
-  ): TypedContractMethod<
-    [
-      _nftId: BigNumberish,
-      _minToken0AmountToAccept: BigNumberish,
-      _minToken1AmountToAccept: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateDexPositionDebtInOneToken"
-  ): TypedContractMethod<
-    [
-      _nftId: BigNumberish,
-      _maxToken0AmountToPayback: BigNumberish,
-      _maxToken1AmountToPayback: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "estimatePayback"
-  ): TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _minSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateWithdraw"
-  ): TypedContractMethod<
-    [
-      _vault: AddressLike,
-      _token0Amount: BigNumberish,
-      _token1Amount: BigNumberish,
-      _maxSharesAmount: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getAllFTokens"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getAllFTokensData"
-  ): TypedContractMethod<[], [FluidView.FTokenDataStructOutput[]], "view">;
-  getFunction(
-    nameOrSignature: "getAllUserEarnPositionsWithFTokens"
-  ): TypedContractMethod<
-    [_user: AddressLike],
-    [
+  getUserNftIdsWithVaultIds(
+    _user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FluidView.NftWithVaultStructOutput[]>;
+
+  getUserPositions(
+    _user: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getVaultData(
+    _vault: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    estimateBorrow(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateDeposit(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateDexPositionCollateralInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _minToken0AmountToAccept: PromiseOrValue<BigNumberish>,
+      _minToken1AmountToAccept: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateDexPositionDebtInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _maxToken0AmountToPayback: PromiseOrValue<BigNumberish>,
+      _maxToken1AmountToPayback: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimatePayback(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateWithdraw(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAllFTokens(overrides?: CallOverrides): Promise<string[]>;
+
+    getAllFTokensData(
+      overrides?: CallOverrides
+    ): Promise<FluidView.FTokenDataStructOutput[]>;
+
+    getAllUserEarnPositionsWithFTokens(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         FluidView.UserEarnPositionStructOutput[],
         FluidView.FTokenDataStructOutput[]
@@ -917,57 +1021,51 @@ export interface FluidView extends BaseContract {
         userPositions: FluidView.UserEarnPositionStructOutput[];
         fTokensData: FluidView.FTokenDataStructOutput[];
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getDexShareRates"
-  ): TypedContractMethod<
-    [_vault: AddressLike],
-    [
-      [bigint, bigint, bigint, bigint] & {
-        token0PerSupplyShare: bigint;
-        token1PerSupplyShare: bigint;
-        token0PerBorrowShare: bigint;
-        token1PerBorrowShare: bigint;
+    >;
+
+    getDexShareRates(
+      _vault: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        token0PerSupplyShare: BigNumber;
+        token1PerSupplyShare: BigNumber;
+        token0PerBorrowShare: BigNumber;
+        token1PerBorrowShare: BigNumber;
       }
-    ],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getFTokenData"
-  ): TypedContractMethod<
-    [_fToken: AddressLike],
-    [FluidView.FTokenDataStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getPositionByNftId"
-  ): TypedContractMethod<
-    [_nftId: BigNumberish],
-    [
+    >;
+
+    getFTokenData(
+      _fToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FluidView.FTokenDataStructOutput>;
+
+    getPositionByNftId(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
       [FluidView.UserPositionStructOutput, FluidView.VaultDataStructOutput] & {
         position: FluidView.UserPositionStructOutput;
         vault: FluidView.VaultDataStructOutput;
       }
-    ],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getRatio"
-  ): TypedContractMethod<[_nftId: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getUserEarnPosition"
-  ): TypedContractMethod<
-    [_fToken: AddressLike, _user: AddressLike],
-    [FluidView.UserEarnPositionStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getUserEarnPositionWithFToken"
-  ): TypedContractMethod<
-    [_fToken: AddressLike, _user: AddressLike],
-    [
+    >;
+
+    getRatio(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserEarnPosition(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FluidView.UserEarnPositionStructOutput>;
+
+    getUserEarnPositionWithFToken(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         FluidView.UserEarnPositionStructOutput,
         FluidView.FTokenDataStructOutput
@@ -975,24 +1073,22 @@ export interface FluidView extends BaseContract {
         userPosition: FluidView.UserEarnPositionStructOutput;
         fTokenData: FluidView.FTokenDataStructOutput;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getUserNftIds"
-  ): TypedContractMethod<[_user: AddressLike], [bigint[]], "view">;
-  getFunction(
-    nameOrSignature: "getUserNftIdsWithVaultIds"
-  ): TypedContractMethod<
-    [_user: AddressLike],
-    [FluidView.NftWithVaultStructOutput[]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getUserPositions"
-  ): TypedContractMethod<
-    [_user: AddressLike],
-    [
+    >;
+
+    getUserNftIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    getUserNftIdsWithVaultIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FluidView.NftWithVaultStructOutput[]>;
+
+    getUserPositions(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         FluidView.UserPositionStructOutput[],
         FluidView.VaultDataStructOutput[]
@@ -1000,16 +1096,231 @@ export interface FluidView extends BaseContract {
         positions: FluidView.UserPositionStructOutput[];
         vaults: FluidView.VaultDataStructOutput[];
       }
-    ],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getVaultData"
-  ): TypedContractMethod<
-    [_vault: AddressLike],
-    [FluidView.VaultDataStructOutput],
-    "nonpayable"
-  >;
+    >;
+
+    getVaultData(
+      _vault: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FluidView.VaultDataStructOutput>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    estimateBorrow(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateDeposit(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateDexPositionCollateralInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _minToken0AmountToAccept: PromiseOrValue<BigNumberish>,
+      _minToken1AmountToAccept: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateDexPositionDebtInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _maxToken0AmountToPayback: PromiseOrValue<BigNumberish>,
+      _maxToken1AmountToPayback: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimatePayback(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateWithdraw(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getAllFTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getAllFTokensData(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getAllUserEarnPositionsWithFTokens(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDexShareRates(
+      _vault: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getFTokenData(
+      _fToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPositionByNftId(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getRatio(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserEarnPosition(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserEarnPositionWithFToken(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserNftIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserNftIdsWithVaultIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserPositions(
+      _user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getVaultData(
+      _vault: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    estimateBorrow(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateDeposit(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateDexPositionCollateralInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _minToken0AmountToAccept: PromiseOrValue<BigNumberish>,
+      _minToken1AmountToAccept: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateDexPositionDebtInOneToken(
+      _nftId: PromiseOrValue<BigNumberish>,
+      _maxToken0AmountToPayback: PromiseOrValue<BigNumberish>,
+      _maxToken1AmountToPayback: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimatePayback(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _minSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateWithdraw(
+      _vault: PromiseOrValue<string>,
+      _token0Amount: PromiseOrValue<BigNumberish>,
+      _token1Amount: PromiseOrValue<BigNumberish>,
+      _maxSharesAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getAllFTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getAllFTokensData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getAllUserEarnPositionsWithFTokens(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDexShareRates(
+      _vault: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getFTokenData(
+      _fToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPositionByNftId(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getRatio(
+      _nftId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserEarnPosition(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserEarnPositionWithFToken(
+      _fToken: PromiseOrValue<string>,
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserNftIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserNftIdsWithVaultIds(
+      _user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserPositions(
+      _user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getVaultData(
+      _vault: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

@@ -3,83 +3,142 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace StructsLibrary {
   export type TokenInfoStruct = {
-    _name: string;
-    _symbol: string;
-    _supply: BigNumberish;
-    _teamTokenPercent: BigNumberish;
-    _teamTokensWallet: AddressLike;
-    _maxWallets: BigNumberish[];
-    _buyTaxes: BigNumberish[];
-    _sellTaxes: BigNumberish[];
-    _incubatorWallet: AddressLike;
-    _taxWallet1: AddressLike;
-    _taxWallet1Split: BigNumberish;
-    _taxWallet2: AddressLike;
-    _isWhitelistLaunch: boolean;
-    lpLockDurationInMonths: BigNumberish;
-    _vestTeamTokens: boolean;
+    _name: PromiseOrValue<string>;
+    _symbol: PromiseOrValue<string>;
+    _supply: PromiseOrValue<BigNumberish>;
+    _teamTokenPercent: PromiseOrValue<BigNumberish>;
+    _teamTokensWallet: PromiseOrValue<string>;
+    _maxWallets: PromiseOrValue<BigNumberish>[];
+    _buyTaxes: PromiseOrValue<BigNumberish>[];
+    _sellTaxes: PromiseOrValue<BigNumberish>[];
+    _incubatorWallet: PromiseOrValue<string>;
+    _taxWallet1: PromiseOrValue<string>;
+    _taxWallet1Split: PromiseOrValue<BigNumberish>;
+    _taxWallet2: PromiseOrValue<string>;
+    _isWhitelistLaunch: PromiseOrValue<boolean>;
+    lpLockDurationInMonths: PromiseOrValue<BigNumberish>;
+    _vestTeamTokens: PromiseOrValue<boolean>;
   };
 
   export type TokenInfoStructOutput = [
-    _name: string,
-    _symbol: string,
-    _supply: bigint,
-    _teamTokenPercent: bigint,
-    _teamTokensWallet: string,
-    _maxWallets: bigint[],
-    _buyTaxes: bigint[],
-    _sellTaxes: bigint[],
-    _incubatorWallet: string,
-    _taxWallet1: string,
-    _taxWallet1Split: bigint,
-    _taxWallet2: string,
-    _isWhitelistLaunch: boolean,
-    lpLockDurationInMonths: bigint,
-    _vestTeamTokens: boolean
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    string,
+    number[],
+    number[],
+    number[],
+    string,
+    string,
+    number,
+    string,
+    boolean,
+    BigNumber,
+    boolean
   ] & {
     _name: string;
     _symbol: string;
-    _supply: bigint;
-    _teamTokenPercent: bigint;
+    _supply: BigNumber;
+    _teamTokenPercent: BigNumber;
     _teamTokensWallet: string;
-    _maxWallets: bigint[];
-    _buyTaxes: bigint[];
-    _sellTaxes: bigint[];
+    _maxWallets: number[];
+    _buyTaxes: number[];
+    _sellTaxes: number[];
     _incubatorWallet: string;
     _taxWallet1: string;
-    _taxWallet1Split: bigint;
+    _taxWallet1Split: number;
     _taxWallet2: string;
     _isWhitelistLaunch: boolean;
-    lpLockDurationInMonths: bigint;
+    lpLockDurationInMonths: BigNumber;
     _vestTeamTokens: boolean;
   };
 }
 
-export interface SparkStarterTokenInterface extends Interface {
+export interface SparkStarterTokenInterface extends utils.Interface {
+  functions: {
+    "FEE_DIVISOR()": FunctionFragment;
+    "WETH()": FunctionFragment;
+    "addLp(address)": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "athMcap()": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "buyBackAndBurn(uint256)": FunctionFragment;
+    "buyTax()": FunctionFragment;
+    "computeMcap()": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "decreaseAllowance(address,uint256)": FunctionFragment;
+    "dexRouter()": FunctionFragment;
+    "dynamicTaxOn()": FunctionFragment;
+    "enableTrading()": FunctionFragment;
+    "exemptFromFees(address)": FunctionFragment;
+    "exemptFromLimits(address)": FunctionFragment;
+    "increaseAllowance(address,uint256)": FunctionFragment;
+    "incubatorAddress()": FunctionFragment;
+    "isAMMPair(address)": FunctionFragment;
+    "lastSwapBackBlock()": FunctionFragment;
+    "launchTimestamp()": FunctionFragment;
+    "limited()": FunctionFragment;
+    "lpPair()": FunctionFragment;
+    "maxWallet()": FunctionFragment;
+    "name()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "platformAddress()": FunctionFragment;
+    "priceFeed()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "sellTax()": FunctionFragment;
+    "startingMcap()": FunctionFragment;
+    "swapTokensAtAmt()": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "taxAddress1()": FunctionFragment;
+    "taxAddress1Split()": FunctionFragment;
+    "taxAddress2()": FunctionFragment;
+    "teamTokenAddress()": FunctionFragment;
+    "tokenInfo()": FunctionFragment;
+    "tokenLocker()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "tradingAllowed()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "vaultAddress()": FunctionFragment;
+    "vaultUnlocked()": FunctionFragment;
+    "whitelistActive()": FunctionFragment;
+    "whitelistStartTime()": FunctionFragment;
+    "whitelistWallets(address[],bool)": FunctionFragment;
+    "whitelistedAddress(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "FEE_DIVISOR"
       | "WETH"
       | "addLp"
@@ -133,32 +192,31 @@ export interface SparkStarterTokenInterface extends Interface {
       | "whitelistedAddress"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "Approval" | "OwnershipTransferred" | "Transfer"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "FEE_DIVISOR",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "WETH", values?: undefined): string;
-  encodeFunctionData(functionFragment: "addLp", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "addLp",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "athMcap", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "buyBackAndBurn",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "buyTax", values?: undefined): string;
   encodeFunctionData(
@@ -168,7 +226,7 @@ export interface SparkStarterTokenInterface extends Interface {
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "dexRouter", values?: undefined): string;
   encodeFunctionData(
@@ -181,15 +239,15 @@ export interface SparkStarterTokenInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "exemptFromFees",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "exemptFromLimits",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "incubatorAddress",
@@ -197,7 +255,7 @@ export interface SparkStarterTokenInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isAMMPair",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "lastSwapBackBlock",
@@ -262,15 +320,19 @@ export interface SparkStarterTokenInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [AddressLike, AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "vaultAddress",
@@ -290,11 +352,11 @@ export interface SparkStarterTokenInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistWallets",
-    values: [AddressLike[], boolean]
+    values: [PromiseOrValue<string>[], PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistedAddress",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -441,554 +503,1010 @@ export interface SparkStarterTokenInterface extends Interface {
     functionFragment: "whitelistedAddress",
     data: BytesLike
   ): Result;
+
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
-export namespace ApprovalEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    spender: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [owner: string, spender: string, value: bigint];
-  export interface OutputObject {
-    owner: string;
-    spender: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ApprovalEventObject {
+  owner: string;
+  spender: string;
+  value: BigNumber;
 }
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export namespace TransferEvent {
-  export type InputTuple = [
-    from: AddressLike,
-    to: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [from: string, to: string, value: bigint];
-  export interface OutputObject {
-    from: string;
-    to: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
+
+export interface TransferEventObject {
+  from: string;
+  to: string;
+  value: BigNumber;
+}
+export type TransferEvent = TypedEvent<
+  [string, string, BigNumber],
+  TransferEventObject
+>;
+
+export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface SparkStarterToken extends BaseContract {
-  connect(runner?: ContractRunner | null): SparkStarterToken;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: SparkStarterTokenInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    WETH(overrides?: CallOverrides): Promise<[string]>;
 
-  FEE_DIVISOR: TypedContractMethod<[], [bigint], "view">;
+    addLp(
+      to: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  WETH: TypedContractMethod<[], [string], "view">;
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  addLp: TypedContractMethod<[to: AddressLike], [void], "payable">;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  allowance: TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
+    athMcap(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  approve: TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  athMcap: TypedContractMethod<[], [bigint], "view">;
+    buyBackAndBurn(
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+    buyTax(overrides?: CallOverrides): Promise<[number]>;
 
-  buyBackAndBurn: TypedContractMethod<
-    [minOutput: BigNumberish],
-    [void],
-    "payable"
-  >;
+    computeMcap(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { mcapInUSD: BigNumber; mcapInEth: BigNumber }
+    >;
 
-  buyTax: TypedContractMethod<[], [bigint], "view">;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
-  computeMcap: TypedContractMethod<
-    [],
-    [[bigint, bigint] & { mcapInUSD: bigint; mcapInEth: bigint }],
-    "view"
-  >;
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  decimals: TypedContractMethod<[], [bigint], "view">;
+    dexRouter(overrides?: CallOverrides): Promise<[string]>;
 
-  decreaseAllowance: TypedContractMethod<
-    [spender: AddressLike, subtractedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    dynamicTaxOn(overrides?: CallOverrides): Promise<[boolean]>;
 
-  dexRouter: TypedContractMethod<[], [string], "view">;
+    enableTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  dynamicTaxOn: TypedContractMethod<[], [boolean], "view">;
+    exemptFromFees(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  enableTrading: TypedContractMethod<[], [void], "nonpayable">;
+    exemptFromLimits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  exemptFromFees: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  exemptFromLimits: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+    incubatorAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  increaseAllowance: TypedContractMethod<
-    [spender: AddressLike, addedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    isAMMPair(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  incubatorAddress: TypedContractMethod<[], [string], "view">;
+    lastSwapBackBlock(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  isAMMPair: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+    launchTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  lastSwapBackBlock: TypedContractMethod<[], [bigint], "view">;
+    limited(overrides?: CallOverrides): Promise<[boolean]>;
 
-  launchTimestamp: TypedContractMethod<[], [bigint], "view">;
+    lpPair(overrides?: CallOverrides): Promise<[string]>;
 
-  limited: TypedContractMethod<[], [boolean], "view">;
+    maxWallet(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  lpPair: TypedContractMethod<[], [string], "view">;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-  maxWallet: TypedContractMethod<[], [bigint], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  name: TypedContractMethod<[], [string], "view">;
+    platformAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    priceFeed(overrides?: CallOverrides): Promise<[string]>;
 
-  platformAddress: TypedContractMethod<[], [string], "view">;
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  priceFeed: TypedContractMethod<[], [string], "view">;
+    sellTax(overrides?: CallOverrides): Promise<[number]>;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+    startingMcap(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  sellTax: TypedContractMethod<[], [bigint], "view">;
+    swapTokensAtAmt(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  startingMcap: TypedContractMethod<[], [bigint], "view">;
+    symbol(overrides?: CallOverrides): Promise<[string]>;
 
-  swapTokensAtAmt: TypedContractMethod<[], [bigint], "view">;
+    taxAddress1(overrides?: CallOverrides): Promise<[string]>;
 
-  symbol: TypedContractMethod<[], [string], "view">;
+    taxAddress1Split(overrides?: CallOverrides): Promise<[number]>;
 
-  taxAddress1: TypedContractMethod<[], [string], "view">;
+    taxAddress2(overrides?: CallOverrides): Promise<[string]>;
 
-  taxAddress1Split: TypedContractMethod<[], [bigint], "view">;
+    teamTokenAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  taxAddress2: TypedContractMethod<[], [string], "view">;
-
-  teamTokenAddress: TypedContractMethod<[], [string], "view">;
-
-  tokenInfo: TypedContractMethod<
-    [],
-    [
+    tokenInfo(
+      overrides?: CallOverrides
+    ): Promise<
       [
         string,
         string,
-        bigint,
-        bigint,
+        BigNumber,
+        BigNumber,
         string,
         string,
         string,
-        bigint,
+        number,
         string,
         boolean,
-        bigint,
+        BigNumber,
         boolean
       ] & {
         _name: string;
         _symbol: string;
-        _supply: bigint;
-        _teamTokenPercent: bigint;
+        _supply: BigNumber;
+        _teamTokenPercent: BigNumber;
         _teamTokensWallet: string;
         _incubatorWallet: string;
         _taxWallet1: string;
-        _taxWallet1Split: bigint;
+        _taxWallet1Split: number;
         _taxWallet2: string;
         _isWhitelistLaunch: boolean;
-        lpLockDurationInMonths: bigint;
+        lpLockDurationInMonths: BigNumber;
         _vestTeamTokens: boolean;
       }
-    ],
-    "view"
+    >;
+
+    tokenLocker(overrides?: CallOverrides): Promise<[string]>;
+
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    tradingAllowed(overrides?: CallOverrides): Promise<[boolean]>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    vaultAddress(overrides?: CallOverrides): Promise<[string]>;
+
+    vaultUnlocked(overrides?: CallOverrides): Promise<[boolean]>;
+
+    whitelistActive(overrides?: CallOverrides): Promise<[boolean]>;
+
+    whitelistStartTime(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    whitelistWallets(
+      wallets: PromiseOrValue<string>[],
+      _whitelist: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    whitelistedAddress(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+  };
+
+  FEE_DIVISOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+  WETH(overrides?: CallOverrides): Promise<string>;
+
+  addLp(
+    to: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  allowance(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  athMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+  balanceOf(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  buyBackAndBurn(
+    minOutput: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  buyTax(overrides?: CallOverrides): Promise<number>;
+
+  computeMcap(
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber] & { mcapInUSD: BigNumber; mcapInEth: BigNumber }
   >;
 
-  tokenLocker: TypedContractMethod<[], [string], "view">;
+  decimals(overrides?: CallOverrides): Promise<number>;
 
-  totalSupply: TypedContractMethod<[], [bigint], "view">;
+  decreaseAllowance(
+    spender: PromiseOrValue<string>,
+    subtractedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  tradingAllowed: TypedContractMethod<[], [boolean], "view">;
+  dexRouter(overrides?: CallOverrides): Promise<string>;
 
-  transfer: TypedContractMethod<
-    [to: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  dynamicTaxOn(overrides?: CallOverrides): Promise<boolean>;
 
-  transferFrom: TypedContractMethod<
-    [from: AddressLike, to: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  enableTrading(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  exemptFromFees(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  vaultAddress: TypedContractMethod<[], [string], "view">;
+  exemptFromLimits(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  vaultUnlocked: TypedContractMethod<[], [boolean], "view">;
+  increaseAllowance(
+    spender: PromiseOrValue<string>,
+    addedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  whitelistActive: TypedContractMethod<[], [boolean], "view">;
+  incubatorAddress(overrides?: CallOverrides): Promise<string>;
 
-  whitelistStartTime: TypedContractMethod<[], [bigint], "view">;
+  isAMMPair(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  whitelistWallets: TypedContractMethod<
-    [wallets: AddressLike[], _whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
+  lastSwapBackBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
-  whitelistedAddress: TypedContractMethod<
-    [arg0: AddressLike],
-    [boolean],
-    "view"
-  >;
+  launchTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  limited(overrides?: CallOverrides): Promise<boolean>;
 
-  getFunction(
-    nameOrSignature: "FEE_DIVISOR"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "WETH"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "addLp"
-  ): TypedContractMethod<[to: AddressLike], [void], "payable">;
-  getFunction(
-    nameOrSignature: "allowance"
-  ): TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "approve"
-  ): TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "athMcap"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "balanceOf"
-  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "buyBackAndBurn"
-  ): TypedContractMethod<[minOutput: BigNumberish], [void], "payable">;
-  getFunction(
-    nameOrSignature: "buyTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "computeMcap"
-  ): TypedContractMethod<
-    [],
-    [[bigint, bigint] & { mcapInUSD: bigint; mcapInEth: bigint }],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "decimals"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "decreaseAllowance"
-  ): TypedContractMethod<
-    [spender: AddressLike, subtractedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "dexRouter"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "dynamicTaxOn"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "enableTrading"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "exemptFromFees"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "exemptFromLimits"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "increaseAllowance"
-  ): TypedContractMethod<
-    [spender: AddressLike, addedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "incubatorAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "isAMMPair"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "lastSwapBackBlock"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "launchTimestamp"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "limited"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "lpPair"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "maxWallet"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "platformAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "priceFeed"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "sellTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "startingMcap"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "swapTokensAtAmt"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "symbol"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "taxAddress1"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "taxAddress1Split"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "taxAddress2"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "teamTokenAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tokenInfo"
-  ): TypedContractMethod<
-    [],
+  lpPair(overrides?: CallOverrides): Promise<string>;
+
+  maxWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  platformAddress(overrides?: CallOverrides): Promise<string>;
+
+  priceFeed(overrides?: CallOverrides): Promise<string>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  sellTax(overrides?: CallOverrides): Promise<number>;
+
+  startingMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+  swapTokensAtAmt(overrides?: CallOverrides): Promise<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
+  taxAddress1(overrides?: CallOverrides): Promise<string>;
+
+  taxAddress1Split(overrides?: CallOverrides): Promise<number>;
+
+  taxAddress2(overrides?: CallOverrides): Promise<string>;
+
+  teamTokenAddress(overrides?: CallOverrides): Promise<string>;
+
+  tokenInfo(
+    overrides?: CallOverrides
+  ): Promise<
     [
+      string,
+      string,
+      BigNumber,
+      BigNumber,
+      string,
+      string,
+      string,
+      number,
+      string,
+      boolean,
+      BigNumber,
+      boolean
+    ] & {
+      _name: string;
+      _symbol: string;
+      _supply: BigNumber;
+      _teamTokenPercent: BigNumber;
+      _teamTokensWallet: string;
+      _incubatorWallet: string;
+      _taxWallet1: string;
+      _taxWallet1Split: number;
+      _taxWallet2: string;
+      _isWhitelistLaunch: boolean;
+      lpLockDurationInMonths: BigNumber;
+      _vestTeamTokens: boolean;
+    }
+  >;
+
+  tokenLocker(overrides?: CallOverrides): Promise<string>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  tradingAllowed(overrides?: CallOverrides): Promise<boolean>;
+
+  transfer(
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferFrom(
+    from: PromiseOrValue<string>,
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  vaultAddress(overrides?: CallOverrides): Promise<string>;
+
+  vaultUnlocked(overrides?: CallOverrides): Promise<boolean>;
+
+  whitelistActive(overrides?: CallOverrides): Promise<boolean>;
+
+  whitelistStartTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+  whitelistWallets(
+    wallets: PromiseOrValue<string>[],
+    _whitelist: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  whitelistedAddress(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  callStatic: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    WETH(overrides?: CallOverrides): Promise<string>;
+
+    addLp(to: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    athMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    buyBackAndBurn(
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    buyTax(overrides?: CallOverrides): Promise<number>;
+
+    computeMcap(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { mcapInUSD: BigNumber; mcapInEth: BigNumber }
+    >;
+
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    dexRouter(overrides?: CallOverrides): Promise<string>;
+
+    dynamicTaxOn(overrides?: CallOverrides): Promise<boolean>;
+
+    enableTrading(overrides?: CallOverrides): Promise<void>;
+
+    exemptFromFees(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    exemptFromLimits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    incubatorAddress(overrides?: CallOverrides): Promise<string>;
+
+    isAMMPair(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    lastSwapBackBlock(overrides?: CallOverrides): Promise<BigNumber>;
+
+    launchTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
+
+    limited(overrides?: CallOverrides): Promise<boolean>;
+
+    lpPair(overrides?: CallOverrides): Promise<string>;
+
+    maxWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    platformAddress(overrides?: CallOverrides): Promise<string>;
+
+    priceFeed(overrides?: CallOverrides): Promise<string>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    sellTax(overrides?: CallOverrides): Promise<number>;
+
+    startingMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    swapTokensAtAmt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
+
+    taxAddress1(overrides?: CallOverrides): Promise<string>;
+
+    taxAddress1Split(overrides?: CallOverrides): Promise<number>;
+
+    taxAddress2(overrides?: CallOverrides): Promise<string>;
+
+    teamTokenAddress(overrides?: CallOverrides): Promise<string>;
+
+    tokenInfo(
+      overrides?: CallOverrides
+    ): Promise<
       [
         string,
         string,
-        bigint,
-        bigint,
+        BigNumber,
+        BigNumber,
         string,
         string,
         string,
-        bigint,
+        number,
         string,
         boolean,
-        bigint,
+        BigNumber,
         boolean
       ] & {
         _name: string;
         _symbol: string;
-        _supply: bigint;
-        _teamTokenPercent: bigint;
+        _supply: BigNumber;
+        _teamTokenPercent: BigNumber;
         _teamTokensWallet: string;
         _incubatorWallet: string;
         _taxWallet1: string;
-        _taxWallet1Split: bigint;
+        _taxWallet1Split: number;
         _taxWallet2: string;
         _isWhitelistLaunch: boolean;
-        lpLockDurationInMonths: bigint;
+        lpLockDurationInMonths: BigNumber;
         _vestTeamTokens: boolean;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "tokenLocker"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "totalSupply"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "tradingAllowed"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "transfer"
-  ): TypedContractMethod<
-    [to: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transferFrom"
-  ): TypedContractMethod<
-    [from: AddressLike, to: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "vaultAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "vaultUnlocked"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "whitelistActive"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "whitelistStartTime"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "whitelistWallets"
-  ): TypedContractMethod<
-    [wallets: AddressLike[], _whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "whitelistedAddress"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+    >;
 
-  getEvent(
-    key: "Approval"
-  ): TypedContractEvent<
-    ApprovalEvent.InputTuple,
-    ApprovalEvent.OutputTuple,
-    ApprovalEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "Transfer"
-  ): TypedContractEvent<
-    TransferEvent.InputTuple,
-    TransferEvent.OutputTuple,
-    TransferEvent.OutputObject
-  >;
+    tokenLocker(overrides?: CallOverrides): Promise<string>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tradingAllowed(overrides?: CallOverrides): Promise<boolean>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    vaultAddress(overrides?: CallOverrides): Promise<string>;
+
+    vaultUnlocked(overrides?: CallOverrides): Promise<boolean>;
+
+    whitelistActive(overrides?: CallOverrides): Promise<boolean>;
+
+    whitelistStartTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistWallets(
+      wallets: PromiseOrValue<string>[],
+      _whitelist: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    whitelistedAddress(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {
-    "Approval(address,address,uint256)": TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
-    Approval: TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "Transfer(address,address,uint256)": TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
-    Transfer: TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
+    "Transfer(address,address,uint256)"(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+    Transfer(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+  };
+
+  estimateGas: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    WETH(overrides?: CallOverrides): Promise<BigNumber>;
+
+    addLp(
+      to: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    athMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    buyBackAndBurn(
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    buyTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    computeMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    dexRouter(overrides?: CallOverrides): Promise<BigNumber>;
+
+    dynamicTaxOn(overrides?: CallOverrides): Promise<BigNumber>;
+
+    enableTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    exemptFromFees(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    exemptFromLimits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    incubatorAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isAMMPair(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    lastSwapBackBlock(overrides?: CallOverrides): Promise<BigNumber>;
+
+    launchTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
+
+    limited(overrides?: CallOverrides): Promise<BigNumber>;
+
+    lpPair(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    platformAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    priceFeed(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    sellTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    startingMcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    swapTokensAtAmt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    taxAddress1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    taxAddress1Split(overrides?: CallOverrides): Promise<BigNumber>;
+
+    taxAddress2(overrides?: CallOverrides): Promise<BigNumber>;
+
+    teamTokenAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenInfo(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenLocker(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tradingAllowed(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    vaultAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    vaultUnlocked(overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistActive(overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistStartTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistWallets(
+      wallets: PromiseOrValue<string>[],
+      _whitelist: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    whitelistedAddress(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    WETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    addLp(
+      to: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    athMcap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    buyBackAndBurn(
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    buyTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    computeMcap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    dexRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    dynamicTaxOn(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    enableTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    exemptFromFees(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    exemptFromLimits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    incubatorAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isAMMPair(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    lastSwapBackBlock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    launchTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    limited(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    lpPair(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    maxWallet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    platformAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    priceFeed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    sellTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    startingMcap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    swapTokensAtAmt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    taxAddress1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    taxAddress1Split(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    taxAddress2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    teamTokenAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokenInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokenLocker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tradingAllowed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    vaultAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    vaultUnlocked(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    whitelistActive(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    whitelistStartTime(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    whitelistWallets(
+      wallets: PromiseOrValue<string>[],
+      _whitelist: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    whitelistedAddress(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

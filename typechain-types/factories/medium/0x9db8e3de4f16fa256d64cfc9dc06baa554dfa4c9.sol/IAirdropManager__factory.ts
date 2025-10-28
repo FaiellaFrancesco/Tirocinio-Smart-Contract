@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IAirdropManager,
   IAirdropManagerInterface,
@@ -50,17 +51,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IAirdropManager__factory {
   static readonly abi = _abi;
   static createInterface(): IAirdropManagerInterface {
-    return new Interface(_abi) as IAirdropManagerInterface;
+    return new utils.Interface(_abi) as IAirdropManagerInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IAirdropManager {
-    return new Contract(address, _abi, runner) as unknown as IAirdropManager;
+    return new Contract(address, _abi, signerOrProvider) as IAirdropManager;
   }
 }

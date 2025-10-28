@@ -3,28 +3,46 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
-export interface EventTicketingInterface extends Interface {
+export interface EventTicketingInterface extends utils.Interface {
+  functions: {
+    "buyTicket()": FunctionFragment;
+    "markTicketUsed(address)": FunctionFragment;
+    "maxCapacity()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "ownsTicket(address)": FunctionFragment;
+    "refundTicket(address)": FunctionFragment;
+    "refundTicketsBulk(address[])": FunctionFragment;
+    "ticketPrice()": FunctionFragment;
+    "ticketsSold()": FunctionFragment;
+    "withdraw()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "buyTicket"
       | "markTicketUsed"
       | "maxCapacity"
@@ -37,14 +55,10 @@ export interface EventTicketingInterface extends Interface {
       | "withdraw"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "TicketPurchased" | "TicketRefunded" | "TicketUsed"
-  ): EventFragment;
-
   encodeFunctionData(functionFragment: "buyTicket", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "markTicketUsed",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "maxCapacity",
@@ -53,15 +67,15 @@ export interface EventTicketingInterface extends Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownsTicket",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "refundTicket",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "refundTicketsBulk",
-    values: [AddressLike[]]
+    values: [PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
     functionFragment: "ticketPrice",
@@ -101,204 +115,273 @@ export interface EventTicketingInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+
+  events: {
+    "TicketPurchased(address)": EventFragment;
+    "TicketRefunded(address)": EventFragment;
+    "TicketUsed(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "TicketPurchased"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TicketRefunded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TicketUsed"): EventFragment;
 }
 
-export namespace TicketPurchasedEvent {
-  export type InputTuple = [buyer: AddressLike];
-  export type OutputTuple = [buyer: string];
-  export interface OutputObject {
-    buyer: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface TicketPurchasedEventObject {
+  buyer: string;
 }
+export type TicketPurchasedEvent = TypedEvent<
+  [string],
+  TicketPurchasedEventObject
+>;
 
-export namespace TicketRefundedEvent {
-  export type InputTuple = [buyer: AddressLike];
-  export type OutputTuple = [buyer: string];
-  export interface OutputObject {
-    buyer: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type TicketPurchasedEventFilter = TypedEventFilter<TicketPurchasedEvent>;
 
-export namespace TicketUsedEvent {
-  export type InputTuple = [buyer: AddressLike];
-  export type OutputTuple = [buyer: string];
-  export interface OutputObject {
-    buyer: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface TicketRefundedEventObject {
+  buyer: string;
 }
+export type TicketRefundedEvent = TypedEvent<
+  [string],
+  TicketRefundedEventObject
+>;
+
+export type TicketRefundedEventFilter = TypedEventFilter<TicketRefundedEvent>;
+
+export interface TicketUsedEventObject {
+  buyer: string;
+}
+export type TicketUsedEvent = TypedEvent<[string], TicketUsedEventObject>;
+
+export type TicketUsedEventFilter = TypedEventFilter<TicketUsedEvent>;
 
 export interface EventTicketing extends BaseContract {
-  connect(runner?: ContractRunner | null): EventTicketing;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: EventTicketingInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    buyTicket(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    markTicketUsed(
+      buyer: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  buyTicket: TypedContractMethod<[], [void], "payable">;
+    maxCapacity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  markTicketUsed: TypedContractMethod<
-    [buyer: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  maxCapacity: TypedContractMethod<[], [bigint], "view">;
+    ownsTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    refundTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ownsTicket: TypedContractMethod<[buyer: AddressLike], [boolean], "view">;
+    refundTicketsBulk(
+      buyers: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  refundTicket: TypedContractMethod<[buyer: AddressLike], [void], "nonpayable">;
+    ticketPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  refundTicketsBulk: TypedContractMethod<
-    [buyers: AddressLike[]],
-    [void],
-    "nonpayable"
-  >;
+    ticketsSold(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  ticketPrice: TypedContractMethod<[], [bigint], "view">;
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  ticketsSold: TypedContractMethod<[], [bigint], "view">;
+  buyTicket(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  withdraw: TypedContractMethod<[], [void], "nonpayable">;
+  markTicketUsed(
+    buyer: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  maxCapacity(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "buyTicket"
-  ): TypedContractMethod<[], [void], "payable">;
-  getFunction(
-    nameOrSignature: "markTicketUsed"
-  ): TypedContractMethod<[buyer: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "maxCapacity"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "ownsTicket"
-  ): TypedContractMethod<[buyer: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "refundTicket"
-  ): TypedContractMethod<[buyer: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "refundTicketsBulk"
-  ): TypedContractMethod<[buyers: AddressLike[]], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "ticketPrice"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "ticketsSold"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "withdraw"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+  owner(overrides?: CallOverrides): Promise<string>;
 
-  getEvent(
-    key: "TicketPurchased"
-  ): TypedContractEvent<
-    TicketPurchasedEvent.InputTuple,
-    TicketPurchasedEvent.OutputTuple,
-    TicketPurchasedEvent.OutputObject
-  >;
-  getEvent(
-    key: "TicketRefunded"
-  ): TypedContractEvent<
-    TicketRefundedEvent.InputTuple,
-    TicketRefundedEvent.OutputTuple,
-    TicketRefundedEvent.OutputObject
-  >;
-  getEvent(
-    key: "TicketUsed"
-  ): TypedContractEvent<
-    TicketUsedEvent.InputTuple,
-    TicketUsedEvent.OutputTuple,
-    TicketUsedEvent.OutputObject
-  >;
+  ownsTicket(
+    buyer: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  refundTicket(
+    buyer: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  refundTicketsBulk(
+    buyers: PromiseOrValue<string>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  ticketPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+  ticketsSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+  withdraw(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    buyTicket(overrides?: CallOverrides): Promise<void>;
+
+    markTicketUsed(
+      buyer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    maxCapacity(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    ownsTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    refundTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    refundTicketsBulk(
+      buyers: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    ticketPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ticketsSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(overrides?: CallOverrides): Promise<void>;
+  };
 
   filters: {
-    "TicketPurchased(address)": TypedContractEvent<
-      TicketPurchasedEvent.InputTuple,
-      TicketPurchasedEvent.OutputTuple,
-      TicketPurchasedEvent.OutputObject
-    >;
-    TicketPurchased: TypedContractEvent<
-      TicketPurchasedEvent.InputTuple,
-      TicketPurchasedEvent.OutputTuple,
-      TicketPurchasedEvent.OutputObject
-    >;
+    "TicketPurchased(address)"(
+      buyer?: PromiseOrValue<string> | null
+    ): TicketPurchasedEventFilter;
+    TicketPurchased(
+      buyer?: PromiseOrValue<string> | null
+    ): TicketPurchasedEventFilter;
 
-    "TicketRefunded(address)": TypedContractEvent<
-      TicketRefundedEvent.InputTuple,
-      TicketRefundedEvent.OutputTuple,
-      TicketRefundedEvent.OutputObject
-    >;
-    TicketRefunded: TypedContractEvent<
-      TicketRefundedEvent.InputTuple,
-      TicketRefundedEvent.OutputTuple,
-      TicketRefundedEvent.OutputObject
-    >;
+    "TicketRefunded(address)"(
+      buyer?: PromiseOrValue<string> | null
+    ): TicketRefundedEventFilter;
+    TicketRefunded(
+      buyer?: PromiseOrValue<string> | null
+    ): TicketRefundedEventFilter;
 
-    "TicketUsed(address)": TypedContractEvent<
-      TicketUsedEvent.InputTuple,
-      TicketUsedEvent.OutputTuple,
-      TicketUsedEvent.OutputObject
-    >;
-    TicketUsed: TypedContractEvent<
-      TicketUsedEvent.InputTuple,
-      TicketUsedEvent.OutputTuple,
-      TicketUsedEvent.OutputObject
-    >;
+    "TicketUsed(address)"(
+      buyer?: PromiseOrValue<string> | null
+    ): TicketUsedEventFilter;
+    TicketUsed(buyer?: PromiseOrValue<string> | null): TicketUsedEventFilter;
+  };
+
+  estimateGas: {
+    buyTicket(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    markTicketUsed(
+      buyer: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    maxCapacity(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ownsTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    refundTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    refundTicketsBulk(
+      buyers: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ticketPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ticketsSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    buyTicket(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    markTicketUsed(
+      buyer: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    maxCapacity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ownsTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    refundTicket(
+      buyer: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    refundTicketsBulk(
+      buyers: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ticketPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ticketsSold(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

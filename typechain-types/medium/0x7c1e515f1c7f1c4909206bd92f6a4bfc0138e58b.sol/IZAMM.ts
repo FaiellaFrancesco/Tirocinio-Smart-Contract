@@ -3,76 +3,92 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export type PoolKeyStruct = {
-  id0: BigNumberish;
-  id1: BigNumberish;
-  token0: AddressLike;
-  token1: AddressLike;
-  swapFee: BigNumberish;
+  id0: PromiseOrValue<BigNumberish>;
+  id1: PromiseOrValue<BigNumberish>;
+  token0: PromiseOrValue<string>;
+  token1: PromiseOrValue<string>;
+  swapFee: PromiseOrValue<BigNumberish>;
 };
 
 export type PoolKeyStructOutput = [
-  id0: bigint,
-  id1: bigint,
-  token0: string,
-  token1: string,
-  swapFee: bigint
+  BigNumber,
+  BigNumber,
+  string,
+  string,
+  BigNumber
 ] & {
-  id0: bigint;
-  id1: bigint;
+  id0: BigNumber;
+  id1: BigNumber;
   token0: string;
   token1: string;
-  swapFee: bigint;
+  swapFee: BigNumber;
 };
 
-export interface IZAMMInterface extends Interface {
+export interface IZAMMInterface extends utils.Interface {
+  functions: {
+    "addLiquidity((uint256,uint256,address,address,uint96),uint256,uint256,uint256,uint256,address,uint256)": FunctionFragment;
+    "recoverTransientBalance(address,uint256,address)": FunctionFragment;
+    "swapExactIn((uint256,uint256,address,address,uint96),uint256,uint256,bool,address,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature: "addLiquidity" | "recoverTransientBalance" | "swapExactIn"
+    nameOrSignatureOrTopic:
+      | "addLiquidity"
+      | "recoverTransientBalance"
+      | "swapExactIn"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addLiquidity",
     values: [
       PoolKeyStruct,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "recoverTransientBalance",
-    values: [AddressLike, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactIn",
     values: [
       PoolKeyStruct,
-      BigNumberish,
-      BigNumberish,
-      boolean,
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
 
@@ -88,136 +104,189 @@ export interface IZAMMInterface extends Interface {
     functionFragment: "swapExactIn",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IZAMM extends BaseContract {
-  connect(runner?: ContractRunner | null): IZAMM;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IZAMMInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
-
-  addLiquidity: TypedContractMethod<
-    [
+  functions: {
+    addLiquidity(
       poolKey: PoolKeyStruct,
-      amount0Desired: BigNumberish,
-      amount1Desired: BigNumberish,
-      amount0Min: BigNumberish,
-      amount1Min: BigNumberish,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amount0: bigint;
-        amount1: bigint;
-        liquidity: bigint;
+      amount0Desired: PromiseOrValue<BigNumberish>,
+      amount1Desired: PromiseOrValue<BigNumberish>,
+      amount0Min: PromiseOrValue<BigNumberish>,
+      amount1Min: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    recoverTransientBalance(
+      token: PromiseOrValue<string>,
+      id: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    swapExactIn(
+      poolKey: PoolKeyStruct,
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      zeroForOne: PromiseOrValue<boolean>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  addLiquidity(
+    poolKey: PoolKeyStruct,
+    amount0Desired: PromiseOrValue<BigNumberish>,
+    amount1Desired: PromiseOrValue<BigNumberish>,
+    amount0Min: PromiseOrValue<BigNumberish>,
+    amount1Min: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  recoverTransientBalance(
+    token: PromiseOrValue<string>,
+    id: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  swapExactIn(
+    poolKey: PoolKeyStruct,
+    amountIn: PromiseOrValue<BigNumberish>,
+    amountOutMin: PromiseOrValue<BigNumberish>,
+    zeroForOne: PromiseOrValue<boolean>,
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    addLiquidity(
+      poolKey: PoolKeyStruct,
+      amount0Desired: PromiseOrValue<BigNumberish>,
+      amount1Desired: PromiseOrValue<BigNumberish>,
+      amount0Min: PromiseOrValue<BigNumberish>,
+      amount1Min: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amount0: BigNumber;
+        amount1: BigNumber;
+        liquidity: BigNumber;
       }
-    ],
-    "payable"
-  >;
+    >;
 
-  recoverTransientBalance: TypedContractMethod<
-    [token: AddressLike, id: BigNumberish, to: AddressLike],
-    [bigint],
-    "nonpayable"
-  >;
+    recoverTransientBalance(
+      token: PromiseOrValue<string>,
+      id: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-  swapExactIn: TypedContractMethod<
-    [
+    swapExactIn(
       poolKey: PoolKeyStruct,
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      zeroForOne: boolean,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "addLiquidity"
-  ): TypedContractMethod<
-    [
-      poolKey: PoolKeyStruct,
-      amount0Desired: BigNumberish,
-      amount1Desired: BigNumberish,
-      amount0Min: BigNumberish,
-      amount1Min: BigNumberish,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amount0: bigint;
-        amount1: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "recoverTransientBalance"
-  ): TypedContractMethod<
-    [token: AddressLike, id: BigNumberish, to: AddressLike],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "swapExactIn"
-  ): TypedContractMethod<
-    [
-      poolKey: PoolKeyStruct,
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      zeroForOne: boolean,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      zeroForOne: PromiseOrValue<boolean>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    addLiquidity(
+      poolKey: PoolKeyStruct,
+      amount0Desired: PromiseOrValue<BigNumberish>,
+      amount1Desired: PromiseOrValue<BigNumberish>,
+      amount0Min: PromiseOrValue<BigNumberish>,
+      amount1Min: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    recoverTransientBalance(
+      token: PromiseOrValue<string>,
+      id: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    swapExactIn(
+      poolKey: PoolKeyStruct,
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      zeroForOne: PromiseOrValue<boolean>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    addLiquidity(
+      poolKey: PoolKeyStruct,
+      amount0Desired: PromiseOrValue<BigNumberish>,
+      amount1Desired: PromiseOrValue<BigNumberish>,
+      amount0Min: PromiseOrValue<BigNumberish>,
+      amount1Min: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    recoverTransientBalance(
+      token: PromiseOrValue<string>,
+      id: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swapExactIn(
+      poolKey: PoolKeyStruct,
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      zeroForOne: PromiseOrValue<boolean>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

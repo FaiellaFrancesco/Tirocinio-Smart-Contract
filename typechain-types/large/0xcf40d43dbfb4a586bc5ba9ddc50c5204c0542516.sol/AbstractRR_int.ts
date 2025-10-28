@@ -3,96 +3,119 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractRR_intInterface extends Interface {
-  getFunction(nameOrSignature: "defaultResolver" | "node"): FunctionFragment;
+export interface AbstractRR_intInterface extends utils.Interface {
+  functions: {
+    "defaultResolver()": FunctionFragment;
+    "node(address)": FunctionFragment;
+  };
+
+  getFunction(
+    nameOrSignatureOrTopic: "defaultResolver" | "node"
+  ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "defaultResolver",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "node", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "node",
+    values: [PromiseOrValue<string>]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "defaultResolver",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "node", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface AbstractRR_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractRR_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractRR_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    defaultResolver(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    node(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+  };
 
-  defaultResolver: TypedContractMethod<[], [string], "view">;
+  defaultResolver(overrides?: CallOverrides): Promise<string>;
 
-  node: TypedContractMethod<[addr: AddressLike], [string], "view">;
+  node(
+    addr: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    defaultResolver(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "defaultResolver"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "node"
-  ): TypedContractMethod<[addr: AddressLike], [string], "view">;
+    node(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    defaultResolver(overrides?: CallOverrides): Promise<BigNumber>;
+
+    node(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    defaultResolver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    node(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

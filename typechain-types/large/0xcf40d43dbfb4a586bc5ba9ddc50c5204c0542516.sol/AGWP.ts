@@ -3,27 +3,40 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AGWPInterface extends Interface {
+export interface AGWPInterface extends utils.Interface {
+  functions: {
+    "getAllTransactions()": FunctionFragment;
+    "getGWF()": FunctionFragment;
+    "getIsOwner(address)": FunctionFragment;
+    "getMasterCopy()": FunctionFragment;
+    "getOwners()": FunctionFragment;
+    "getTransactionRecord(uint256)": FunctionFragment;
+    "getTransactionsCount()": FunctionFragment;
+    "nameAuctionBidBucketLabel(bytes32,address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "getAllTransactions"
       | "getGWF"
       | "getIsOwner"
@@ -41,7 +54,7 @@ export interface AGWPInterface extends Interface {
   encodeFunctionData(functionFragment: "getGWF", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getIsOwner",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getMasterCopy",
@@ -50,7 +63,7 @@ export interface AGWPInterface extends Interface {
   encodeFunctionData(functionFragment: "getOwners", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getTransactionRecord",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getTransactionsCount",
@@ -58,7 +71,7 @@ export interface AGWPInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "nameAuctionBidBucketLabel",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -84,107 +97,179 @@ export interface AGWPInterface extends Interface {
     functionFragment: "nameAuctionBidBucketLabel",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface AGWP extends BaseContract {
-  connect(runner?: ContractRunner | null): AGWP;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AGWPInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    getAllTransactions(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { transArr: BigNumber[] }>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    getGWF(overrides?: CallOverrides): Promise<[string]>;
 
-  getAllTransactions: TypedContractMethod<[], [bigint[]], "view">;
+    getIsOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  getGWF: TypedContractMethod<[], [string], "view">;
+    getMasterCopy(overrides?: CallOverrides): Promise<[string]>;
 
-  getIsOwner: TypedContractMethod<[_owner: AddressLike], [boolean], "view">;
+    getOwners(overrides?: CallOverrides): Promise<[string[]]>;
 
-  getMasterCopy: TypedContractMethod<[], [string], "view">;
+    getTransactionRecord(
+      _tNb: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  getOwners: TypedContractMethod<[], [string[]], "view">;
+    getTransactionsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getTransactionRecord: TypedContractMethod<
-    [_tNb: BigNumberish],
-    [bigint],
-    "view"
-  >;
+    nameAuctionBidBucketLabel(
+      labelhash: PromiseOrValue<BytesLike>,
+      deedContract: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  getTransactionsCount: TypedContractMethod<[], [bigint], "view">;
+  getAllTransactions(overrides?: CallOverrides): Promise<BigNumber[]>;
 
-  nameAuctionBidBucketLabel: TypedContractMethod<
-    [labelhash: BytesLike, deedContract: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  getGWF(overrides?: CallOverrides): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  getIsOwner(
+    _owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  getFunction(
-    nameOrSignature: "getAllTransactions"
-  ): TypedContractMethod<[], [bigint[]], "view">;
-  getFunction(
-    nameOrSignature: "getGWF"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getIsOwner"
-  ): TypedContractMethod<[_owner: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "getMasterCopy"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getOwners"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getTransactionRecord"
-  ): TypedContractMethod<[_tNb: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getTransactionsCount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "nameAuctionBidBucketLabel"
-  ): TypedContractMethod<
-    [labelhash: BytesLike, deedContract: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  getMasterCopy(overrides?: CallOverrides): Promise<string>;
+
+  getOwners(overrides?: CallOverrides): Promise<string[]>;
+
+  getTransactionRecord(
+    _tNb: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getTransactionsCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  nameAuctionBidBucketLabel(
+    labelhash: PromiseOrValue<BytesLike>,
+    deedContract: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    getAllTransactions(overrides?: CallOverrides): Promise<BigNumber[]>;
+
+    getGWF(overrides?: CallOverrides): Promise<string>;
+
+    getIsOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<string>;
+
+    getOwners(overrides?: CallOverrides): Promise<string[]>;
+
+    getTransactionRecord(
+      _tNb: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTransactionsCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nameAuctionBidBucketLabel(
+      labelhash: PromiseOrValue<BytesLike>,
+      deedContract: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    getAllTransactions(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getGWF(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getIsOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getOwners(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTransactionRecord(
+      _tNb: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTransactionsCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nameAuctionBidBucketLabel(
+      labelhash: PromiseOrValue<BytesLike>,
+      deedContract: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    getAllTransactions(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getGWF(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getIsOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getOwners(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getTransactionRecord(
+      _tNb: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTransactionsCount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    nameAuctionBidBucketLabel(
+      labelhash: PromiseOrValue<BytesLike>,
+      deedContract: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

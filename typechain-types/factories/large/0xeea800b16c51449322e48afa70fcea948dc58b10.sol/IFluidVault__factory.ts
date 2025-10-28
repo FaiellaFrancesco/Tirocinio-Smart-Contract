@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IFluidVault,
   IFluidVaultInterface,
@@ -165,14 +166,17 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class IFluidVault__factory {
   static readonly abi = _abi;
   static createInterface(): IFluidVaultInterface {
-    return new Interface(_abi) as IFluidVaultInterface;
+    return new utils.Interface(_abi) as IFluidVaultInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): IFluidVault {
-    return new Contract(address, _abi, runner) as unknown as IFluidVault;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IFluidVault {
+    return new Contract(address, _abi, signerOrProvider) as IFluidVault;
   }
 }

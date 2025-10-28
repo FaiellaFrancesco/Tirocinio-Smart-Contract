@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   InterfaceLP,
   InterfaceLPInterface,
@@ -16,14 +17,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class InterfaceLP__factory {
   static readonly abi = _abi;
   static createInterface(): InterfaceLPInterface {
-    return new Interface(_abi) as InterfaceLPInterface;
+    return new utils.Interface(_abi) as InterfaceLPInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): InterfaceLP {
-    return new Contract(address, _abi, runner) as unknown as InterfaceLP;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): InterfaceLP {
+    return new Contract(address, _abi, signerOrProvider) as InterfaceLP;
   }
 }

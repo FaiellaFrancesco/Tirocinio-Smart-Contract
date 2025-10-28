@@ -3,29 +3,50 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface TeamInterface extends Interface {
+export interface TeamInterface extends utils.Interface {
+  functions: {
+    "balance()": FunctionFragment;
+    "eachReleaseAmount()": FunctionFragment;
+    "initialize(address)": FunctionFragment;
+    "isFirstRelease()": FunctionFragment;
+    "lastTimeRelease()": FunctionFragment;
+    "nextTimeRelease()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "release()": FunctionFragment;
+    "releasePeriod()": FunctionFragment;
+    "remainingAmount()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "token()": FunctionFragment;
+    "totalAllocation()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "withdrawAdmin(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "balance"
       | "eachReleaseAmount"
       | "initialize"
@@ -43,13 +64,6 @@ export interface TeamInterface extends Interface {
       | "withdrawAdmin"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "Initialized"
-      | "OwnershipTransferred"
-      | "ReleaseAllocation"
-  ): EventFragment;
-
   encodeFunctionData(functionFragment: "balance", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "eachReleaseAmount",
@@ -57,7 +71,7 @@ export interface TeamInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isFirstRelease",
@@ -92,11 +106,11 @@ export interface TeamInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAdmin",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "balance", data: BytesLike): Result;
@@ -144,240 +158,317 @@ export interface TeamInterface extends Interface {
     functionFragment: "withdrawAdmin",
     data: BytesLike
   ): Result;
+
+  events: {
+    "Initialized(uint8)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "ReleaseAllocation(address,uint256,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ReleaseAllocation"): EventFragment;
 }
 
-export namespace InitializedEvent {
-  export type InputTuple = [version: BigNumberish];
-  export type OutputTuple = [version: bigint];
-  export interface OutputObject {
-    version: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface InitializedEventObject {
+  version: number;
 }
+export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
-export namespace ReleaseAllocationEvent {
-  export type InputTuple = [
-    to: AddressLike,
-    releaseAmount: BigNumberish,
-    remainingAmount: BigNumberish
-  ];
-  export type OutputTuple = [
-    to: string,
-    releaseAmount: bigint,
-    remainingAmount: bigint
-  ];
-  export interface OutputObject {
-    to: string;
-    releaseAmount: bigint;
-    remainingAmount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
+
+export interface ReleaseAllocationEventObject {
+  to: string;
+  releaseAmount: BigNumber;
+  remainingAmount: BigNumber;
+}
+export type ReleaseAllocationEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  ReleaseAllocationEventObject
+>;
+
+export type ReleaseAllocationEventFilter =
+  TypedEventFilter<ReleaseAllocationEvent>;
 
 export interface Team extends BaseContract {
-  connect(runner?: ContractRunner | null): Team;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: TeamInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    balance(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    eachReleaseAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  balance: TypedContractMethod<[], [bigint], "view">;
+    initialize(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  eachReleaseAmount: TypedContractMethod<[], [bigint], "view">;
+    isFirstRelease(overrides?: CallOverrides): Promise<[boolean]>;
 
-  initialize: TypedContractMethod<[_token: AddressLike], [void], "nonpayable">;
+    lastTimeRelease(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  isFirstRelease: TypedContractMethod<[], [boolean], "view">;
+    nextTimeRelease(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  lastTimeRelease: TypedContractMethod<[], [bigint], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  nextTimeRelease: TypedContractMethod<[], [bigint], "view">;
+    release(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    releasePeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  release: TypedContractMethod<[], [void], "nonpayable">;
+    remainingAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  releasePeriod: TypedContractMethod<[], [bigint], "view">;
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  remainingAmount: TypedContractMethod<[], [bigint], "view">;
+    token(overrides?: CallOverrides): Promise<[string]>;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+    totalAllocation(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  token: TypedContractMethod<[], [string], "view">;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  totalAllocation: TypedContractMethod<[], [bigint], "view">;
+    withdrawAdmin(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  balance(overrides?: CallOverrides): Promise<BigNumber>;
 
-  withdrawAdmin: TypedContractMethod<
-    [_token: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  eachReleaseAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  initialize(
+    _token: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "balance"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "eachReleaseAmount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "initialize"
-  ): TypedContractMethod<[_token: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "isFirstRelease"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "lastTimeRelease"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "nextTimeRelease"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "release"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "releasePeriod"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "remainingAmount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "token"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "totalAllocation"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "withdrawAdmin"
-  ): TypedContractMethod<[_token: AddressLike], [void], "nonpayable">;
+  isFirstRelease(overrides?: CallOverrides): Promise<boolean>;
 
-  getEvent(
-    key: "Initialized"
-  ): TypedContractEvent<
-    InitializedEvent.InputTuple,
-    InitializedEvent.OutputTuple,
-    InitializedEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "ReleaseAllocation"
-  ): TypedContractEvent<
-    ReleaseAllocationEvent.InputTuple,
-    ReleaseAllocationEvent.OutputTuple,
-    ReleaseAllocationEvent.OutputObject
-  >;
+  lastTimeRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+  nextTimeRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  release(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  releasePeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
+  remainingAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  token(overrides?: CallOverrides): Promise<string>;
+
+  totalAllocation(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawAdmin(
+    _token: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    balance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    eachReleaseAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    initialize(
+      _token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    isFirstRelease(overrides?: CallOverrides): Promise<boolean>;
+
+    lastTimeRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nextTimeRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    release(overrides?: CallOverrides): Promise<void>;
+
+    releasePeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
+    remainingAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    token(overrides?: CallOverrides): Promise<string>;
+
+    totalAllocation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawAdmin(
+      _token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "Initialized(uint8)": TypedContractEvent<
-      InitializedEvent.InputTuple,
-      InitializedEvent.OutputTuple,
-      InitializedEvent.OutputObject
-    >;
-    Initialized: TypedContractEvent<
-      InitializedEvent.InputTuple,
-      InitializedEvent.OutputTuple,
-      InitializedEvent.OutputObject
-    >;
+    "Initialized(uint8)"(version?: null): InitializedEventFilter;
+    Initialized(version?: null): InitializedEventFilter;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "ReleaseAllocation(address,uint256,uint256)": TypedContractEvent<
-      ReleaseAllocationEvent.InputTuple,
-      ReleaseAllocationEvent.OutputTuple,
-      ReleaseAllocationEvent.OutputObject
-    >;
-    ReleaseAllocation: TypedContractEvent<
-      ReleaseAllocationEvent.InputTuple,
-      ReleaseAllocationEvent.OutputTuple,
-      ReleaseAllocationEvent.OutputObject
-    >;
+    "ReleaseAllocation(address,uint256,uint256)"(
+      to?: PromiseOrValue<string> | null,
+      releaseAmount?: null,
+      remainingAmount?: null
+    ): ReleaseAllocationEventFilter;
+    ReleaseAllocation(
+      to?: PromiseOrValue<string> | null,
+      releaseAmount?: null,
+      remainingAmount?: null
+    ): ReleaseAllocationEventFilter;
+  };
+
+  estimateGas: {
+    balance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    eachReleaseAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    initialize(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    isFirstRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+    lastTimeRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nextTimeRelease(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    release(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    releasePeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
+    remainingAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalAllocation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawAdmin(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    balance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    eachReleaseAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    initialize(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    isFirstRelease(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    lastTimeRelease(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    nextTimeRelease(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    release(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    releasePeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    remainingAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalAllocation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAdmin(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

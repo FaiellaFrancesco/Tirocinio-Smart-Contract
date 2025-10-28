@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IFluidVaultResolver,
   IFluidVaultResolverInterface,
@@ -1311,21 +1312,17 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class IFluidVaultResolver__factory {
   static readonly abi = _abi;
   static createInterface(): IFluidVaultResolverInterface {
-    return new Interface(_abi) as IFluidVaultResolverInterface;
+    return new utils.Interface(_abi) as IFluidVaultResolverInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IFluidVaultResolver {
-    return new Contract(
-      address,
-      _abi,
-      runner
-    ) as unknown as IFluidVaultResolver;
+    return new Contract(address, _abi, signerOrProvider) as IFluidVaultResolver;
   }
 }

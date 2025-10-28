@@ -3,29 +3,42 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
-export interface SimpleBallotInterface extends Interface {
+export interface SimpleBallotInterface extends utils.Interface {
+  functions: {
+    "chairperson()": FunctionFragment;
+    "proposals(uint256)": FunctionFragment;
+    "registerVoter(address)": FunctionFragment;
+    "vote(uint256)": FunctionFragment;
+    "voters(address)": FunctionFragment;
+    "winner()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "chairperson"
       | "proposals"
       | "registerVoter"
@@ -34,24 +47,26 @@ export interface SimpleBallotInterface extends Interface {
       | "winner"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "VoteCast" | "VoterRegistered"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "chairperson",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "proposals",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "registerVoter",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "vote", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "voters", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "vote",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "voters",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(functionFragment: "winner", values?: undefined): string;
 
   decodeFunctionResult(
@@ -66,191 +81,248 @@ export interface SimpleBallotInterface extends Interface {
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "voters", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "winner", data: BytesLike): Result;
+
+  events: {
+    "VoteCast(address,uint256)": EventFragment;
+    "VoterRegistered(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "VoteCast"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "VoterRegistered"): EventFragment;
 }
 
-export namespace VoteCastEvent {
-  export type InputTuple = [voter: AddressLike, proposalIndex: BigNumberish];
-  export type OutputTuple = [voter: string, proposalIndex: bigint];
-  export interface OutputObject {
-    voter: string;
-    proposalIndex: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface VoteCastEventObject {
+  voter: string;
+  proposalIndex: BigNumber;
 }
+export type VoteCastEvent = TypedEvent<
+  [string, BigNumber],
+  VoteCastEventObject
+>;
 
-export namespace VoterRegisteredEvent {
-  export type InputTuple = [voter: AddressLike];
-  export type OutputTuple = [voter: string];
-  export interface OutputObject {
-    voter: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type VoteCastEventFilter = TypedEventFilter<VoteCastEvent>;
+
+export interface VoterRegisteredEventObject {
+  voter: string;
 }
+export type VoterRegisteredEvent = TypedEvent<
+  [string],
+  VoterRegisteredEventObject
+>;
+
+export type VoterRegisteredEventFilter = TypedEventFilter<VoterRegisteredEvent>;
 
 export interface SimpleBallot extends BaseContract {
-  connect(runner?: ContractRunner | null): SimpleBallot;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: SimpleBallotInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    chairperson(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    proposals(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber] & { name: string; voteCount: BigNumber }>;
 
-  chairperson: TypedContractMethod<[], [string], "view">;
+    registerVoter(
+      voter: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  proposals: TypedContractMethod<
-    [arg0: BigNumberish],
-    [[string, bigint] & { name: string; voteCount: bigint }],
-    "view"
-  >;
+    vote(
+      proposalIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  registerVoter: TypedContractMethod<
-    [voter: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  vote: TypedContractMethod<
-    [proposalIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  voters: TypedContractMethod<
-    [arg0: AddressLike],
-    [
-      [boolean, boolean, bigint] & {
+    voters(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [boolean, boolean, BigNumber] & {
         registered: boolean;
         voted: boolean;
-        vote: bigint;
+        vote: BigNumber;
       }
-    ],
-    "view"
+    >;
+
+    winner(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, BigNumber] & {
+        index: BigNumber;
+        name: string;
+        votes: BigNumber;
+      }
+    >;
+  };
+
+  chairperson(overrides?: CallOverrides): Promise<string>;
+
+  proposals(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[string, BigNumber] & { name: string; voteCount: BigNumber }>;
+
+  registerVoter(
+    voter: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  vote(
+    proposalIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  voters(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [boolean, boolean, BigNumber] & {
+      registered: boolean;
+      voted: boolean;
+      vote: BigNumber;
+    }
   >;
 
-  winner: TypedContractMethod<
-    [],
-    [[bigint, string, bigint] & { index: bigint; name: string; votes: bigint }],
-    "view"
+  winner(
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, string, BigNumber] & {
+      index: BigNumber;
+      name: string;
+      votes: BigNumber;
+    }
   >;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    chairperson(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "chairperson"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "proposals"
-  ): TypedContractMethod<
-    [arg0: BigNumberish],
-    [[string, bigint] & { name: string; voteCount: bigint }],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "registerVoter"
-  ): TypedContractMethod<[voter: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "vote"
-  ): TypedContractMethod<[proposalIndex: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "voters"
-  ): TypedContractMethod<
-    [arg0: AddressLike],
-    [
-      [boolean, boolean, bigint] & {
+    proposals(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber] & { name: string; voteCount: BigNumber }>;
+
+    registerVoter(
+      voter: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    vote(
+      proposalIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    voters(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [boolean, boolean, BigNumber] & {
         registered: boolean;
         voted: boolean;
-        vote: bigint;
+        vote: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "winner"
-  ): TypedContractMethod<
-    [],
-    [[bigint, string, bigint] & { index: bigint; name: string; votes: bigint }],
-    "view"
-  >;
+    >;
 
-  getEvent(
-    key: "VoteCast"
-  ): TypedContractEvent<
-    VoteCastEvent.InputTuple,
-    VoteCastEvent.OutputTuple,
-    VoteCastEvent.OutputObject
-  >;
-  getEvent(
-    key: "VoterRegistered"
-  ): TypedContractEvent<
-    VoterRegisteredEvent.InputTuple,
-    VoterRegisteredEvent.OutputTuple,
-    VoterRegisteredEvent.OutputObject
-  >;
+    winner(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, BigNumber] & {
+        index: BigNumber;
+        name: string;
+        votes: BigNumber;
+      }
+    >;
+  };
 
   filters: {
-    "VoteCast(address,uint256)": TypedContractEvent<
-      VoteCastEvent.InputTuple,
-      VoteCastEvent.OutputTuple,
-      VoteCastEvent.OutputObject
-    >;
-    VoteCast: TypedContractEvent<
-      VoteCastEvent.InputTuple,
-      VoteCastEvent.OutputTuple,
-      VoteCastEvent.OutputObject
-    >;
+    "VoteCast(address,uint256)"(
+      voter?: PromiseOrValue<string> | null,
+      proposalIndex?: PromiseOrValue<BigNumberish> | null
+    ): VoteCastEventFilter;
+    VoteCast(
+      voter?: PromiseOrValue<string> | null,
+      proposalIndex?: PromiseOrValue<BigNumberish> | null
+    ): VoteCastEventFilter;
 
-    "VoterRegistered(address)": TypedContractEvent<
-      VoterRegisteredEvent.InputTuple,
-      VoterRegisteredEvent.OutputTuple,
-      VoterRegisteredEvent.OutputObject
-    >;
-    VoterRegistered: TypedContractEvent<
-      VoterRegisteredEvent.InputTuple,
-      VoterRegisteredEvent.OutputTuple,
-      VoterRegisteredEvent.OutputObject
-    >;
+    "VoterRegistered(address)"(
+      voter?: PromiseOrValue<string> | null
+    ): VoterRegisteredEventFilter;
+    VoterRegistered(
+      voter?: PromiseOrValue<string> | null
+    ): VoterRegisteredEventFilter;
+  };
+
+  estimateGas: {
+    chairperson(overrides?: CallOverrides): Promise<BigNumber>;
+
+    proposals(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    registerVoter(
+      voter: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    vote(
+      proposalIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    voters(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    winner(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    chairperson(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    proposals(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    registerVoter(
+      voter: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    vote(
+      proposalIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    voters(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    winner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   Abs_AuctionRegistrar_int,
   Abs_AuctionRegistrar_intInterface,
@@ -100,21 +101,21 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class Abs_AuctionRegistrar_int__factory {
   static readonly abi = _abi;
   static createInterface(): Abs_AuctionRegistrar_intInterface {
-    return new Interface(_abi) as Abs_AuctionRegistrar_intInterface;
+    return new utils.Interface(_abi) as Abs_AuctionRegistrar_intInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): Abs_AuctionRegistrar_int {
     return new Contract(
       address,
       _abi,
-      runner
-    ) as unknown as Abs_AuctionRegistrar_int;
+      signerOrProvider
+    ) as Abs_AuctionRegistrar_int;
   }
 }

@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   ApeRouter,
   ApeRouterInterface,
@@ -28,14 +29,17 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class ApeRouter__factory {
   static readonly abi = _abi;
   static createInterface(): ApeRouterInterface {
-    return new Interface(_abi) as ApeRouterInterface;
+    return new utils.Interface(_abi) as ApeRouterInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): ApeRouter {
-    return new Contract(address, _abi, runner) as unknown as ApeRouter;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ApeRouter {
+    return new Contract(address, _abi, signerOrProvider) as ApeRouter;
   }
 }

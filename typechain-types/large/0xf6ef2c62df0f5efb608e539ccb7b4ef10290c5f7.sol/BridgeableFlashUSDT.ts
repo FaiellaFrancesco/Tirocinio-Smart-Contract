@@ -3,25 +3,35 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface BridgeableFlashUSDTInterface extends Interface {
+export interface BridgeableFlashUSDTInterface extends utils.Interface {
+  functions: {
+    "start()": FunctionFragment;
+    "tokenName()": FunctionFragment;
+    "tokenSymbol()": FunctionFragment;
+    "withdrawal()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature: "start" | "tokenName" | "tokenSymbol" | "withdrawal"
+    nameOrSignatureOrTopic: "start" | "tokenName" | "tokenSymbol" | "withdrawal"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "start", values?: undefined): string;
@@ -42,75 +52,99 @@ export interface BridgeableFlashUSDTInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdrawal", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface BridgeableFlashUSDT extends BaseContract {
-  connect(runner?: ContractRunner | null): BridgeableFlashUSDT;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: BridgeableFlashUSDTInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    start(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    tokenName(overrides?: CallOverrides): Promise<[string]>;
 
-  start: TypedContractMethod<[], [void], "payable">;
+    tokenSymbol(overrides?: CallOverrides): Promise<[string]>;
 
-  tokenName: TypedContractMethod<[], [string], "view">;
+    withdrawal(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  tokenSymbol: TypedContractMethod<[], [string], "view">;
+  start(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  withdrawal: TypedContractMethod<[], [void], "payable">;
+  tokenName(overrides?: CallOverrides): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  tokenSymbol(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "start"
-  ): TypedContractMethod<[], [void], "payable">;
-  getFunction(
-    nameOrSignature: "tokenName"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tokenSymbol"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "withdrawal"
-  ): TypedContractMethod<[], [void], "payable">;
+  withdrawal(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    start(overrides?: CallOverrides): Promise<void>;
+
+    tokenName(overrides?: CallOverrides): Promise<string>;
+
+    tokenSymbol(overrides?: CallOverrides): Promise<string>;
+
+    withdrawal(overrides?: CallOverrides): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    start(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    tokenName(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenSymbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawal(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    start(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    tokenName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokenSymbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdrawal(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

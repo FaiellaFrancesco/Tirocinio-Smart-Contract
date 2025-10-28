@@ -3,68 +3,71 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IFluidVaultResolver {
-  export type TokensStruct = { token0: AddressLike; token1: AddressLike };
+  export type TokensStruct = {
+    token0: PromiseOrValue<string>;
+    token1: PromiseOrValue<string>;
+  };
 
-  export type TokensStructOutput = [token0: string, token1: string] & {
+  export type TokensStructOutput = [string, string] & {
     token0: string;
     token1: string;
   };
 
   export type ConstantViewsStruct = {
-    liquidity: AddressLike;
-    factory: AddressLike;
-    operateImplementation: AddressLike;
-    adminImplementation: AddressLike;
-    secondaryImplementation: AddressLike;
-    deployer: AddressLike;
-    supply: AddressLike;
-    borrow: AddressLike;
+    liquidity: PromiseOrValue<string>;
+    factory: PromiseOrValue<string>;
+    operateImplementation: PromiseOrValue<string>;
+    adminImplementation: PromiseOrValue<string>;
+    secondaryImplementation: PromiseOrValue<string>;
+    deployer: PromiseOrValue<string>;
+    supply: PromiseOrValue<string>;
+    borrow: PromiseOrValue<string>;
     supplyToken: IFluidVaultResolver.TokensStruct;
     borrowToken: IFluidVaultResolver.TokensStruct;
-    vaultId: BigNumberish;
-    vaultType: BigNumberish;
-    supplyExchangePriceSlot: BytesLike;
-    borrowExchangePriceSlot: BytesLike;
-    userSupplySlot: BytesLike;
-    userBorrowSlot: BytesLike;
+    vaultId: PromiseOrValue<BigNumberish>;
+    vaultType: PromiseOrValue<BigNumberish>;
+    supplyExchangePriceSlot: PromiseOrValue<BytesLike>;
+    borrowExchangePriceSlot: PromiseOrValue<BytesLike>;
+    userSupplySlot: PromiseOrValue<BytesLike>;
+    userBorrowSlot: PromiseOrValue<BytesLike>;
   };
 
   export type ConstantViewsStructOutput = [
-    liquidity: string,
-    factory: string,
-    operateImplementation: string,
-    adminImplementation: string,
-    secondaryImplementation: string,
-    deployer: string,
-    supply: string,
-    borrow: string,
-    supplyToken: IFluidVaultResolver.TokensStructOutput,
-    borrowToken: IFluidVaultResolver.TokensStructOutput,
-    vaultId: bigint,
-    vaultType: bigint,
-    supplyExchangePriceSlot: string,
-    borrowExchangePriceSlot: string,
-    userSupplySlot: string,
-    userBorrowSlot: string
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    IFluidVaultResolver.TokensStructOutput,
+    IFluidVaultResolver.TokensStructOutput,
+    BigNumber,
+    BigNumber,
+    string,
+    string,
+    string,
+    string
   ] & {
     liquidity: string;
     factory: string;
@@ -76,8 +79,8 @@ export declare namespace IFluidVaultResolver {
     borrow: string;
     supplyToken: IFluidVaultResolver.TokensStructOutput;
     borrowToken: IFluidVaultResolver.TokensStructOutput;
-    vaultId: bigint;
-    vaultType: bigint;
+    vaultId: BigNumber;
+    vaultType: BigNumber;
     supplyExchangePriceSlot: string;
     borrowExchangePriceSlot: string;
     userSupplySlot: string;
@@ -85,290 +88,290 @@ export declare namespace IFluidVaultResolver {
   };
 
   export type ConfigsStruct = {
-    supplyRateMagnifier: BigNumberish;
-    borrowRateMagnifier: BigNumberish;
-    collateralFactor: BigNumberish;
-    liquidationThreshold: BigNumberish;
-    liquidationMaxLimit: BigNumberish;
-    withdrawalGap: BigNumberish;
-    liquidationPenalty: BigNumberish;
-    borrowFee: BigNumberish;
-    oracle: AddressLike;
-    oraclePriceOperate: BigNumberish;
-    oraclePriceLiquidate: BigNumberish;
-    rebalancer: AddressLike;
-    lastUpdateTimestamp: BigNumberish;
+    supplyRateMagnifier: PromiseOrValue<BigNumberish>;
+    borrowRateMagnifier: PromiseOrValue<BigNumberish>;
+    collateralFactor: PromiseOrValue<BigNumberish>;
+    liquidationThreshold: PromiseOrValue<BigNumberish>;
+    liquidationMaxLimit: PromiseOrValue<BigNumberish>;
+    withdrawalGap: PromiseOrValue<BigNumberish>;
+    liquidationPenalty: PromiseOrValue<BigNumberish>;
+    borrowFee: PromiseOrValue<BigNumberish>;
+    oracle: PromiseOrValue<string>;
+    oraclePriceOperate: PromiseOrValue<BigNumberish>;
+    oraclePriceLiquidate: PromiseOrValue<BigNumberish>;
+    rebalancer: PromiseOrValue<string>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
   };
 
   export type ConfigsStructOutput = [
-    supplyRateMagnifier: bigint,
-    borrowRateMagnifier: bigint,
-    collateralFactor: bigint,
-    liquidationThreshold: bigint,
-    liquidationMaxLimit: bigint,
-    withdrawalGap: bigint,
-    liquidationPenalty: bigint,
-    borrowFee: bigint,
-    oracle: string,
-    oraclePriceOperate: bigint,
-    oraclePriceLiquidate: bigint,
-    rebalancer: string,
-    lastUpdateTimestamp: bigint
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    string,
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber
   ] & {
-    supplyRateMagnifier: bigint;
-    borrowRateMagnifier: bigint;
-    collateralFactor: bigint;
-    liquidationThreshold: bigint;
-    liquidationMaxLimit: bigint;
-    withdrawalGap: bigint;
-    liquidationPenalty: bigint;
-    borrowFee: bigint;
+    supplyRateMagnifier: number;
+    borrowRateMagnifier: number;
+    collateralFactor: number;
+    liquidationThreshold: number;
+    liquidationMaxLimit: number;
+    withdrawalGap: number;
+    liquidationPenalty: number;
+    borrowFee: number;
     oracle: string;
-    oraclePriceOperate: bigint;
-    oraclePriceLiquidate: bigint;
+    oraclePriceOperate: BigNumber;
+    oraclePriceLiquidate: BigNumber;
     rebalancer: string;
-    lastUpdateTimestamp: bigint;
+    lastUpdateTimestamp: BigNumber;
   };
 
   export type ExchangePricesAndRatesStruct = {
-    lastStoredLiquiditySupplyExchangePrice: BigNumberish;
-    lastStoredLiquidityBorrowExchangePrice: BigNumberish;
-    lastStoredVaultSupplyExchangePrice: BigNumberish;
-    lastStoredVaultBorrowExchangePrice: BigNumberish;
-    liquiditySupplyExchangePrice: BigNumberish;
-    liquidityBorrowExchangePrice: BigNumberish;
-    vaultSupplyExchangePrice: BigNumberish;
-    vaultBorrowExchangePrice: BigNumberish;
-    supplyRateLiquidity: BigNumberish;
-    borrowRateLiquidity: BigNumberish;
-    supplyRateVault: BigNumberish;
-    borrowRateVault: BigNumberish;
-    rewardsOrFeeRateSupply: BigNumberish;
-    rewardsOrFeeRateBorrow: BigNumberish;
+    lastStoredLiquiditySupplyExchangePrice: PromiseOrValue<BigNumberish>;
+    lastStoredLiquidityBorrowExchangePrice: PromiseOrValue<BigNumberish>;
+    lastStoredVaultSupplyExchangePrice: PromiseOrValue<BigNumberish>;
+    lastStoredVaultBorrowExchangePrice: PromiseOrValue<BigNumberish>;
+    liquiditySupplyExchangePrice: PromiseOrValue<BigNumberish>;
+    liquidityBorrowExchangePrice: PromiseOrValue<BigNumberish>;
+    vaultSupplyExchangePrice: PromiseOrValue<BigNumberish>;
+    vaultBorrowExchangePrice: PromiseOrValue<BigNumberish>;
+    supplyRateLiquidity: PromiseOrValue<BigNumberish>;
+    borrowRateLiquidity: PromiseOrValue<BigNumberish>;
+    supplyRateVault: PromiseOrValue<BigNumberish>;
+    borrowRateVault: PromiseOrValue<BigNumberish>;
+    rewardsOrFeeRateSupply: PromiseOrValue<BigNumberish>;
+    rewardsOrFeeRateBorrow: PromiseOrValue<BigNumberish>;
   };
 
   export type ExchangePricesAndRatesStructOutput = [
-    lastStoredLiquiditySupplyExchangePrice: bigint,
-    lastStoredLiquidityBorrowExchangePrice: bigint,
-    lastStoredVaultSupplyExchangePrice: bigint,
-    lastStoredVaultBorrowExchangePrice: bigint,
-    liquiditySupplyExchangePrice: bigint,
-    liquidityBorrowExchangePrice: bigint,
-    vaultSupplyExchangePrice: bigint,
-    vaultBorrowExchangePrice: bigint,
-    supplyRateLiquidity: bigint,
-    borrowRateLiquidity: bigint,
-    supplyRateVault: bigint,
-    borrowRateVault: bigint,
-    rewardsOrFeeRateSupply: bigint,
-    rewardsOrFeeRateBorrow: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    lastStoredLiquiditySupplyExchangePrice: bigint;
-    lastStoredLiquidityBorrowExchangePrice: bigint;
-    lastStoredVaultSupplyExchangePrice: bigint;
-    lastStoredVaultBorrowExchangePrice: bigint;
-    liquiditySupplyExchangePrice: bigint;
-    liquidityBorrowExchangePrice: bigint;
-    vaultSupplyExchangePrice: bigint;
-    vaultBorrowExchangePrice: bigint;
-    supplyRateLiquidity: bigint;
-    borrowRateLiquidity: bigint;
-    supplyRateVault: bigint;
-    borrowRateVault: bigint;
-    rewardsOrFeeRateSupply: bigint;
-    rewardsOrFeeRateBorrow: bigint;
+    lastStoredLiquiditySupplyExchangePrice: BigNumber;
+    lastStoredLiquidityBorrowExchangePrice: BigNumber;
+    lastStoredVaultSupplyExchangePrice: BigNumber;
+    lastStoredVaultBorrowExchangePrice: BigNumber;
+    liquiditySupplyExchangePrice: BigNumber;
+    liquidityBorrowExchangePrice: BigNumber;
+    vaultSupplyExchangePrice: BigNumber;
+    vaultBorrowExchangePrice: BigNumber;
+    supplyRateLiquidity: BigNumber;
+    borrowRateLiquidity: BigNumber;
+    supplyRateVault: BigNumber;
+    borrowRateVault: BigNumber;
+    rewardsOrFeeRateSupply: BigNumber;
+    rewardsOrFeeRateBorrow: BigNumber;
   };
 
   export type TotalSupplyAndBorrowStruct = {
-    totalSupplyVault: BigNumberish;
-    totalBorrowVault: BigNumberish;
-    totalSupplyLiquidityOrDex: BigNumberish;
-    totalBorrowLiquidityOrDex: BigNumberish;
-    absorbedSupply: BigNumberish;
-    absorbedBorrow: BigNumberish;
+    totalSupplyVault: PromiseOrValue<BigNumberish>;
+    totalBorrowVault: PromiseOrValue<BigNumberish>;
+    totalSupplyLiquidityOrDex: PromiseOrValue<BigNumberish>;
+    totalBorrowLiquidityOrDex: PromiseOrValue<BigNumberish>;
+    absorbedSupply: PromiseOrValue<BigNumberish>;
+    absorbedBorrow: PromiseOrValue<BigNumberish>;
   };
 
   export type TotalSupplyAndBorrowStructOutput = [
-    totalSupplyVault: bigint,
-    totalBorrowVault: bigint,
-    totalSupplyLiquidityOrDex: bigint,
-    totalBorrowLiquidityOrDex: bigint,
-    absorbedSupply: bigint,
-    absorbedBorrow: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    totalSupplyVault: bigint;
-    totalBorrowVault: bigint;
-    totalSupplyLiquidityOrDex: bigint;
-    totalBorrowLiquidityOrDex: bigint;
-    absorbedSupply: bigint;
-    absorbedBorrow: bigint;
+    totalSupplyVault: BigNumber;
+    totalBorrowVault: BigNumber;
+    totalSupplyLiquidityOrDex: BigNumber;
+    totalBorrowLiquidityOrDex: BigNumber;
+    absorbedSupply: BigNumber;
+    absorbedBorrow: BigNumber;
   };
 
   export type LimitsAndAvailabilityStruct = {
-    withdrawLimit: BigNumberish;
-    withdrawableUntilLimit: BigNumberish;
-    withdrawable: BigNumberish;
-    borrowLimit: BigNumberish;
-    borrowableUntilLimit: BigNumberish;
-    borrowable: BigNumberish;
-    borrowLimitUtilization: BigNumberish;
-    minimumBorrowing: BigNumberish;
+    withdrawLimit: PromiseOrValue<BigNumberish>;
+    withdrawableUntilLimit: PromiseOrValue<BigNumberish>;
+    withdrawable: PromiseOrValue<BigNumberish>;
+    borrowLimit: PromiseOrValue<BigNumberish>;
+    borrowableUntilLimit: PromiseOrValue<BigNumberish>;
+    borrowable: PromiseOrValue<BigNumberish>;
+    borrowLimitUtilization: PromiseOrValue<BigNumberish>;
+    minimumBorrowing: PromiseOrValue<BigNumberish>;
   };
 
   export type LimitsAndAvailabilityStructOutput = [
-    withdrawLimit: bigint,
-    withdrawableUntilLimit: bigint,
-    withdrawable: bigint,
-    borrowLimit: bigint,
-    borrowableUntilLimit: bigint,
-    borrowable: bigint,
-    borrowLimitUtilization: bigint,
-    minimumBorrowing: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    withdrawLimit: bigint;
-    withdrawableUntilLimit: bigint;
-    withdrawable: bigint;
-    borrowLimit: bigint;
-    borrowableUntilLimit: bigint;
-    borrowable: bigint;
-    borrowLimitUtilization: bigint;
-    minimumBorrowing: bigint;
+    withdrawLimit: BigNumber;
+    withdrawableUntilLimit: BigNumber;
+    withdrawable: BigNumber;
+    borrowLimit: BigNumber;
+    borrowableUntilLimit: BigNumber;
+    borrowable: BigNumber;
+    borrowLimitUtilization: BigNumber;
+    minimumBorrowing: BigNumber;
   };
 
   export type CurrentBranchStateStruct = {
-    status: BigNumberish;
-    minimaTick: BigNumberish;
-    debtFactor: BigNumberish;
-    partials: BigNumberish;
-    debtLiquidity: BigNumberish;
-    baseBranchId: BigNumberish;
-    baseBranchMinima: BigNumberish;
+    status: PromiseOrValue<BigNumberish>;
+    minimaTick: PromiseOrValue<BigNumberish>;
+    debtFactor: PromiseOrValue<BigNumberish>;
+    partials: PromiseOrValue<BigNumberish>;
+    debtLiquidity: PromiseOrValue<BigNumberish>;
+    baseBranchId: PromiseOrValue<BigNumberish>;
+    baseBranchMinima: PromiseOrValue<BigNumberish>;
   };
 
   export type CurrentBranchStateStructOutput = [
-    status: bigint,
-    minimaTick: bigint,
-    debtFactor: bigint,
-    partials: bigint,
-    debtLiquidity: bigint,
-    baseBranchId: bigint,
-    baseBranchMinima: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    status: bigint;
-    minimaTick: bigint;
-    debtFactor: bigint;
-    partials: bigint;
-    debtLiquidity: bigint;
-    baseBranchId: bigint;
-    baseBranchMinima: bigint;
+    status: BigNumber;
+    minimaTick: BigNumber;
+    debtFactor: BigNumber;
+    partials: BigNumber;
+    debtLiquidity: BigNumber;
+    baseBranchId: BigNumber;
+    baseBranchMinima: BigNumber;
   };
 
   export type VaultStateStruct = {
-    totalPositions: BigNumberish;
-    topTick: BigNumberish;
-    currentBranch: BigNumberish;
-    totalBranch: BigNumberish;
-    totalBorrow: BigNumberish;
-    totalSupply: BigNumberish;
+    totalPositions: PromiseOrValue<BigNumberish>;
+    topTick: PromiseOrValue<BigNumberish>;
+    currentBranch: PromiseOrValue<BigNumberish>;
+    totalBranch: PromiseOrValue<BigNumberish>;
+    totalBorrow: PromiseOrValue<BigNumberish>;
+    totalSupply: PromiseOrValue<BigNumberish>;
     currentBranchState: IFluidVaultResolver.CurrentBranchStateStruct;
   };
 
   export type VaultStateStructOutput = [
-    totalPositions: bigint,
-    topTick: bigint,
-    currentBranch: bigint,
-    totalBranch: bigint,
-    totalBorrow: bigint,
-    totalSupply: bigint,
-    currentBranchState: IFluidVaultResolver.CurrentBranchStateStructOutput
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    IFluidVaultResolver.CurrentBranchStateStructOutput
   ] & {
-    totalPositions: bigint;
-    topTick: bigint;
-    currentBranch: bigint;
-    totalBranch: bigint;
-    totalBorrow: bigint;
-    totalSupply: bigint;
+    totalPositions: BigNumber;
+    topTick: BigNumber;
+    currentBranch: BigNumber;
+    totalBranch: BigNumber;
+    totalBorrow: BigNumber;
+    totalSupply: BigNumber;
     currentBranchState: IFluidVaultResolver.CurrentBranchStateStructOutput;
   };
 
   export type UserSupplyDataStruct = {
-    modeWithInterest: boolean;
-    supply: BigNumberish;
-    withdrawalLimit: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    expandPercent: BigNumberish;
-    expandDuration: BigNumberish;
-    baseWithdrawalLimit: BigNumberish;
-    withdrawableUntilLimit: BigNumberish;
-    withdrawable: BigNumberish;
+    modeWithInterest: PromiseOrValue<boolean>;
+    supply: PromiseOrValue<BigNumberish>;
+    withdrawalLimit: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    expandPercent: PromiseOrValue<BigNumberish>;
+    expandDuration: PromiseOrValue<BigNumberish>;
+    baseWithdrawalLimit: PromiseOrValue<BigNumberish>;
+    withdrawableUntilLimit: PromiseOrValue<BigNumberish>;
+    withdrawable: PromiseOrValue<BigNumberish>;
   };
 
   export type UserSupplyDataStructOutput = [
-    modeWithInterest: boolean,
-    supply: bigint,
-    withdrawalLimit: bigint,
-    lastUpdateTimestamp: bigint,
-    expandPercent: bigint,
-    expandDuration: bigint,
-    baseWithdrawalLimit: bigint,
-    withdrawableUntilLimit: bigint,
-    withdrawable: bigint
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     modeWithInterest: boolean;
-    supply: bigint;
-    withdrawalLimit: bigint;
-    lastUpdateTimestamp: bigint;
-    expandPercent: bigint;
-    expandDuration: bigint;
-    baseWithdrawalLimit: bigint;
-    withdrawableUntilLimit: bigint;
-    withdrawable: bigint;
+    supply: BigNumber;
+    withdrawalLimit: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    expandPercent: BigNumber;
+    expandDuration: BigNumber;
+    baseWithdrawalLimit: BigNumber;
+    withdrawableUntilLimit: BigNumber;
+    withdrawable: BigNumber;
   };
 
   export type UserBorrowDataStruct = {
-    modeWithInterest: boolean;
-    borrow: BigNumberish;
-    borrowLimit: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    expandPercent: BigNumberish;
-    expandDuration: BigNumberish;
-    baseBorrowLimit: BigNumberish;
-    maxBorrowLimit: BigNumberish;
-    borrowableUntilLimit: BigNumberish;
-    borrowable: BigNumberish;
-    borrowLimitUtilization: BigNumberish;
+    modeWithInterest: PromiseOrValue<boolean>;
+    borrow: PromiseOrValue<BigNumberish>;
+    borrowLimit: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    expandPercent: PromiseOrValue<BigNumberish>;
+    expandDuration: PromiseOrValue<BigNumberish>;
+    baseBorrowLimit: PromiseOrValue<BigNumberish>;
+    maxBorrowLimit: PromiseOrValue<BigNumberish>;
+    borrowableUntilLimit: PromiseOrValue<BigNumberish>;
+    borrowable: PromiseOrValue<BigNumberish>;
+    borrowLimitUtilization: PromiseOrValue<BigNumberish>;
   };
 
   export type UserBorrowDataStructOutput = [
-    modeWithInterest: boolean,
-    borrow: bigint,
-    borrowLimit: bigint,
-    lastUpdateTimestamp: bigint,
-    expandPercent: bigint,
-    expandDuration: bigint,
-    baseBorrowLimit: bigint,
-    maxBorrowLimit: bigint,
-    borrowableUntilLimit: bigint,
-    borrowable: bigint,
-    borrowLimitUtilization: bigint
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     modeWithInterest: boolean;
-    borrow: bigint;
-    borrowLimit: bigint;
-    lastUpdateTimestamp: bigint;
-    expandPercent: bigint;
-    expandDuration: bigint;
-    baseBorrowLimit: bigint;
-    maxBorrowLimit: bigint;
-    borrowableUntilLimit: bigint;
-    borrowable: bigint;
-    borrowLimitUtilization: bigint;
+    borrow: BigNumber;
+    borrowLimit: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    expandPercent: BigNumber;
+    expandDuration: BigNumber;
+    baseBorrowLimit: BigNumber;
+    maxBorrowLimit: BigNumber;
+    borrowableUntilLimit: BigNumber;
+    borrowable: BigNumber;
+    borrowLimitUtilization: BigNumber;
   };
 
   export type VaultEntireDataStruct = {
-    vault: AddressLike;
-    isSmartCol: boolean;
-    isSmartDebt: boolean;
+    vault: PromiseOrValue<string>;
+    isSmartCol: PromiseOrValue<boolean>;
+    isSmartDebt: PromiseOrValue<boolean>;
     constantVariables: IFluidVaultResolver.ConstantViewsStruct;
     configs: IFluidVaultResolver.ConfigsStruct;
     exchangePricesAndRates: IFluidVaultResolver.ExchangePricesAndRatesStruct;
@@ -380,17 +383,17 @@ export declare namespace IFluidVaultResolver {
   };
 
   export type VaultEntireDataStructOutput = [
-    vault: string,
-    isSmartCol: boolean,
-    isSmartDebt: boolean,
-    constantVariables: IFluidVaultResolver.ConstantViewsStructOutput,
-    configs: IFluidVaultResolver.ConfigsStructOutput,
-    exchangePricesAndRates: IFluidVaultResolver.ExchangePricesAndRatesStructOutput,
-    totalSupplyAndBorrow: IFluidVaultResolver.TotalSupplyAndBorrowStructOutput,
-    limitsAndAvailability: IFluidVaultResolver.LimitsAndAvailabilityStructOutput,
-    vaultState: IFluidVaultResolver.VaultStateStructOutput,
-    liquidityUserSupplyData: IFluidVaultResolver.UserSupplyDataStructOutput,
-    liquidityUserBorrowData: IFluidVaultResolver.UserBorrowDataStructOutput
+    string,
+    boolean,
+    boolean,
+    IFluidVaultResolver.ConstantViewsStructOutput,
+    IFluidVaultResolver.ConfigsStructOutput,
+    IFluidVaultResolver.ExchangePricesAndRatesStructOutput,
+    IFluidVaultResolver.TotalSupplyAndBorrowStructOutput,
+    IFluidVaultResolver.LimitsAndAvailabilityStructOutput,
+    IFluidVaultResolver.VaultStateStructOutput,
+    IFluidVaultResolver.UserSupplyDataStructOutput,
+    IFluidVaultResolver.UserBorrowDataStructOutput
   ] & {
     vault: string;
     isSmartCol: boolean;
@@ -406,52 +409,62 @@ export declare namespace IFluidVaultResolver {
   };
 
   export type UserPositionStruct = {
-    nftId: BigNumberish;
-    owner: AddressLike;
-    isLiquidated: boolean;
-    isSupplyPosition: boolean;
-    tick: BigNumberish;
-    tickId: BigNumberish;
-    beforeSupply: BigNumberish;
-    beforeBorrow: BigNumberish;
-    beforeDustBorrow: BigNumberish;
-    supply: BigNumberish;
-    borrow: BigNumberish;
-    dustBorrow: BigNumberish;
+    nftId: PromiseOrValue<BigNumberish>;
+    owner: PromiseOrValue<string>;
+    isLiquidated: PromiseOrValue<boolean>;
+    isSupplyPosition: PromiseOrValue<boolean>;
+    tick: PromiseOrValue<BigNumberish>;
+    tickId: PromiseOrValue<BigNumberish>;
+    beforeSupply: PromiseOrValue<BigNumberish>;
+    beforeBorrow: PromiseOrValue<BigNumberish>;
+    beforeDustBorrow: PromiseOrValue<BigNumberish>;
+    supply: PromiseOrValue<BigNumberish>;
+    borrow: PromiseOrValue<BigNumberish>;
+    dustBorrow: PromiseOrValue<BigNumberish>;
   };
 
   export type UserPositionStructOutput = [
-    nftId: bigint,
-    owner: string,
-    isLiquidated: boolean,
-    isSupplyPosition: boolean,
-    tick: bigint,
-    tickId: bigint,
-    beforeSupply: bigint,
-    beforeBorrow: bigint,
-    beforeDustBorrow: bigint,
-    supply: bigint,
-    borrow: bigint,
-    dustBorrow: bigint
+    BigNumber,
+    string,
+    boolean,
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    nftId: bigint;
+    nftId: BigNumber;
     owner: string;
     isLiquidated: boolean;
     isSupplyPosition: boolean;
-    tick: bigint;
-    tickId: bigint;
-    beforeSupply: bigint;
-    beforeBorrow: bigint;
-    beforeDustBorrow: bigint;
-    supply: bigint;
-    borrow: bigint;
-    dustBorrow: bigint;
+    tick: BigNumber;
+    tickId: BigNumber;
+    beforeSupply: BigNumber;
+    beforeBorrow: BigNumber;
+    beforeDustBorrow: BigNumber;
+    supply: BigNumber;
+    borrow: BigNumber;
+    dustBorrow: BigNumber;
   };
 }
 
-export interface IFluidVaultResolverInterface extends Interface {
+export interface IFluidVaultResolverInterface extends utils.Interface {
+  functions: {
+    "getAllVaultsAddresses()": FunctionFragment;
+    "getVaultAddress(uint256)": FunctionFragment;
+    "getVaultEntireData(address)": FunctionFragment;
+    "getVaultId(address)": FunctionFragment;
+    "positionByNftId(uint256)": FunctionFragment;
+    "positionsNftIdOfUser(address)": FunctionFragment;
+    "vaultByNftId(uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "getAllVaultsAddresses"
       | "getVaultAddress"
       | "getVaultEntireData"
@@ -467,27 +480,27 @@ export interface IFluidVaultResolverInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getVaultAddress",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getVaultEntireData",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getVaultId",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "positionByNftId",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "positionsNftIdOfUser",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "vaultByNftId",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
@@ -515,70 +528,64 @@ export interface IFluidVaultResolverInterface extends Interface {
     functionFragment: "vaultByNftId",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IFluidVaultResolver extends BaseContract {
-  connect(runner?: ContractRunner | null): IFluidVaultResolver;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IFluidVaultResolverInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    getAllVaultsAddresses(
+      overrides?: CallOverrides
+    ): Promise<[string[]] & { vaults_: string[] }>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    getVaultAddress(
+      vaultId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { vault_: string }>;
 
-  getAllVaultsAddresses: TypedContractMethod<[], [string[]], "view">;
+    getVaultEntireData(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidVaultResolver.VaultEntireDataStructOutput] & {
+        vaultData_: IFluidVaultResolver.VaultEntireDataStructOutput;
+      }
+    >;
 
-  getVaultAddress: TypedContractMethod<
-    [vaultId_: BigNumberish],
-    [string],
-    "view"
-  >;
+    getVaultId(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { id_: BigNumber }>;
 
-  getVaultEntireData: TypedContractMethod<
-    [vault_: AddressLike],
-    [IFluidVaultResolver.VaultEntireDataStructOutput],
-    "view"
-  >;
-
-  getVaultId: TypedContractMethod<[vault_: AddressLike], [bigint], "view">;
-
-  positionByNftId: TypedContractMethod<
-    [nftId_: BigNumberish],
-    [
+    positionByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         IFluidVaultResolver.UserPositionStructOutput,
         IFluidVaultResolver.VaultEntireDataStructOutput
@@ -586,43 +593,81 @@ export interface IFluidVaultResolver extends BaseContract {
         userPosition_: IFluidVaultResolver.UserPositionStructOutput;
         vaultData_: IFluidVaultResolver.VaultEntireDataStructOutput;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  positionsNftIdOfUser: TypedContractMethod<
-    [user_: AddressLike],
-    [bigint[]],
-    "view"
-  >;
+    positionsNftIdOfUser(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { nftIds_: BigNumber[] }>;
 
-  vaultByNftId: TypedContractMethod<[nftId_: BigNumberish], [string], "view">;
+    vaultByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { vault_: string }>;
+  };
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  getAllVaultsAddresses(overrides?: CallOverrides): Promise<string[]>;
 
-  getFunction(
-    nameOrSignature: "getAllVaultsAddresses"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getVaultAddress"
-  ): TypedContractMethod<[vaultId_: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getVaultEntireData"
-  ): TypedContractMethod<
-    [vault_: AddressLike],
-    [IFluidVaultResolver.VaultEntireDataStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getVaultId"
-  ): TypedContractMethod<[vault_: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "positionByNftId"
-  ): TypedContractMethod<
-    [nftId_: BigNumberish],
+  getVaultAddress(
+    vaultId_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getVaultEntireData(
+    vault_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<IFluidVaultResolver.VaultEntireDataStructOutput>;
+
+  getVaultId(
+    vault_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  positionByNftId(
+    nftId_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<
     [
+      IFluidVaultResolver.UserPositionStructOutput,
+      IFluidVaultResolver.VaultEntireDataStructOutput
+    ] & {
+      userPosition_: IFluidVaultResolver.UserPositionStructOutput;
+      vaultData_: IFluidVaultResolver.VaultEntireDataStructOutput;
+    }
+  >;
+
+  positionsNftIdOfUser(
+    user_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  vaultByNftId(
+    nftId_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  callStatic: {
+    getAllVaultsAddresses(overrides?: CallOverrides): Promise<string[]>;
+
+    getVaultAddress(
+      vaultId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getVaultEntireData(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<IFluidVaultResolver.VaultEntireDataStructOutput>;
+
+    getVaultId(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    positionByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         IFluidVaultResolver.UserPositionStructOutput,
         IFluidVaultResolver.VaultEntireDataStructOutput
@@ -630,15 +675,88 @@ export interface IFluidVaultResolver extends BaseContract {
         userPosition_: IFluidVaultResolver.UserPositionStructOutput;
         vaultData_: IFluidVaultResolver.VaultEntireDataStructOutput;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "positionsNftIdOfUser"
-  ): TypedContractMethod<[user_: AddressLike], [bigint[]], "view">;
-  getFunction(
-    nameOrSignature: "vaultByNftId"
-  ): TypedContractMethod<[nftId_: BigNumberish], [string], "view">;
+    >;
+
+    positionsNftIdOfUser(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    vaultByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    getAllVaultsAddresses(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVaultAddress(
+      vaultId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVaultEntireData(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVaultId(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    positionByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    positionsNftIdOfUser(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    vaultByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    getAllVaultsAddresses(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVaultAddress(
+      vaultId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVaultEntireData(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVaultId(
+      vault_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    positionByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    positionsNftIdOfUser(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    vaultByNftId(
+      nftId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

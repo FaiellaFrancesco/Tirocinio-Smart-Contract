@@ -3,25 +3,32 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface IDexSmartCollOracleInterface extends Interface {
+export interface IDexSmartCollOracleInterface extends utils.Interface {
+  functions: {
+    "dexOracleData()": FunctionFragment;
+    "dexSmartColOracleData()": FunctionFragment;
+    "dexSmartColSharesRates()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "dexOracleData"
       | "dexSmartColOracleData"
       | "dexSmartColSharesRates"
@@ -52,158 +59,197 @@ export interface IDexSmartCollOracleInterface extends Interface {
     functionFragment: "dexSmartColSharesRates",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IDexSmartCollOracle extends BaseContract {
-  connect(runner?: ContractRunner | null): IDexSmartCollOracle;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IDexSmartCollOracleInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
-
-  dexOracleData: TypedContractMethod<
-    [],
-    [
-      [string, boolean, string, bigint, bigint] & {
+  functions: {
+    dexOracleData(
+      overrides?: CallOverrides
+    ): Promise<
+      [string, boolean, string, BigNumber, BigNumber] & {
         dexPool_: string;
         quoteInToken0_: boolean;
         liquidity_: string;
-        resultMultiplier_: bigint;
-        resultDivisor_: bigint;
+        resultMultiplier_: BigNumber;
+        resultDivisor_: BigNumber;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  dexSmartColOracleData: TypedContractMethod<
-    [],
-    [
+    dexSmartColOracleData(
+      overrides?: CallOverrides
+    ): Promise<
       [
         string,
-        bigint,
+        BigNumber,
         string,
-        bigint,
-        bigint,
-        bigint,
-        bigint,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         string,
         boolean,
         boolean
       ] & {
         dexPool_: string;
-        reservesPegBufferPercent_: bigint;
+        reservesPegBufferPercent_: BigNumber;
         liquidity_: string;
-        token0NumeratorPrecision_: bigint;
-        token0DenominatorPrecision_: bigint;
-        token1NumeratorPrecision_: bigint;
-        token1DenominatorPrecision_: bigint;
+        token0NumeratorPrecision_: BigNumber;
+        token0DenominatorPrecision_: BigNumber;
+        token1NumeratorPrecision_: BigNumber;
+        token1DenominatorPrecision_: BigNumber;
         reservesConversionOracle_: string;
         reservesConversionInvert_: boolean;
         quoteInToken0_: boolean;
       }
-    ],
-    "view"
+    >;
+
+    dexSmartColSharesRates(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { operate_: BigNumber; liquidate_: BigNumber }
+    >;
+  };
+
+  dexOracleData(
+    overrides?: CallOverrides
+  ): Promise<
+    [string, boolean, string, BigNumber, BigNumber] & {
+      dexPool_: string;
+      quoteInToken0_: boolean;
+      liquidity_: string;
+      resultMultiplier_: BigNumber;
+      resultDivisor_: BigNumber;
+    }
   >;
 
-  dexSmartColSharesRates: TypedContractMethod<
-    [],
-    [[bigint, bigint] & { operate_: bigint; liquidate_: bigint }],
-    "view"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "dexOracleData"
-  ): TypedContractMethod<
-    [],
+  dexSmartColOracleData(
+    overrides?: CallOverrides
+  ): Promise<
     [
-      [string, boolean, string, bigint, bigint] & {
+      string,
+      BigNumber,
+      string,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      string,
+      boolean,
+      boolean
+    ] & {
+      dexPool_: string;
+      reservesPegBufferPercent_: BigNumber;
+      liquidity_: string;
+      token0NumeratorPrecision_: BigNumber;
+      token0DenominatorPrecision_: BigNumber;
+      token1NumeratorPrecision_: BigNumber;
+      token1DenominatorPrecision_: BigNumber;
+      reservesConversionOracle_: string;
+      reservesConversionInvert_: boolean;
+      quoteInToken0_: boolean;
+    }
+  >;
+
+  dexSmartColSharesRates(
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber] & { operate_: BigNumber; liquidate_: BigNumber }
+  >;
+
+  callStatic: {
+    dexOracleData(
+      overrides?: CallOverrides
+    ): Promise<
+      [string, boolean, string, BigNumber, BigNumber] & {
         dexPool_: string;
         quoteInToken0_: boolean;
         liquidity_: string;
-        resultMultiplier_: bigint;
-        resultDivisor_: bigint;
+        resultMultiplier_: BigNumber;
+        resultDivisor_: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "dexSmartColOracleData"
-  ): TypedContractMethod<
-    [],
-    [
+    >;
+
+    dexSmartColOracleData(
+      overrides?: CallOverrides
+    ): Promise<
       [
         string,
-        bigint,
+        BigNumber,
         string,
-        bigint,
-        bigint,
-        bigint,
-        bigint,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         string,
         boolean,
         boolean
       ] & {
         dexPool_: string;
-        reservesPegBufferPercent_: bigint;
+        reservesPegBufferPercent_: BigNumber;
         liquidity_: string;
-        token0NumeratorPrecision_: bigint;
-        token0DenominatorPrecision_: bigint;
-        token1NumeratorPrecision_: bigint;
-        token1DenominatorPrecision_: bigint;
+        token0NumeratorPrecision_: BigNumber;
+        token0DenominatorPrecision_: BigNumber;
+        token1NumeratorPrecision_: BigNumber;
+        token1DenominatorPrecision_: BigNumber;
         reservesConversionOracle_: string;
         reservesConversionInvert_: boolean;
         quoteInToken0_: boolean;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "dexSmartColSharesRates"
-  ): TypedContractMethod<
-    [],
-    [[bigint, bigint] & { operate_: bigint; liquidate_: bigint }],
-    "view"
-  >;
+    >;
+
+    dexSmartColSharesRates(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { operate_: BigNumber; liquidate_: BigNumber }
+    >;
+  };
 
   filters: {};
+
+  estimateGas: {
+    dexOracleData(overrides?: CallOverrides): Promise<BigNumber>;
+
+    dexSmartColOracleData(overrides?: CallOverrides): Promise<BigNumber>;
+
+    dexSmartColSharesRates(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    dexOracleData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    dexSmartColOracleData(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    dexSmartColSharesRates(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

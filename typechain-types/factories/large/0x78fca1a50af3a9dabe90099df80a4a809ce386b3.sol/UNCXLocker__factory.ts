@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   UNCXLocker,
   UNCXLockerInterface,
@@ -150,14 +151,17 @@ const _abi = [
     stateMutability: "payable",
     type: "function",
   },
-] as const;
+];
 
 export class UNCXLocker__factory {
   static readonly abi = _abi;
   static createInterface(): UNCXLockerInterface {
-    return new Interface(_abi) as UNCXLockerInterface;
+    return new utils.Interface(_abi) as UNCXLockerInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): UNCXLocker {
-    return new Contract(address, _abi, runner) as unknown as UNCXLocker;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): UNCXLocker {
+    return new Contract(address, _abi, signerOrProvider) as UNCXLocker;
   }
 }

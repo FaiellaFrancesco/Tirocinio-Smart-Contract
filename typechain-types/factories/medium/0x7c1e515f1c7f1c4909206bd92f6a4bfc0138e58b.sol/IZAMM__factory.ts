@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IZAMM,
   IZAMMInterface,
@@ -195,14 +196,14 @@ const _abi = [
     stateMutability: "payable",
     type: "function",
   },
-] as const;
+];
 
 export class IZAMM__factory {
   static readonly abi = _abi;
   static createInterface(): IZAMMInterface {
-    return new Interface(_abi) as IZAMMInterface;
+    return new utils.Interface(_abi) as IZAMMInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): IZAMM {
-    return new Contract(address, _abi, runner) as unknown as IZAMM;
+  static connect(address: string, signerOrProvider: Signer | Provider): IZAMM {
+    return new Contract(address, _abi, signerOrProvider) as IZAMM;
   }
 }

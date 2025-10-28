@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   AbstractGWF_int,
   AbstractGWF_intInterface,
@@ -238,17 +239,17 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class AbstractGWF_int__factory {
   static readonly abi = _abi;
   static createInterface(): AbstractGWF_intInterface {
-    return new Interface(_abi) as AbstractGWF_intInterface;
+    return new utils.Interface(_abi) as AbstractGWF_intInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): AbstractGWF_int {
-    return new Contract(address, _abi, runner) as unknown as AbstractGWF_int;
+    return new Contract(address, _abi, signerOrProvider) as AbstractGWF_int;
   }
 }

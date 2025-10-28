@@ -3,29 +3,47 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractTM_Resolver_intInterface extends Interface {
+export interface AbstractTM_Resolver_intInterface extends utils.Interface {
+  functions: {
+    "ABI(bytes32,uint256)": FunctionFragment;
+    "addr(bytes32)": FunctionFragment;
+    "contenthash(bytes32)": FunctionFragment;
+    "name(bytes32)": FunctionFragment;
+    "setABI(bytes32,uint256,bytes)": FunctionFragment;
+    "setAddr(bytes32,uint256,bytes)": FunctionFragment;
+    "setAddr(bytes32,address)": FunctionFragment;
+    "setAuthorisation(bytes32,address,bool)": FunctionFragment;
+    "setName(bytes32,string)": FunctionFragment;
+    "setText(bytes32,string,string)": FunctionFragment;
+    "text(bytes32,string)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "ABI"
       | "addr"
       | "contenthash"
@@ -39,54 +57,65 @@ export interface AbstractTM_Resolver_intInterface extends Interface {
       | "text"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "ABIChanged"
-      | "AddrChanged"
-      | "AddressChanged"
-      | "ContenthashChanged"
-      | "NameChanged"
-      | "PubkeyChanged"
-      | "TextChanged"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "ABI",
-    values: [BytesLike, BigNumberish]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "addr", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "addr",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
   encodeFunctionData(
     functionFragment: "contenthash",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
-  encodeFunctionData(functionFragment: "name", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "name",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
   encodeFunctionData(
     functionFragment: "setABI",
-    values: [BytesLike, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "setAddr(bytes32,uint256,bytes)",
-    values: [BytesLike, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "setAddr(bytes32,address)",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setAuthorisation",
-    values: [BytesLike, AddressLike, boolean]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<string>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "setName",
-    values: [BytesLike, string]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setText",
-    values: [BytesLike, string, string]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "text",
-    values: [BytesLike, string]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "ABI", data: BytesLike): Result;
@@ -112,395 +141,544 @@ export interface AbstractTM_Resolver_intInterface extends Interface {
   decodeFunctionResult(functionFragment: "setName", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setText", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "text", data: BytesLike): Result;
+
+  events: {
+    "ABIChanged(bytes32,uint256)": EventFragment;
+    "AddrChanged(bytes32,address)": EventFragment;
+    "AddressChanged(bytes32,uint256,bytes)": EventFragment;
+    "ContenthashChanged(bytes32,bytes)": EventFragment;
+    "NameChanged(bytes32,string)": EventFragment;
+    "PubkeyChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "TextChanged(bytes32,string,string)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "ABIChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AddrChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AddressChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ContenthashChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NameChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PubkeyChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TextChanged"): EventFragment;
 }
 
-export namespace ABIChangedEvent {
-  export type InputTuple = [node: BytesLike, contentType: BigNumberish];
-  export type OutputTuple = [node: string, contentType: bigint];
-  export interface OutputObject {
-    node: string;
-    contentType: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ABIChangedEventObject {
+  node: string;
+  contentType: BigNumber;
 }
+export type ABIChangedEvent = TypedEvent<
+  [string, BigNumber],
+  ABIChangedEventObject
+>;
 
-export namespace AddrChangedEvent {
-  export type InputTuple = [node: BytesLike, a: AddressLike];
-  export type OutputTuple = [node: string, a: string];
-  export interface OutputObject {
-    node: string;
-    a: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ABIChangedEventFilter = TypedEventFilter<ABIChangedEvent>;
 
-export namespace AddressChangedEvent {
-  export type InputTuple = [
-    node: BytesLike,
-    coinType: BigNumberish,
-    newAddress: BytesLike
-  ];
-  export type OutputTuple = [
-    node: string,
-    coinType: bigint,
-    newAddress: string
-  ];
-  export interface OutputObject {
-    node: string;
-    coinType: bigint;
-    newAddress: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface AddrChangedEventObject {
+  node: string;
+  a: string;
 }
+export type AddrChangedEvent = TypedEvent<
+  [string, string],
+  AddrChangedEventObject
+>;
 
-export namespace ContenthashChangedEvent {
-  export type InputTuple = [node: BytesLike, hash: BytesLike];
-  export type OutputTuple = [node: string, hash: string];
-  export interface OutputObject {
-    node: string;
-    hash: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type AddrChangedEventFilter = TypedEventFilter<AddrChangedEvent>;
 
-export namespace NameChangedEvent {
-  export type InputTuple = [node: BytesLike, name: string];
-  export type OutputTuple = [node: string, name: string];
-  export interface OutputObject {
-    node: string;
-    name: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface AddressChangedEventObject {
+  node: string;
+  coinType: BigNumber;
+  newAddress: string;
 }
+export type AddressChangedEvent = TypedEvent<
+  [string, BigNumber, string],
+  AddressChangedEventObject
+>;
 
-export namespace PubkeyChangedEvent {
-  export type InputTuple = [node: BytesLike, x: BytesLike, y: BytesLike];
-  export type OutputTuple = [node: string, x: string, y: string];
-  export interface OutputObject {
-    node: string;
-    x: string;
-    y: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type AddressChangedEventFilter = TypedEventFilter<AddressChangedEvent>;
 
-export namespace TextChangedEvent {
-  export type InputTuple = [node: BytesLike, indexedKey: string, key: string];
-  export type OutputTuple = [node: string, indexedKey: string, key: string];
-  export interface OutputObject {
-    node: string;
-    indexedKey: string;
-    key: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ContenthashChangedEventObject {
+  node: string;
+  hash: string;
 }
+export type ContenthashChangedEvent = TypedEvent<
+  [string, string],
+  ContenthashChangedEventObject
+>;
+
+export type ContenthashChangedEventFilter =
+  TypedEventFilter<ContenthashChangedEvent>;
+
+export interface NameChangedEventObject {
+  node: string;
+  name: string;
+}
+export type NameChangedEvent = TypedEvent<
+  [string, string],
+  NameChangedEventObject
+>;
+
+export type NameChangedEventFilter = TypedEventFilter<NameChangedEvent>;
+
+export interface PubkeyChangedEventObject {
+  node: string;
+  x: string;
+  y: string;
+}
+export type PubkeyChangedEvent = TypedEvent<
+  [string, string, string],
+  PubkeyChangedEventObject
+>;
+
+export type PubkeyChangedEventFilter = TypedEventFilter<PubkeyChangedEvent>;
+
+export interface TextChangedEventObject {
+  node: string;
+  indexedKey: string;
+  key: string;
+}
+export type TextChangedEvent = TypedEvent<
+  [string, string, string],
+  TextChangedEventObject
+>;
+
+export type TextChangedEventFilter = TypedEventFilter<TextChangedEvent>;
 
 export interface AbstractTM_Resolver_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractTM_Resolver_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractTM_Resolver_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    ABI(
+      node: PromiseOrValue<BytesLike>,
+      contentTypes: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    addr(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  ABI: TypedContractMethod<
-    [node: BytesLike, contentTypes: BigNumberish],
-    [[bigint, string]],
-    "view"
-  >;
+    contenthash(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  addr: TypedContractMethod<[node: BytesLike], [string], "view">;
+    name(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  contenthash: TypedContractMethod<[node: BytesLike], [string], "view">;
+    setABI(
+      node: PromiseOrValue<BytesLike>,
+      contentType: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  name: TypedContractMethod<[node: BytesLike], [string], "view">;
+    "setAddr(bytes32,uint256,bytes)"(
+      node: PromiseOrValue<BytesLike>,
+      coinType: PromiseOrValue<BigNumberish>,
+      a: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setABI: TypedContractMethod<
-    [node: BytesLike, contentType: BigNumberish, data: BytesLike],
-    [void],
-    "nonpayable"
-  >;
+    "setAddr(bytes32,address)"(
+      node: PromiseOrValue<BytesLike>,
+      r_addr: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  "setAddr(bytes32,uint256,bytes)": TypedContractMethod<
-    [node: BytesLike, coinType: BigNumberish, a: BytesLike],
-    [void],
-    "nonpayable"
-  >;
+    setAuthorisation(
+      node: PromiseOrValue<BytesLike>,
+      target: PromiseOrValue<string>,
+      isAuthorised: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  "setAddr(bytes32,address)": TypedContractMethod<
-    [node: BytesLike, r_addr: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    setName(
+      node: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setAuthorisation: TypedContractMethod<
-    [node: BytesLike, target: AddressLike, isAuthorised: boolean],
-    [void],
-    "nonpayable"
-  >;
+    setText(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      value: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setName: TypedContractMethod<
-    [node: BytesLike, _name: string],
-    [void],
-    "nonpayable"
-  >;
+    text(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+  };
 
-  setText: TypedContractMethod<
-    [node: BytesLike, key: string, value: string],
-    [void],
-    "nonpayable"
-  >;
+  ABI(
+    node: PromiseOrValue<BytesLike>,
+    contentTypes: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, string]>;
 
-  text: TypedContractMethod<[node: BytesLike, key: string], [string], "view">;
+  addr(
+    node: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  contenthash(
+    node: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "ABI"
-  ): TypedContractMethod<
-    [node: BytesLike, contentTypes: BigNumberish],
-    [[bigint, string]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "addr"
-  ): TypedContractMethod<[node: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "contenthash"
-  ): TypedContractMethod<[node: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "name"
-  ): TypedContractMethod<[node: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "setABI"
-  ): TypedContractMethod<
-    [node: BytesLike, contentType: BigNumberish, data: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setAddr(bytes32,uint256,bytes)"
-  ): TypedContractMethod<
-    [node: BytesLike, coinType: BigNumberish, a: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setAddr(bytes32,address)"
-  ): TypedContractMethod<
-    [node: BytesLike, r_addr: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setAuthorisation"
-  ): TypedContractMethod<
-    [node: BytesLike, target: AddressLike, isAuthorised: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setName"
-  ): TypedContractMethod<
-    [node: BytesLike, _name: string],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setText"
-  ): TypedContractMethod<
-    [node: BytesLike, key: string, value: string],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "text"
-  ): TypedContractMethod<[node: BytesLike, key: string], [string], "view">;
+  name(
+    node: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getEvent(
-    key: "ABIChanged"
-  ): TypedContractEvent<
-    ABIChangedEvent.InputTuple,
-    ABIChangedEvent.OutputTuple,
-    ABIChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "AddrChanged"
-  ): TypedContractEvent<
-    AddrChangedEvent.InputTuple,
-    AddrChangedEvent.OutputTuple,
-    AddrChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "AddressChanged"
-  ): TypedContractEvent<
-    AddressChangedEvent.InputTuple,
-    AddressChangedEvent.OutputTuple,
-    AddressChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "ContenthashChanged"
-  ): TypedContractEvent<
-    ContenthashChangedEvent.InputTuple,
-    ContenthashChangedEvent.OutputTuple,
-    ContenthashChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "NameChanged"
-  ): TypedContractEvent<
-    NameChangedEvent.InputTuple,
-    NameChangedEvent.OutputTuple,
-    NameChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "PubkeyChanged"
-  ): TypedContractEvent<
-    PubkeyChangedEvent.InputTuple,
-    PubkeyChangedEvent.OutputTuple,
-    PubkeyChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "TextChanged"
-  ): TypedContractEvent<
-    TextChangedEvent.InputTuple,
-    TextChangedEvent.OutputTuple,
-    TextChangedEvent.OutputObject
-  >;
+  setABI(
+    node: PromiseOrValue<BytesLike>,
+    contentType: PromiseOrValue<BigNumberish>,
+    data: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  "setAddr(bytes32,uint256,bytes)"(
+    node: PromiseOrValue<BytesLike>,
+    coinType: PromiseOrValue<BigNumberish>,
+    a: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  "setAddr(bytes32,address)"(
+    node: PromiseOrValue<BytesLike>,
+    r_addr: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setAuthorisation(
+    node: PromiseOrValue<BytesLike>,
+    target: PromiseOrValue<string>,
+    isAuthorised: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setName(
+    node: PromiseOrValue<BytesLike>,
+    _name: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setText(
+    node: PromiseOrValue<BytesLike>,
+    key: PromiseOrValue<string>,
+    value: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  text(
+    node: PromiseOrValue<BytesLike>,
+    key: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  callStatic: {
+    ABI(
+      node: PromiseOrValue<BytesLike>,
+      contentTypes: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, string]>;
+
+    addr(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    contenthash(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    name(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    setABI(
+      node: PromiseOrValue<BytesLike>,
+      contentType: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setAddr(bytes32,uint256,bytes)"(
+      node: PromiseOrValue<BytesLike>,
+      coinType: PromiseOrValue<BigNumberish>,
+      a: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setAddr(bytes32,address)"(
+      node: PromiseOrValue<BytesLike>,
+      r_addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setAuthorisation(
+      node: PromiseOrValue<BytesLike>,
+      target: PromiseOrValue<string>,
+      isAuthorised: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setName(
+      node: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setText(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      value: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    text(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+  };
 
   filters: {
-    "ABIChanged(bytes32,uint256)": TypedContractEvent<
-      ABIChangedEvent.InputTuple,
-      ABIChangedEvent.OutputTuple,
-      ABIChangedEvent.OutputObject
-    >;
-    ABIChanged: TypedContractEvent<
-      ABIChangedEvent.InputTuple,
-      ABIChangedEvent.OutputTuple,
-      ABIChangedEvent.OutputObject
-    >;
+    "ABIChanged(bytes32,uint256)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      contentType?: PromiseOrValue<BigNumberish> | null
+    ): ABIChangedEventFilter;
+    ABIChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      contentType?: PromiseOrValue<BigNumberish> | null
+    ): ABIChangedEventFilter;
 
-    "AddrChanged(bytes32,address)": TypedContractEvent<
-      AddrChangedEvent.InputTuple,
-      AddrChangedEvent.OutputTuple,
-      AddrChangedEvent.OutputObject
-    >;
-    AddrChanged: TypedContractEvent<
-      AddrChangedEvent.InputTuple,
-      AddrChangedEvent.OutputTuple,
-      AddrChangedEvent.OutputObject
-    >;
+    "AddrChanged(bytes32,address)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      a?: null
+    ): AddrChangedEventFilter;
+    AddrChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      a?: null
+    ): AddrChangedEventFilter;
 
-    "AddressChanged(bytes32,uint256,bytes)": TypedContractEvent<
-      AddressChangedEvent.InputTuple,
-      AddressChangedEvent.OutputTuple,
-      AddressChangedEvent.OutputObject
-    >;
-    AddressChanged: TypedContractEvent<
-      AddressChangedEvent.InputTuple,
-      AddressChangedEvent.OutputTuple,
-      AddressChangedEvent.OutputObject
-    >;
+    "AddressChanged(bytes32,uint256,bytes)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      coinType?: null,
+      newAddress?: null
+    ): AddressChangedEventFilter;
+    AddressChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      coinType?: null,
+      newAddress?: null
+    ): AddressChangedEventFilter;
 
-    "ContenthashChanged(bytes32,bytes)": TypedContractEvent<
-      ContenthashChangedEvent.InputTuple,
-      ContenthashChangedEvent.OutputTuple,
-      ContenthashChangedEvent.OutputObject
-    >;
-    ContenthashChanged: TypedContractEvent<
-      ContenthashChangedEvent.InputTuple,
-      ContenthashChangedEvent.OutputTuple,
-      ContenthashChangedEvent.OutputObject
-    >;
+    "ContenthashChanged(bytes32,bytes)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      hash?: null
+    ): ContenthashChangedEventFilter;
+    ContenthashChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      hash?: null
+    ): ContenthashChangedEventFilter;
 
-    "NameChanged(bytes32,string)": TypedContractEvent<
-      NameChangedEvent.InputTuple,
-      NameChangedEvent.OutputTuple,
-      NameChangedEvent.OutputObject
-    >;
-    NameChanged: TypedContractEvent<
-      NameChangedEvent.InputTuple,
-      NameChangedEvent.OutputTuple,
-      NameChangedEvent.OutputObject
-    >;
+    "NameChanged(bytes32,string)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      name?: null
+    ): NameChangedEventFilter;
+    NameChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      name?: null
+    ): NameChangedEventFilter;
 
-    "PubkeyChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
-      PubkeyChangedEvent.InputTuple,
-      PubkeyChangedEvent.OutputTuple,
-      PubkeyChangedEvent.OutputObject
-    >;
-    PubkeyChanged: TypedContractEvent<
-      PubkeyChangedEvent.InputTuple,
-      PubkeyChangedEvent.OutputTuple,
-      PubkeyChangedEvent.OutputObject
-    >;
+    "PubkeyChanged(bytes32,bytes32,bytes32)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      x?: null,
+      y?: null
+    ): PubkeyChangedEventFilter;
+    PubkeyChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      x?: null,
+      y?: null
+    ): PubkeyChangedEventFilter;
 
-    "TextChanged(bytes32,string,string)": TypedContractEvent<
-      TextChangedEvent.InputTuple,
-      TextChangedEvent.OutputTuple,
-      TextChangedEvent.OutputObject
-    >;
-    TextChanged: TypedContractEvent<
-      TextChangedEvent.InputTuple,
-      TextChangedEvent.OutputTuple,
-      TextChangedEvent.OutputObject
-    >;
+    "TextChanged(bytes32,string,string)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      indexedKey?: PromiseOrValue<string> | null,
+      key?: null
+    ): TextChangedEventFilter;
+    TextChanged(
+      node?: PromiseOrValue<BytesLike> | null,
+      indexedKey?: PromiseOrValue<string> | null,
+      key?: null
+    ): TextChangedEventFilter;
+  };
+
+  estimateGas: {
+    ABI(
+      node: PromiseOrValue<BytesLike>,
+      contentTypes: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    addr(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    contenthash(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    name(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    setABI(
+      node: PromiseOrValue<BytesLike>,
+      contentType: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    "setAddr(bytes32,uint256,bytes)"(
+      node: PromiseOrValue<BytesLike>,
+      coinType: PromiseOrValue<BigNumberish>,
+      a: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    "setAddr(bytes32,address)"(
+      node: PromiseOrValue<BytesLike>,
+      r_addr: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setAuthorisation(
+      node: PromiseOrValue<BytesLike>,
+      target: PromiseOrValue<string>,
+      isAuthorised: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setName(
+      node: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setText(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      value: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    text(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    ABI(
+      node: PromiseOrValue<BytesLike>,
+      contentTypes: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    addr(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    contenthash(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    name(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    setABI(
+      node: PromiseOrValue<BytesLike>,
+      contentType: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setAddr(bytes32,uint256,bytes)"(
+      node: PromiseOrValue<BytesLike>,
+      coinType: PromiseOrValue<BigNumberish>,
+      a: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setAddr(bytes32,address)"(
+      node: PromiseOrValue<BytesLike>,
+      r_addr: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAuthorisation(
+      node: PromiseOrValue<BytesLike>,
+      target: PromiseOrValue<string>,
+      isAuthorised: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setName(
+      node: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setText(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      value: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    text(
+      node: PromiseOrValue<BytesLike>,
+      key: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

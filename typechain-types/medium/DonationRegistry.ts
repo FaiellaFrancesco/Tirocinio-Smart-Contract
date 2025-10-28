@@ -3,39 +3,46 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
-export interface DonationRegistryInterface extends Interface {
-  getFunction(
-    nameOrSignature: "donate" | "getDonationTotal" | "owner" | "withdraw"
-  ): FunctionFragment;
+export interface DonationRegistryInterface extends utils.Interface {
+  functions: {
+    "donate()": FunctionFragment;
+    "getDonationTotal(address)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "withdraw()": FunctionFragment;
+  };
 
-  getEvent(
-    nameOrSignatureOrTopic: "DonationReceived" | "FundsWithdrawn"
-  ): EventFragment;
+  getFunction(
+    nameOrSignatureOrTopic: "donate" | "getDonationTotal" | "owner" | "withdraw"
+  ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "donate", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getDonationTotal",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "withdraw", values?: undefined): string;
@@ -47,138 +54,161 @@ export interface DonationRegistryInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+
+  events: {
+    "DonationReceived(address,uint256)": EventFragment;
+    "FundsWithdrawn(address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "DonationReceived"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FundsWithdrawn"): EventFragment;
 }
 
-export namespace DonationReceivedEvent {
-  export type InputTuple = [donor: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [donor: string, amount: bigint];
-  export interface OutputObject {
-    donor: string;
-    amount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface DonationReceivedEventObject {
+  donor: string;
+  amount: BigNumber;
 }
+export type DonationReceivedEvent = TypedEvent<
+  [string, BigNumber],
+  DonationReceivedEventObject
+>;
 
-export namespace FundsWithdrawnEvent {
-  export type InputTuple = [to: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [to: string, amount: bigint];
-  export interface OutputObject {
-    to: string;
-    amount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type DonationReceivedEventFilter =
+  TypedEventFilter<DonationReceivedEvent>;
+
+export interface FundsWithdrawnEventObject {
+  to: string;
+  amount: BigNumber;
 }
+export type FundsWithdrawnEvent = TypedEvent<
+  [string, BigNumber],
+  FundsWithdrawnEventObject
+>;
+
+export type FundsWithdrawnEventFilter = TypedEventFilter<FundsWithdrawnEvent>;
 
 export interface DonationRegistry extends BaseContract {
-  connect(runner?: ContractRunner | null): DonationRegistry;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: DonationRegistryInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    donate(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    getDonationTotal(
+      donor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  donate: TypedContractMethod<[], [void], "payable">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  getDonationTotal: TypedContractMethod<[donor: AddressLike], [bigint], "view">;
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  owner: TypedContractMethod<[], [string], "view">;
+  donate(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  withdraw: TypedContractMethod<[], [void], "nonpayable">;
+  getDonationTotal(
+    donor: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  owner(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "donate"
-  ): TypedContractMethod<[], [void], "payable">;
-  getFunction(
-    nameOrSignature: "getDonationTotal"
-  ): TypedContractMethod<[donor: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "withdraw"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+  withdraw(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getEvent(
-    key: "DonationReceived"
-  ): TypedContractEvent<
-    DonationReceivedEvent.InputTuple,
-    DonationReceivedEvent.OutputTuple,
-    DonationReceivedEvent.OutputObject
-  >;
-  getEvent(
-    key: "FundsWithdrawn"
-  ): TypedContractEvent<
-    FundsWithdrawnEvent.InputTuple,
-    FundsWithdrawnEvent.OutputTuple,
-    FundsWithdrawnEvent.OutputObject
-  >;
+  callStatic: {
+    donate(overrides?: CallOverrides): Promise<void>;
+
+    getDonationTotal(
+      donor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    withdraw(overrides?: CallOverrides): Promise<void>;
+  };
 
   filters: {
-    "DonationReceived(address,uint256)": TypedContractEvent<
-      DonationReceivedEvent.InputTuple,
-      DonationReceivedEvent.OutputTuple,
-      DonationReceivedEvent.OutputObject
-    >;
-    DonationReceived: TypedContractEvent<
-      DonationReceivedEvent.InputTuple,
-      DonationReceivedEvent.OutputTuple,
-      DonationReceivedEvent.OutputObject
-    >;
+    "DonationReceived(address,uint256)"(
+      donor?: PromiseOrValue<string> | null,
+      amount?: null
+    ): DonationReceivedEventFilter;
+    DonationReceived(
+      donor?: PromiseOrValue<string> | null,
+      amount?: null
+    ): DonationReceivedEventFilter;
 
-    "FundsWithdrawn(address,uint256)": TypedContractEvent<
-      FundsWithdrawnEvent.InputTuple,
-      FundsWithdrawnEvent.OutputTuple,
-      FundsWithdrawnEvent.OutputObject
-    >;
-    FundsWithdrawn: TypedContractEvent<
-      FundsWithdrawnEvent.InputTuple,
-      FundsWithdrawnEvent.OutputTuple,
-      FundsWithdrawnEvent.OutputObject
-    >;
+    "FundsWithdrawn(address,uint256)"(
+      to?: PromiseOrValue<string> | null,
+      amount?: null
+    ): FundsWithdrawnEventFilter;
+    FundsWithdrawn(
+      to?: PromiseOrValue<string> | null,
+      amount?: null
+    ): FundsWithdrawnEventFilter;
+  };
+
+  estimateGas: {
+    donate(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getDonationTotal(
+      donor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    donate(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDonationTotal(
+      donor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

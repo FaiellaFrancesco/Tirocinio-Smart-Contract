@@ -3,29 +3,97 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface ETHRNInterface extends Interface {
+export interface ETHRNInterface extends utils.Interface {
+  functions: {
+    "ETHRN()": FunctionFragment;
+    "ETHRNWallet()": FunctionFragment;
+    "_isExcludedMaxTransactionAmount(address)": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "automatedMarketMakerPairs(address)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "blacklistAccounts(address[],bool)": FunctionFragment;
+    "buyETHRNTax()": FunctionFragment;
+    "buyLiqTax()": FunctionFragment;
+    "buyMarketingTax()": FunctionFragment;
+    "buyTotalTaxs()": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "decreaseAllowance(address,uint256)": FunctionFragment;
+    "disableTransferDelay()": FunctionFragment;
+    "earlySellLiqTax()": FunctionFragment;
+    "earlySellMarketingTax()": FunctionFragment;
+    "enableEarlySellTax()": FunctionFragment;
+    "enableTrading()": FunctionFragment;
+    "excludeFromMaxTransaction(address,bool)": FunctionFragment;
+    "excludeFromTaxs(address,bool)": FunctionFragment;
+    "increaseAllowance(address,uint256)": FunctionFragment;
+    "isBlacklisted(address)": FunctionFragment;
+    "isExcludedFromTaxs(address)": FunctionFragment;
+    "limitsInEffect()": FunctionFragment;
+    "marketingWallet()": FunctionFragment;
+    "maxTransactionAmount()": FunctionFragment;
+    "maxWallet()": FunctionFragment;
+    "name()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "removeLimits()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "sellETHRNTax()": FunctionFragment;
+    "sellLiqTax()": FunctionFragment;
+    "sellMarketingTax()": FunctionFragment;
+    "sellTotalTaxs()": FunctionFragment;
+    "setAutomatedMarketMakerPair(address,bool)": FunctionFragment;
+    "setEarlySellTax(bool)": FunctionFragment;
+    "set_ETHRN(address)": FunctionFragment;
+    "swapEnabled()": FunctionFragment;
+    "swapTokensAtAmount()": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "tokensForDev()": FunctionFragment;
+    "tokensForLiquidity()": FunctionFragment;
+    "tokensForMarketing()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "tradingActive()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferDelayEnabled()": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "uniswapV2Pair()": FunctionFragment;
+    "uniswapV2Router()": FunctionFragment;
+    "updateBuyTaxs(uint256,uint256,uint256)": FunctionFragment;
+    "updateETHRNWallet(address)": FunctionFragment;
+    "updateMarketingWallet(address)": FunctionFragment;
+    "updateMaxTxnAmount(uint256)": FunctionFragment;
+    "updateMaxWalletAmount(uint256)": FunctionFragment;
+    "updateSellTaxs(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "updateSwapEnabled(bool)": FunctionFragment;
+    "updateSwapTokensAtAmount(uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "ETHRN"
       | "ETHRNWallet"
       | "_isExcludedMaxTransactionAmount"
@@ -89,22 +157,6 @@ export interface ETHRNInterface extends Interface {
       | "updateSwapTokensAtAmount"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "Approval"
-      | "AutoNukeLP"
-      | "BoughtEarly"
-      | "ETHRNWalletUpdated"
-      | "ExcludeFromTaxs"
-      | "ManualNukeLP"
-      | "OwnershipTransferred"
-      | "SetAutomatedMarketMakerPair"
-      | "SwapAndLiquify"
-      | "Transfer"
-      | "UpdateUniswapV2Router"
-      | "marketingWalletUpdated"
-  ): EventFragment;
-
   encodeFunctionData(functionFragment: "ETHRN", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ETHRNWallet",
@@ -112,27 +164,27 @@ export interface ETHRNInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "_isExcludedMaxTransactionAmount",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "automatedMarketMakerPairs",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "blacklistAccounts",
-    values: [AddressLike[], boolean]
+    values: [PromiseOrValue<string>[], PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "buyETHRNTax",
@@ -150,7 +202,7 @@ export interface ETHRNInterface extends Interface {
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "disableTransferDelay",
@@ -174,23 +226,23 @@ export interface ETHRNInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "excludeFromMaxTransaction",
-    values: [AddressLike, boolean]
+    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "excludeFromTaxs",
-    values: [AddressLike, boolean]
+    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "isBlacklisted",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isExcludedFromTaxs",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "limitsInEffect",
@@ -233,15 +285,15 @@ export interface ETHRNInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setAutomatedMarketMakerPair",
-    values: [AddressLike, boolean]
+    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "setEarlySellTax",
-    values: [boolean]
+    values: [PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "set_ETHRN",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "swapEnabled",
@@ -274,7 +326,7 @@ export interface ETHRNInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferDelayEnabled",
@@ -282,11 +334,15 @@ export interface ETHRNInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [AddressLike, AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "uniswapV2Pair",
@@ -298,41 +354,45 @@ export interface ETHRNInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateBuyTaxs",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "updateETHRNWallet",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateMarketingWallet",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateMaxTxnAmount",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateMaxWalletAmount",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateSellTaxs",
     values: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "updateSwapEnabled",
-    values: [boolean]
+    values: [PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateSwapTokensAtAmount",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(functionFragment: "ETHRN", data: BytesLike): Result;
@@ -540,913 +600,1424 @@ export interface ETHRNInterface extends Interface {
     functionFragment: "updateSwapTokensAtAmount",
     data: BytesLike
   ): Result;
+
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "AutoNukeLP()": EventFragment;
+    "BoughtEarly(address)": EventFragment;
+    "ETHRNWalletUpdated(address,address)": EventFragment;
+    "ExcludeFromTaxs(address,bool)": EventFragment;
+    "ManualNukeLP()": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "SetAutomatedMarketMakerPair(address,bool)": EventFragment;
+    "SwapAndLiquify(uint256,uint256,uint256)": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+    "UpdateUniswapV2Router(address,address)": EventFragment;
+    "marketingWalletUpdated(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AutoNukeLP"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BoughtEarly"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ETHRNWalletUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ExcludeFromTaxs"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ManualNukeLP"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "SetAutomatedMarketMakerPair"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SwapAndLiquify"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "UpdateUniswapV2Router"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "marketingWalletUpdated"): EventFragment;
 }
 
-export namespace ApprovalEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    spender: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [owner: string, spender: string, value: bigint];
-  export interface OutputObject {
-    owner: string;
-    spender: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ApprovalEventObject {
+  owner: string;
+  spender: string;
+  value: BigNumber;
 }
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
-export namespace AutoNukeLPEvent {
-  export type InputTuple = [];
-  export type OutputTuple = [];
-  export interface OutputObject {}
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export namespace BoughtEarlyEvent {
-  export type InputTuple = [sniper: AddressLike];
-  export type OutputTuple = [sniper: string];
-  export interface OutputObject {
-    sniper: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export interface AutoNukeLPEventObject {}
+export type AutoNukeLPEvent = TypedEvent<[], AutoNukeLPEventObject>;
 
-export namespace ETHRNWalletUpdatedEvent {
-  export type InputTuple = [newWallet: AddressLike, oldWallet: AddressLike];
-  export type OutputTuple = [newWallet: string, oldWallet: string];
-  export interface OutputObject {
-    newWallet: string;
-    oldWallet: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type AutoNukeLPEventFilter = TypedEventFilter<AutoNukeLPEvent>;
 
-export namespace ExcludeFromTaxsEvent {
-  export type InputTuple = [account: AddressLike, isExcluded: boolean];
-  export type OutputTuple = [account: string, isExcluded: boolean];
-  export interface OutputObject {
-    account: string;
-    isExcluded: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface BoughtEarlyEventObject {
+  sniper: string;
 }
+export type BoughtEarlyEvent = TypedEvent<[string], BoughtEarlyEventObject>;
 
-export namespace ManualNukeLPEvent {
-  export type InputTuple = [];
-  export type OutputTuple = [];
-  export interface OutputObject {}
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type BoughtEarlyEventFilter = TypedEventFilter<BoughtEarlyEvent>;
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ETHRNWalletUpdatedEventObject {
+  newWallet: string;
+  oldWallet: string;
 }
+export type ETHRNWalletUpdatedEvent = TypedEvent<
+  [string, string],
+  ETHRNWalletUpdatedEventObject
+>;
 
-export namespace SetAutomatedMarketMakerPairEvent {
-  export type InputTuple = [pair: AddressLike, value: boolean];
-  export type OutputTuple = [pair: string, value: boolean];
-  export interface OutputObject {
-    pair: string;
-    value: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ETHRNWalletUpdatedEventFilter =
+  TypedEventFilter<ETHRNWalletUpdatedEvent>;
 
-export namespace SwapAndLiquifyEvent {
-  export type InputTuple = [
-    tokensSwapped: BigNumberish,
-    ethReceived: BigNumberish,
-    tokensIntoLiquidity: BigNumberish
-  ];
-  export type OutputTuple = [
-    tokensSwapped: bigint,
-    ethReceived: bigint,
-    tokensIntoLiquidity: bigint
-  ];
-  export interface OutputObject {
-    tokensSwapped: bigint;
-    ethReceived: bigint;
-    tokensIntoLiquidity: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ExcludeFromTaxsEventObject {
+  account: string;
+  isExcluded: boolean;
 }
+export type ExcludeFromTaxsEvent = TypedEvent<
+  [string, boolean],
+  ExcludeFromTaxsEventObject
+>;
 
-export namespace TransferEvent {
-  export type InputTuple = [
-    from: AddressLike,
-    to: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [from: string, to: string, value: bigint];
-  export interface OutputObject {
-    from: string;
-    to: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ExcludeFromTaxsEventFilter = TypedEventFilter<ExcludeFromTaxsEvent>;
 
-export namespace UpdateUniswapV2RouterEvent {
-  export type InputTuple = [newAddress: AddressLike, oldAddress: AddressLike];
-  export type OutputTuple = [newAddress: string, oldAddress: string];
-  export interface OutputObject {
-    newAddress: string;
-    oldAddress: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export interface ManualNukeLPEventObject {}
+export type ManualNukeLPEvent = TypedEvent<[], ManualNukeLPEventObject>;
 
-export namespace marketingWalletUpdatedEvent {
-  export type InputTuple = [newWallet: AddressLike, oldWallet: AddressLike];
-  export type OutputTuple = [newWallet: string, oldWallet: string];
-  export interface OutputObject {
-    newWallet: string;
-    oldWallet: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type ManualNukeLPEventFilter = TypedEventFilter<ManualNukeLPEvent>;
+
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
+
+export interface SetAutomatedMarketMakerPairEventObject {
+  pair: string;
+  value: boolean;
+}
+export type SetAutomatedMarketMakerPairEvent = TypedEvent<
+  [string, boolean],
+  SetAutomatedMarketMakerPairEventObject
+>;
+
+export type SetAutomatedMarketMakerPairEventFilter =
+  TypedEventFilter<SetAutomatedMarketMakerPairEvent>;
+
+export interface SwapAndLiquifyEventObject {
+  tokensSwapped: BigNumber;
+  ethReceived: BigNumber;
+  tokensIntoLiquidity: BigNumber;
+}
+export type SwapAndLiquifyEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber],
+  SwapAndLiquifyEventObject
+>;
+
+export type SwapAndLiquifyEventFilter = TypedEventFilter<SwapAndLiquifyEvent>;
+
+export interface TransferEventObject {
+  from: string;
+  to: string;
+  value: BigNumber;
+}
+export type TransferEvent = TypedEvent<
+  [string, string, BigNumber],
+  TransferEventObject
+>;
+
+export type TransferEventFilter = TypedEventFilter<TransferEvent>;
+
+export interface UpdateUniswapV2RouterEventObject {
+  newAddress: string;
+  oldAddress: string;
+}
+export type UpdateUniswapV2RouterEvent = TypedEvent<
+  [string, string],
+  UpdateUniswapV2RouterEventObject
+>;
+
+export type UpdateUniswapV2RouterEventFilter =
+  TypedEventFilter<UpdateUniswapV2RouterEvent>;
+
+export interface marketingWalletUpdatedEventObject {
+  newWallet: string;
+  oldWallet: string;
+}
+export type marketingWalletUpdatedEvent = TypedEvent<
+  [string, string],
+  marketingWalletUpdatedEventObject
+>;
+
+export type marketingWalletUpdatedEventFilter =
+  TypedEventFilter<marketingWalletUpdatedEvent>;
 
 export interface ETHRN extends BaseContract {
-  connect(runner?: ContractRunner | null): ETHRN;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: ETHRNInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  ): Promise<Array<TEvent>>;
+
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
+
+  functions: {
+    ETHRN(overrides?: CallOverrides): Promise<[string]>;
+
+    ETHRNWallet(overrides?: CallOverrides): Promise<[string]>;
 
-  ETHRN: TypedContractMethod<[], [string], "view">;
+    _isExcludedMaxTransactionAmount(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  ETHRNWallet: TypedContractMethod<[], [string], "view">;
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  _isExcludedMaxTransactionAmount: TypedContractMethod<
-    [arg0: AddressLike],
-    [boolean],
-    "view"
-  >;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  allowance: TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
+    automatedMarketMakerPairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  approve: TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  automatedMarketMakerPairs: TypedContractMethod<
-    [arg0: AddressLike],
-    [boolean],
-    "view"
-  >;
+    blacklistAccounts(
+      accounts: PromiseOrValue<string>[],
+      isBlacklisted: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+    buyETHRNTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  blacklistAccounts: TypedContractMethod<
-    [accounts: AddressLike[], isBlacklisted: boolean],
-    [void],
-    "nonpayable"
-  >;
+    buyLiqTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  buyETHRNTax: TypedContractMethod<[], [bigint], "view">;
+    buyMarketingTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  buyLiqTax: TypedContractMethod<[], [bigint], "view">;
+    buyTotalTaxs(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  buyMarketingTax: TypedContractMethod<[], [bigint], "view">;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
-  buyTotalTaxs: TypedContractMethod<[], [bigint], "view">;
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  decimals: TypedContractMethod<[], [bigint], "view">;
+    disableTransferDelay(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  decreaseAllowance: TypedContractMethod<
-    [spender: AddressLike, subtractedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    earlySellLiqTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  disableTransferDelay: TypedContractMethod<[], [boolean], "nonpayable">;
+    earlySellMarketingTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  earlySellLiqTax: TypedContractMethod<[], [bigint], "view">;
+    enableEarlySellTax(overrides?: CallOverrides): Promise<[boolean]>;
 
-  earlySellMarketingTax: TypedContractMethod<[], [bigint], "view">;
+    enableTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  enableEarlySellTax: TypedContractMethod<[], [boolean], "view">;
+    excludeFromMaxTransaction(
+      updAds: PromiseOrValue<string>,
+      isEx: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  enableTrading: TypedContractMethod<[], [void], "nonpayable">;
+    excludeFromTaxs(
+      account: PromiseOrValue<string>,
+      excluded: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  excludeFromMaxTransaction: TypedContractMethod<
-    [updAds: AddressLike, isEx: boolean],
-    [void],
-    "nonpayable"
-  >;
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  excludeFromTaxs: TypedContractMethod<
-    [account: AddressLike, excluded: boolean],
-    [void],
-    "nonpayable"
-  >;
+    isBlacklisted(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  increaseAllowance: TypedContractMethod<
-    [spender: AddressLike, addedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    isExcludedFromTaxs(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  isBlacklisted: TypedContractMethod<[account: AddressLike], [boolean], "view">;
+    limitsInEffect(overrides?: CallOverrides): Promise<[boolean]>;
 
-  isExcludedFromTaxs: TypedContractMethod<
-    [account: AddressLike],
-    [boolean],
-    "view"
-  >;
+    marketingWallet(overrides?: CallOverrides): Promise<[string]>;
 
-  limitsInEffect: TypedContractMethod<[], [boolean], "view">;
+    maxTransactionAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  marketingWallet: TypedContractMethod<[], [string], "view">;
+    maxWallet(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  maxTransactionAmount: TypedContractMethod<[], [bigint], "view">;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-  maxWallet: TypedContractMethod<[], [bigint], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  name: TypedContractMethod<[], [string], "view">;
+    removeLimits(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  removeLimits: TypedContractMethod<[], [boolean], "nonpayable">;
+    sellETHRNTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+    sellLiqTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  sellETHRNTax: TypedContractMethod<[], [bigint], "view">;
+    sellMarketingTax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  sellLiqTax: TypedContractMethod<[], [bigint], "view">;
+    sellTotalTaxs(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  sellMarketingTax: TypedContractMethod<[], [bigint], "view">;
+    setAutomatedMarketMakerPair(
+      pair: PromiseOrValue<string>,
+      value: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  sellTotalTaxs: TypedContractMethod<[], [bigint], "view">;
+    setEarlySellTax(
+      onoff: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setAutomatedMarketMakerPair: TypedContractMethod<
-    [pair: AddressLike, value: boolean],
-    [void],
-    "nonpayable"
-  >;
+    set_ETHRN(
+      new_ETHRN_address: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setEarlySellTax: TypedContractMethod<[onoff: boolean], [void], "nonpayable">;
+    swapEnabled(overrides?: CallOverrides): Promise<[boolean]>;
 
-  set_ETHRN: TypedContractMethod<
-    [new_ETHRN_address: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    swapTokensAtAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  swapEnabled: TypedContractMethod<[], [boolean], "view">;
+    symbol(overrides?: CallOverrides): Promise<[string]>;
 
-  swapTokensAtAmount: TypedContractMethod<[], [bigint], "view">;
+    tokensForDev(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  symbol: TypedContractMethod<[], [string], "view">;
+    tokensForLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  tokensForDev: TypedContractMethod<[], [bigint], "view">;
+    tokensForMarketing(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  tokensForLiquidity: TypedContractMethod<[], [bigint], "view">;
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  tokensForMarketing: TypedContractMethod<[], [bigint], "view">;
+    tradingActive(overrides?: CallOverrides): Promise<[boolean]>;
 
-  totalSupply: TypedContractMethod<[], [bigint], "view">;
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  tradingActive: TypedContractMethod<[], [boolean], "view">;
-
-  transfer: TypedContractMethod<
-    [recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-
-  transferDelayEnabled: TypedContractMethod<[], [boolean], "view">;
-
-  transferFrom: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  uniswapV2Pair: TypedContractMethod<[], [string], "view">;
-
-  uniswapV2Router: TypedContractMethod<[], [string], "view">;
-
-  updateBuyTaxs: TypedContractMethod<
-    [
-      _marketingTax: BigNumberish,
-      _LiqTax: BigNumberish,
-      _ETHRNTax: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  updateETHRNWallet: TypedContractMethod<
-    [newWallet: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  updateMarketingWallet: TypedContractMethod<
-    [newMarketingWallet: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  updateMaxTxnAmount: TypedContractMethod<
-    [newNum: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  updateMaxWalletAmount: TypedContractMethod<
-    [newNum: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  updateSellTaxs: TypedContractMethod<
-    [
-      _marketingTax: BigNumberish,
-      _LiqTax: BigNumberish,
-      _ETHRNTax: BigNumberish,
-      _earlySellLiqTax: BigNumberish,
-      _earlySellMarketingTax: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  updateSwapEnabled: TypedContractMethod<
-    [enabled: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  updateSwapTokensAtAmount: TypedContractMethod<
-    [newAmount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "ETHRN"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "ETHRNWallet"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "_isExcludedMaxTransactionAmount"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "allowance"
-  ): TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "approve"
-  ): TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "automatedMarketMakerPairs"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "balanceOf"
-  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "blacklistAccounts"
-  ): TypedContractMethod<
-    [accounts: AddressLike[], isBlacklisted: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "buyETHRNTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "buyLiqTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "buyMarketingTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "buyTotalTaxs"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "decimals"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "decreaseAllowance"
-  ): TypedContractMethod<
-    [spender: AddressLike, subtractedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "disableTransferDelay"
-  ): TypedContractMethod<[], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "earlySellLiqTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "earlySellMarketingTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "enableEarlySellTax"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "enableTrading"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "excludeFromMaxTransaction"
-  ): TypedContractMethod<
-    [updAds: AddressLike, isEx: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "excludeFromTaxs"
-  ): TypedContractMethod<
-    [account: AddressLike, excluded: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "increaseAllowance"
-  ): TypedContractMethod<
-    [spender: AddressLike, addedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "isBlacklisted"
-  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "isExcludedFromTaxs"
-  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "limitsInEffect"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "marketingWallet"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "maxTransactionAmount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "maxWallet"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "removeLimits"
-  ): TypedContractMethod<[], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "sellETHRNTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "sellLiqTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "sellMarketingTax"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "sellTotalTaxs"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "setAutomatedMarketMakerPair"
-  ): TypedContractMethod<
-    [pair: AddressLike, value: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setEarlySellTax"
-  ): TypedContractMethod<[onoff: boolean], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "set_ETHRN"
-  ): TypedContractMethod<
-    [new_ETHRN_address: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "swapEnabled"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "swapTokensAtAmount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "symbol"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tokensForDev"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "tokensForLiquidity"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "tokensForMarketing"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "totalSupply"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "tradingActive"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "transfer"
-  ): TypedContractMethod<
-    [recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transferDelayEnabled"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "transferFrom"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "uniswapV2Pair"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "uniswapV2Router"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "updateBuyTaxs"
-  ): TypedContractMethod<
-    [
-      _marketingTax: BigNumberish,
-      _LiqTax: BigNumberish,
-      _ETHRNTax: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "updateETHRNWallet"
-  ): TypedContractMethod<[newWallet: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updateMarketingWallet"
-  ): TypedContractMethod<
-    [newMarketingWallet: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "updateMaxTxnAmount"
-  ): TypedContractMethod<[newNum: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updateMaxWalletAmount"
-  ): TypedContractMethod<[newNum: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updateSellTaxs"
-  ): TypedContractMethod<
-    [
-      _marketingTax: BigNumberish,
-      _LiqTax: BigNumberish,
-      _ETHRNTax: BigNumberish,
-      _earlySellLiqTax: BigNumberish,
-      _earlySellMarketingTax: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "updateSwapEnabled"
-  ): TypedContractMethod<[enabled: boolean], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updateSwapTokensAtAmount"
-  ): TypedContractMethod<[newAmount: BigNumberish], [boolean], "nonpayable">;
-
-  getEvent(
-    key: "Approval"
-  ): TypedContractEvent<
-    ApprovalEvent.InputTuple,
-    ApprovalEvent.OutputTuple,
-    ApprovalEvent.OutputObject
-  >;
-  getEvent(
-    key: "AutoNukeLP"
-  ): TypedContractEvent<
-    AutoNukeLPEvent.InputTuple,
-    AutoNukeLPEvent.OutputTuple,
-    AutoNukeLPEvent.OutputObject
-  >;
-  getEvent(
-    key: "BoughtEarly"
-  ): TypedContractEvent<
-    BoughtEarlyEvent.InputTuple,
-    BoughtEarlyEvent.OutputTuple,
-    BoughtEarlyEvent.OutputObject
-  >;
-  getEvent(
-    key: "ETHRNWalletUpdated"
-  ): TypedContractEvent<
-    ETHRNWalletUpdatedEvent.InputTuple,
-    ETHRNWalletUpdatedEvent.OutputTuple,
-    ETHRNWalletUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "ExcludeFromTaxs"
-  ): TypedContractEvent<
-    ExcludeFromTaxsEvent.InputTuple,
-    ExcludeFromTaxsEvent.OutputTuple,
-    ExcludeFromTaxsEvent.OutputObject
-  >;
-  getEvent(
-    key: "ManualNukeLP"
-  ): TypedContractEvent<
-    ManualNukeLPEvent.InputTuple,
-    ManualNukeLPEvent.OutputTuple,
-    ManualNukeLPEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "SetAutomatedMarketMakerPair"
-  ): TypedContractEvent<
-    SetAutomatedMarketMakerPairEvent.InputTuple,
-    SetAutomatedMarketMakerPairEvent.OutputTuple,
-    SetAutomatedMarketMakerPairEvent.OutputObject
-  >;
-  getEvent(
-    key: "SwapAndLiquify"
-  ): TypedContractEvent<
-    SwapAndLiquifyEvent.InputTuple,
-    SwapAndLiquifyEvent.OutputTuple,
-    SwapAndLiquifyEvent.OutputObject
-  >;
-  getEvent(
-    key: "Transfer"
-  ): TypedContractEvent<
-    TransferEvent.InputTuple,
-    TransferEvent.OutputTuple,
-    TransferEvent.OutputObject
-  >;
-  getEvent(
-    key: "UpdateUniswapV2Router"
-  ): TypedContractEvent<
-    UpdateUniswapV2RouterEvent.InputTuple,
-    UpdateUniswapV2RouterEvent.OutputTuple,
-    UpdateUniswapV2RouterEvent.OutputObject
-  >;
-  getEvent(
-    key: "marketingWalletUpdated"
-  ): TypedContractEvent<
-    marketingWalletUpdatedEvent.InputTuple,
-    marketingWalletUpdatedEvent.OutputTuple,
-    marketingWalletUpdatedEvent.OutputObject
-  >;
+    transferDelayEnabled(overrides?: CallOverrides): Promise<[boolean]>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    uniswapV2Pair(overrides?: CallOverrides): Promise<[string]>;
+
+    uniswapV2Router(overrides?: CallOverrides): Promise<[string]>;
+
+    updateBuyTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateETHRNWallet(
+      newWallet: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateMarketingWallet(
+      newMarketingWallet: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateMaxTxnAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateMaxWalletAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateSellTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      _earlySellLiqTax: PromiseOrValue<BigNumberish>,
+      _earlySellMarketingTax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateSwapEnabled(
+      enabled: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateSwapTokensAtAmount(
+      newAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  ETHRN(overrides?: CallOverrides): Promise<string>;
+
+  ETHRNWallet(overrides?: CallOverrides): Promise<string>;
+
+  _isExcludedMaxTransactionAmount(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  allowance(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  automatedMarketMakerPairs(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  balanceOf(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  blacklistAccounts(
+    accounts: PromiseOrValue<string>[],
+    isBlacklisted: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  buyETHRNTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  buyLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  buyMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  buyTotalTaxs(overrides?: CallOverrides): Promise<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  decreaseAllowance(
+    spender: PromiseOrValue<string>,
+    subtractedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  disableTransferDelay(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  earlySellLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  earlySellMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  enableEarlySellTax(overrides?: CallOverrides): Promise<boolean>;
+
+  enableTrading(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  excludeFromMaxTransaction(
+    updAds: PromiseOrValue<string>,
+    isEx: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  excludeFromTaxs(
+    account: PromiseOrValue<string>,
+    excluded: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  increaseAllowance(
+    spender: PromiseOrValue<string>,
+    addedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  isBlacklisted(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isExcludedFromTaxs(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  limitsInEffect(overrides?: CallOverrides): Promise<boolean>;
+
+  marketingWallet(overrides?: CallOverrides): Promise<string>;
+
+  maxTransactionAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  removeLimits(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  sellETHRNTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  sellLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  sellMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+  sellTotalTaxs(overrides?: CallOverrides): Promise<BigNumber>;
+
+  setAutomatedMarketMakerPair(
+    pair: PromiseOrValue<string>,
+    value: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setEarlySellTax(
+    onoff: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  set_ETHRN(
+    new_ETHRN_address: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  swapEnabled(overrides?: CallOverrides): Promise<boolean>;
+
+  swapTokensAtAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
+  tokensForDev(overrides?: CallOverrides): Promise<BigNumber>;
+
+  tokensForLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
+
+  tokensForMarketing(overrides?: CallOverrides): Promise<BigNumber>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  tradingActive(overrides?: CallOverrides): Promise<boolean>;
+
+  transfer(
+    recipient: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferDelayEnabled(overrides?: CallOverrides): Promise<boolean>;
+
+  transferFrom(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  uniswapV2Pair(overrides?: CallOverrides): Promise<string>;
+
+  uniswapV2Router(overrides?: CallOverrides): Promise<string>;
+
+  updateBuyTaxs(
+    _marketingTax: PromiseOrValue<BigNumberish>,
+    _LiqTax: PromiseOrValue<BigNumberish>,
+    _ETHRNTax: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateETHRNWallet(
+    newWallet: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateMarketingWallet(
+    newMarketingWallet: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateMaxTxnAmount(
+    newNum: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateMaxWalletAmount(
+    newNum: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateSellTaxs(
+    _marketingTax: PromiseOrValue<BigNumberish>,
+    _LiqTax: PromiseOrValue<BigNumberish>,
+    _ETHRNTax: PromiseOrValue<BigNumberish>,
+    _earlySellLiqTax: PromiseOrValue<BigNumberish>,
+    _earlySellMarketingTax: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateSwapEnabled(
+    enabled: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateSwapTokensAtAmount(
+    newAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    ETHRN(overrides?: CallOverrides): Promise<string>;
+
+    ETHRNWallet(overrides?: CallOverrides): Promise<string>;
+
+    _isExcludedMaxTransactionAmount(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    automatedMarketMakerPairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    blacklistAccounts(
+      accounts: PromiseOrValue<string>[],
+      isBlacklisted: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    buyETHRNTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyTotalTaxs(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    disableTransferDelay(overrides?: CallOverrides): Promise<boolean>;
+
+    earlySellLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    earlySellMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    enableEarlySellTax(overrides?: CallOverrides): Promise<boolean>;
+
+    enableTrading(overrides?: CallOverrides): Promise<void>;
+
+    excludeFromMaxTransaction(
+      updAds: PromiseOrValue<string>,
+      isEx: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    excludeFromTaxs(
+      account: PromiseOrValue<string>,
+      excluded: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isBlacklisted(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isExcludedFromTaxs(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    limitsInEffect(overrides?: CallOverrides): Promise<boolean>;
+
+    marketingWallet(overrides?: CallOverrides): Promise<string>;
+
+    maxTransactionAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    removeLimits(overrides?: CallOverrides): Promise<boolean>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    sellETHRNTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellTotalTaxs(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setAutomatedMarketMakerPair(
+      pair: PromiseOrValue<string>,
+      value: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setEarlySellTax(
+      onoff: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    set_ETHRN(
+      new_ETHRN_address: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    swapEnabled(overrides?: CallOverrides): Promise<boolean>;
+
+    swapTokensAtAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
+
+    tokensForDev(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokensForLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokensForMarketing(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tradingActive(overrides?: CallOverrides): Promise<boolean>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferDelayEnabled(overrides?: CallOverrides): Promise<boolean>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    uniswapV2Pair(overrides?: CallOverrides): Promise<string>;
+
+    uniswapV2Router(overrides?: CallOverrides): Promise<string>;
+
+    updateBuyTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateETHRNWallet(
+      newWallet: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateMarketingWallet(
+      newMarketingWallet: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateMaxTxnAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateMaxWalletAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateSellTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      _earlySellLiqTax: PromiseOrValue<BigNumberish>,
+      _earlySellMarketingTax: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateSwapEnabled(
+      enabled: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateSwapTokensAtAmount(
+      newAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {
-    "Approval(address,address,uint256)": TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
-    Approval: TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
 
-    "AutoNukeLP()": TypedContractEvent<
-      AutoNukeLPEvent.InputTuple,
-      AutoNukeLPEvent.OutputTuple,
-      AutoNukeLPEvent.OutputObject
-    >;
-    AutoNukeLP: TypedContractEvent<
-      AutoNukeLPEvent.InputTuple,
-      AutoNukeLPEvent.OutputTuple,
-      AutoNukeLPEvent.OutputObject
-    >;
+    "AutoNukeLP()"(): AutoNukeLPEventFilter;
+    AutoNukeLP(): AutoNukeLPEventFilter;
 
-    "BoughtEarly(address)": TypedContractEvent<
-      BoughtEarlyEvent.InputTuple,
-      BoughtEarlyEvent.OutputTuple,
-      BoughtEarlyEvent.OutputObject
-    >;
-    BoughtEarly: TypedContractEvent<
-      BoughtEarlyEvent.InputTuple,
-      BoughtEarlyEvent.OutputTuple,
-      BoughtEarlyEvent.OutputObject
-    >;
+    "BoughtEarly(address)"(
+      sniper?: PromiseOrValue<string> | null
+    ): BoughtEarlyEventFilter;
+    BoughtEarly(sniper?: PromiseOrValue<string> | null): BoughtEarlyEventFilter;
 
-    "ETHRNWalletUpdated(address,address)": TypedContractEvent<
-      ETHRNWalletUpdatedEvent.InputTuple,
-      ETHRNWalletUpdatedEvent.OutputTuple,
-      ETHRNWalletUpdatedEvent.OutputObject
-    >;
-    ETHRNWalletUpdated: TypedContractEvent<
-      ETHRNWalletUpdatedEvent.InputTuple,
-      ETHRNWalletUpdatedEvent.OutputTuple,
-      ETHRNWalletUpdatedEvent.OutputObject
-    >;
+    "ETHRNWalletUpdated(address,address)"(
+      newWallet?: PromiseOrValue<string> | null,
+      oldWallet?: PromiseOrValue<string> | null
+    ): ETHRNWalletUpdatedEventFilter;
+    ETHRNWalletUpdated(
+      newWallet?: PromiseOrValue<string> | null,
+      oldWallet?: PromiseOrValue<string> | null
+    ): ETHRNWalletUpdatedEventFilter;
 
-    "ExcludeFromTaxs(address,bool)": TypedContractEvent<
-      ExcludeFromTaxsEvent.InputTuple,
-      ExcludeFromTaxsEvent.OutputTuple,
-      ExcludeFromTaxsEvent.OutputObject
-    >;
-    ExcludeFromTaxs: TypedContractEvent<
-      ExcludeFromTaxsEvent.InputTuple,
-      ExcludeFromTaxsEvent.OutputTuple,
-      ExcludeFromTaxsEvent.OutputObject
-    >;
+    "ExcludeFromTaxs(address,bool)"(
+      account?: PromiseOrValue<string> | null,
+      isExcluded?: null
+    ): ExcludeFromTaxsEventFilter;
+    ExcludeFromTaxs(
+      account?: PromiseOrValue<string> | null,
+      isExcluded?: null
+    ): ExcludeFromTaxsEventFilter;
 
-    "ManualNukeLP()": TypedContractEvent<
-      ManualNukeLPEvent.InputTuple,
-      ManualNukeLPEvent.OutputTuple,
-      ManualNukeLPEvent.OutputObject
-    >;
-    ManualNukeLP: TypedContractEvent<
-      ManualNukeLPEvent.InputTuple,
-      ManualNukeLPEvent.OutputTuple,
-      ManualNukeLPEvent.OutputObject
-    >;
+    "ManualNukeLP()"(): ManualNukeLPEventFilter;
+    ManualNukeLP(): ManualNukeLPEventFilter;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "SetAutomatedMarketMakerPair(address,bool)": TypedContractEvent<
-      SetAutomatedMarketMakerPairEvent.InputTuple,
-      SetAutomatedMarketMakerPairEvent.OutputTuple,
-      SetAutomatedMarketMakerPairEvent.OutputObject
-    >;
-    SetAutomatedMarketMakerPair: TypedContractEvent<
-      SetAutomatedMarketMakerPairEvent.InputTuple,
-      SetAutomatedMarketMakerPairEvent.OutputTuple,
-      SetAutomatedMarketMakerPairEvent.OutputObject
-    >;
+    "SetAutomatedMarketMakerPair(address,bool)"(
+      pair?: PromiseOrValue<string> | null,
+      value?: PromiseOrValue<boolean> | null
+    ): SetAutomatedMarketMakerPairEventFilter;
+    SetAutomatedMarketMakerPair(
+      pair?: PromiseOrValue<string> | null,
+      value?: PromiseOrValue<boolean> | null
+    ): SetAutomatedMarketMakerPairEventFilter;
 
-    "SwapAndLiquify(uint256,uint256,uint256)": TypedContractEvent<
-      SwapAndLiquifyEvent.InputTuple,
-      SwapAndLiquifyEvent.OutputTuple,
-      SwapAndLiquifyEvent.OutputObject
-    >;
-    SwapAndLiquify: TypedContractEvent<
-      SwapAndLiquifyEvent.InputTuple,
-      SwapAndLiquifyEvent.OutputTuple,
-      SwapAndLiquifyEvent.OutputObject
-    >;
+    "SwapAndLiquify(uint256,uint256,uint256)"(
+      tokensSwapped?: null,
+      ethReceived?: null,
+      tokensIntoLiquidity?: null
+    ): SwapAndLiquifyEventFilter;
+    SwapAndLiquify(
+      tokensSwapped?: null,
+      ethReceived?: null,
+      tokensIntoLiquidity?: null
+    ): SwapAndLiquifyEventFilter;
 
-    "Transfer(address,address,uint256)": TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
-    Transfer: TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
+    "Transfer(address,address,uint256)"(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+    Transfer(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
 
-    "UpdateUniswapV2Router(address,address)": TypedContractEvent<
-      UpdateUniswapV2RouterEvent.InputTuple,
-      UpdateUniswapV2RouterEvent.OutputTuple,
-      UpdateUniswapV2RouterEvent.OutputObject
-    >;
-    UpdateUniswapV2Router: TypedContractEvent<
-      UpdateUniswapV2RouterEvent.InputTuple,
-      UpdateUniswapV2RouterEvent.OutputTuple,
-      UpdateUniswapV2RouterEvent.OutputObject
-    >;
+    "UpdateUniswapV2Router(address,address)"(
+      newAddress?: PromiseOrValue<string> | null,
+      oldAddress?: PromiseOrValue<string> | null
+    ): UpdateUniswapV2RouterEventFilter;
+    UpdateUniswapV2Router(
+      newAddress?: PromiseOrValue<string> | null,
+      oldAddress?: PromiseOrValue<string> | null
+    ): UpdateUniswapV2RouterEventFilter;
 
-    "marketingWalletUpdated(address,address)": TypedContractEvent<
-      marketingWalletUpdatedEvent.InputTuple,
-      marketingWalletUpdatedEvent.OutputTuple,
-      marketingWalletUpdatedEvent.OutputObject
-    >;
-    marketingWalletUpdated: TypedContractEvent<
-      marketingWalletUpdatedEvent.InputTuple,
-      marketingWalletUpdatedEvent.OutputTuple,
-      marketingWalletUpdatedEvent.OutputObject
-    >;
+    "marketingWalletUpdated(address,address)"(
+      newWallet?: PromiseOrValue<string> | null,
+      oldWallet?: PromiseOrValue<string> | null
+    ): marketingWalletUpdatedEventFilter;
+    marketingWalletUpdated(
+      newWallet?: PromiseOrValue<string> | null,
+      oldWallet?: PromiseOrValue<string> | null
+    ): marketingWalletUpdatedEventFilter;
+  };
+
+  estimateGas: {
+    ETHRN(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ETHRNWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _isExcludedMaxTransactionAmount(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    automatedMarketMakerPairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    blacklistAccounts(
+      accounts: PromiseOrValue<string>[],
+      isBlacklisted: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    buyETHRNTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyTotalTaxs(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    disableTransferDelay(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    earlySellLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    earlySellMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    enableEarlySellTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    enableTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    excludeFromMaxTransaction(
+      updAds: PromiseOrValue<string>,
+      isEx: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    excludeFromTaxs(
+      account: PromiseOrValue<string>,
+      excluded: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    isBlacklisted(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isExcludedFromTaxs(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    limitsInEffect(overrides?: CallOverrides): Promise<BigNumber>;
+
+    marketingWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxTransactionAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxWallet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    removeLimits(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    sellETHRNTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellLiqTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellMarketingTax(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellTotalTaxs(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setAutomatedMarketMakerPair(
+      pair: PromiseOrValue<string>,
+      value: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setEarlySellTax(
+      onoff: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    set_ETHRN(
+      new_ETHRN_address: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    swapEnabled(overrides?: CallOverrides): Promise<BigNumber>;
+
+    swapTokensAtAmount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokensForDev(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokensForLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokensForMarketing(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tradingActive(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferDelayEnabled(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    uniswapV2Pair(overrides?: CallOverrides): Promise<BigNumber>;
+
+    uniswapV2Router(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateBuyTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateETHRNWallet(
+      newWallet: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateMarketingWallet(
+      newMarketingWallet: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateMaxTxnAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateMaxWalletAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateSellTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      _earlySellLiqTax: PromiseOrValue<BigNumberish>,
+      _earlySellMarketingTax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateSwapEnabled(
+      enabled: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateSwapTokensAtAmount(
+      newAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    ETHRN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ETHRNWallet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _isExcludedMaxTransactionAmount(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    automatedMarketMakerPairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    blacklistAccounts(
+      accounts: PromiseOrValue<string>[],
+      isBlacklisted: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    buyETHRNTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    buyLiqTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    buyMarketingTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    buyTotalTaxs(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    disableTransferDelay(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    earlySellLiqTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    earlySellMarketingTax(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    enableEarlySellTax(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    enableTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    excludeFromMaxTransaction(
+      updAds: PromiseOrValue<string>,
+      isEx: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    excludeFromTaxs(
+      account: PromiseOrValue<string>,
+      excluded: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    isBlacklisted(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isExcludedFromTaxs(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    limitsInEffect(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    marketingWallet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    maxTransactionAmount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxWallet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    removeLimits(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    sellETHRNTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sellLiqTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sellMarketingTax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sellTotalTaxs(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setAutomatedMarketMakerPair(
+      pair: PromiseOrValue<string>,
+      value: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setEarlySellTax(
+      onoff: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    set_ETHRN(
+      new_ETHRN_address: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swapEnabled(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    swapTokensAtAmount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokensForDev(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokensForLiquidity(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tokensForMarketing(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tradingActive(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferDelayEnabled(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    uniswapV2Pair(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    uniswapV2Router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    updateBuyTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateETHRNWallet(
+      newWallet: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateMarketingWallet(
+      newMarketingWallet: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateMaxTxnAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateMaxWalletAmount(
+      newNum: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateSellTaxs(
+      _marketingTax: PromiseOrValue<BigNumberish>,
+      _LiqTax: PromiseOrValue<BigNumberish>,
+      _ETHRNTax: PromiseOrValue<BigNumberish>,
+      _earlySellLiqTax: PromiseOrValue<BigNumberish>,
+      _earlySellMarketingTax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateSwapEnabled(
+      enabled: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateSwapTokensAtAmount(
+      newAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

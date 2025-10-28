@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IERCBurn,
   IERCBurnInterface,
@@ -89,14 +90,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IERCBurn__factory {
   static readonly abi = _abi;
   static createInterface(): IERCBurnInterface {
-    return new Interface(_abi) as IERCBurnInterface;
+    return new utils.Interface(_abi) as IERCBurnInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): IERCBurn {
-    return new Contract(address, _abi, runner) as unknown as IERCBurn;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IERCBurn {
+    return new Contract(address, _abi, signerOrProvider) as IERCBurn;
   }
 }

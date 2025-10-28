@@ -1,7 +1,81 @@
 You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
 
 ### Goal:
-Write a complete TypeScript test suite for the following Solidity smart contract.
+Generate a complete TypeScript test suite for the provided Solidity smart contract.
+
+### SCAFFOLD:
+import { expect } from "chai";
+  import hre from "hardhat";
+  import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+
+  /**
+   * Scaffold automatically generated for contracts/medium/0x5640321bc13dd864376efbfaf592bfa7a12bb2b9.sol:Ownable.
+   * Blocks marked // TODO_AI must be completed by the LLM.
+   */
+
+  describe("contracts/medium/0x5640321bc13dd864376efbfaf592bfa7a12bb2b9.sol:Ownable — LLM Scaffold", function () {
+    async function deployFixture() {
+      const { ethers } = (await import("hardhat")).default;
+      const [owner, addr1, addr2] = await ethers.getSigners();
+      const Factory = await ethers.getContractFactory("Ownable");
+      // TODO_AI: complete constructor parameters if present
+      const contract = await Factory.deploy();
+      await contract.waitForDeployment();
+      return { contract, owner, addr1, addr2 };
+    }
+
+    it("basic deployment", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
+    });
+
+    // Events in ABI: OwnershipTransferred
+
+    
+  describe("owner()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.owner();
+      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
+    });
+
+    
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("renounceOwnership()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // state-changing transaction
+      const result = await contract.renounceOwnership();
+      // TODO_AI: verifica stato/eventi dopo la tx
+    });
+
+    it("reverts on invalid input/role", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      await expect(
+        contract.renounceOwnership()
+      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
+    });
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+  });
+
 
 ### Contract:
 /*
@@ -427,19 +501,61 @@ contract BOMBOOK is Context, IERC20, Ownable {
     }
 }
 
-### Requirements:
+
+### Instructions:
 - Use **ethers.js v5** and **Chai** for testing.
 - Import ethers from "ethers".
 - Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
-- Include tests for:
-  - **Deployment**: verify correct initialization and constructor state.
-  - **Happy paths**: normal usage for every public or external function.
-  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
-  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
-  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
+- Ensure to include tests for:
+  - **Deployment**: Verify correct initialization and constructor state.
+  - **Happy paths**: Normal usage for every public or external function.
+  - **Reverts**: Test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: Verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: Test cases like zero values, address(0), max integers, empty strings, etc.
 - Include at least one `beforeEach` block to deploy the contract cleanly for each test.
-- Do **not** explain or comment in natural language — output only TypeScript test code.
-- Tests must be runnable in **Hardhat** directly and use ethers v5 API (`ethers.utils`, `ethers.constants`, etc).
+- **Do not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be **runnable in Hardhat** directly and use **ethers.js v5** API (`ethers.utils`, `ethers.constants`, etc).
+- **Do not use `loadFixture` or any module not included in ethers.js v5 or Hardhat v2.**
 
 ### Output:
-Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.
+Your output should include **only valid, executable TypeScript test code** (`.spec.ts` format). The code should be complete and ready to execute with Hardhat.
+
+### Test Requirements:
+- Use **ethers.js v5** (specifically `ethers.utils` and `ethers.constants`).
+- Ensure all test functions are structured clearly:
+  - **State-modifying functions**: Test changes to contract state.
+  - **Getter and setter functions**: Ensure getters return the correct value and setters correctly modify state.
+  - **Pure and view functions**: Ensure that state is not modified and the correct values are returned.
+  - **Access control functions**: Verify that only authorized accounts (e.g., owner, specific roles) can call functions with appropriate access control.
+  - **Event emission**: Verify the correct emission of events with proper arguments, using `.to.emit()`.
+  - **Error handling**: Ensure functions revert with appropriate error messages on invalid inputs.
+  - **Edge cases**: Handle boundary conditions, such as `address(0)`, maximum integers, and empty strings.
+
+---
+
+### Example Test:
+
+```typescript
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+describe("ContractName", function () {
+  it("should return the correct owner", async function () {
+    const [owner, addr1] = await ethers.getSigners();
+    const Contract = await ethers.getContractFactory("ContractName");
+    const contract = await Contract.deploy();
+    await contract.deployed();
+    
+    expect(await contract.owner()).to.equal(owner.address);
+  });
+
+  it("should revert on invalid address", async function () {
+    const Contract = await ethers.getContractFactory("ContractName");
+    const contract = await Contract.deploy();
+    await contract.deployed();
+
+    await expect(
+      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
+    ).to.be.revertedWith("Invalid address");
+  });
+});

@@ -3,144 +3,145 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface VaultFactoryInterface extends Interface {
-  getFunction(nameOrSignature: "createVault"): FunctionFragment;
+export interface VaultFactoryInterface extends utils.Interface {
+  functions: {
+    "createVault(address,address,address)": FunctionFragment;
+  };
 
-  getEvent(nameOrSignatureOrTopic: "VaultCreated"): EventFragment;
+  getFunction(nameOrSignatureOrTopic: "createVault"): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "createVault",
-    values: [AddressLike, AddressLike, AddressLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "createVault",
     data: BytesLike
   ): Result;
+
+  events: {
+    "VaultCreated(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "VaultCreated"): EventFragment;
 }
 
-export namespace VaultCreatedEvent {
-  export type InputTuple = [
-    _vaultAddress: AddressLike,
-    _tokenAddress: AddressLike
-  ];
-  export type OutputTuple = [_vaultAddress: string, _tokenAddress: string];
-  export interface OutputObject {
-    _vaultAddress: string;
-    _tokenAddress: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface VaultCreatedEventObject {
+  _vaultAddress: string;
+  _tokenAddress: string;
 }
+export type VaultCreatedEvent = TypedEvent<
+  [string, string],
+  VaultCreatedEventObject
+>;
+
+export type VaultCreatedEventFilter = TypedEventFilter<VaultCreatedEvent>;
 
 export interface VaultFactory extends BaseContract {
-  connect(runner?: ContractRunner | null): VaultFactory;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: VaultFactoryInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    createVault(
+      _incubatorAddress: PromiseOrValue<string>,
+      _overrideAddress: PromiseOrValue<string>,
+      _parentToken: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  createVault(
+    _incubatorAddress: PromiseOrValue<string>,
+    _overrideAddress: PromiseOrValue<string>,
+    _parentToken: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  createVault: TypedContractMethod<
-    [
-      _incubatorAddress: AddressLike,
-      _overrideAddress: AddressLike,
-      _parentToken: AddressLike
-    ],
-    [string],
-    "nonpayable"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "createVault"
-  ): TypedContractMethod<
-    [
-      _incubatorAddress: AddressLike,
-      _overrideAddress: AddressLike,
-      _parentToken: AddressLike
-    ],
-    [string],
-    "nonpayable"
-  >;
-
-  getEvent(
-    key: "VaultCreated"
-  ): TypedContractEvent<
-    VaultCreatedEvent.InputTuple,
-    VaultCreatedEvent.OutputTuple,
-    VaultCreatedEvent.OutputObject
-  >;
+  callStatic: {
+    createVault(
+      _incubatorAddress: PromiseOrValue<string>,
+      _overrideAddress: PromiseOrValue<string>,
+      _parentToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+  };
 
   filters: {
-    "VaultCreated(address,address)": TypedContractEvent<
-      VaultCreatedEvent.InputTuple,
-      VaultCreatedEvent.OutputTuple,
-      VaultCreatedEvent.OutputObject
-    >;
-    VaultCreated: TypedContractEvent<
-      VaultCreatedEvent.InputTuple,
-      VaultCreatedEvent.OutputTuple,
-      VaultCreatedEvent.OutputObject
-    >;
+    "VaultCreated(address,address)"(
+      _vaultAddress?: PromiseOrValue<string> | null,
+      _tokenAddress?: PromiseOrValue<string> | null
+    ): VaultCreatedEventFilter;
+    VaultCreated(
+      _vaultAddress?: PromiseOrValue<string> | null,
+      _tokenAddress?: PromiseOrValue<string> | null
+    ): VaultCreatedEventFilter;
+  };
+
+  estimateGas: {
+    createVault(
+      _incubatorAddress: PromiseOrValue<string>,
+      _overrideAddress: PromiseOrValue<string>,
+      _parentToken: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    createVault(
+      _incubatorAddress: PromiseOrValue<string>,
+      _overrideAddress: PromiseOrValue<string>,
+      _parentToken: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

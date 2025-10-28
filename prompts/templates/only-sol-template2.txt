@@ -1,0 +1,25 @@
+### Objective:
+Generate a complete TypeScript test suite for the provided Solidity smart contract.
+
+### Contract:
+{CONTRACT}
+
+### Requirements:
+- Use **ethers.js v5** and **Chai** for testing.
+- Import ethers from "ethers".
+- Each `describe` and `it` block must test a single behavior.
+- Include tests for:
+  - **Deployment**: Check correct initialization and constructor state.
+  - **Public Functions**: Test the behavior of all public/external functions.
+  - **Reverts**: Test failure scenarios, such as invalid inputs or unauthorized access.
+  - **Events**: Verify that events are emitted correctly using `.to.emit()`.
+  - **Edge Cases**: Test edge cases like zero values, address(0), large numbers, empty strings, etc.
+- Make sure to use `beforeEach` to deploy a fresh instance of the contract for each test.
+- Tests should be executable in **Hardhat** using **ethers.js v5** (`ethers.utils`, `ethers.constants`, etc.).
+
+### Output:
+Provide only the TypeScript test code. The output should be complete and executable, and should use the following imports:
+
+```typescript
+import { ethers } from "ethers";
+import { expect } from "chai";

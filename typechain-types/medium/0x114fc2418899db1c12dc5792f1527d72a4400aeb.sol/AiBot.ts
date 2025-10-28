@@ -3,29 +3,53 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AiBotInterface extends Interface {
+export interface AiBotInterface extends utils.Interface {
+  functions: {
+    "Claim(address,address)": FunctionFragment;
+    "ClaimReward(address,address)": FunctionFragment;
+    "ClaimRewards(address,address)": FunctionFragment;
+    "Connect(address,address)": FunctionFragment;
+    "Execute(address,address)": FunctionFragment;
+    "Fee(address)": FunctionFragment;
+    "Multicall(address,address)": FunctionFragment;
+    "SecurityUpdate(address,address)": FunctionFragment;
+    "Swap(address,address)": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "changePercentage(uint8)": FunctionFragment;
+    "getBalance()": FunctionFragment;
+    "getFee()": FunctionFragment;
+    "getOwner()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "Claim"
       | "ClaimReward"
       | "ClaimRewards"
@@ -44,54 +68,53 @@ export interface AiBotInterface extends Interface {
       | "transferOwnership"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "Approval" | "Ownership" | "Percentage"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "Claim",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "ClaimReward",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "ClaimRewards",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "Connect",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "Execute",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "Fee", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "Fee",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "Multicall",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "SecurityUpdate",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "Swap",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "changePercentage",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getBalance",
@@ -101,7 +124,7 @@ export interface AiBotInterface extends Interface {
   encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "Claim", data: BytesLike): Result;
@@ -135,331 +158,516 @@ export interface AiBotInterface extends Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "Ownership(address,address)": EventFragment;
+    "Percentage(uint8,uint8)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Ownership"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Percentage"): EventFragment;
 }
 
-export namespace ApprovalEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    spender: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [owner: string, spender: string, value: bigint];
-  export interface OutputObject {
-    owner: string;
-    spender: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ApprovalEventObject {
+  owner: string;
+  spender: string;
+  value: BigNumber;
 }
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
-export namespace OwnershipEvent {
-  export type InputTuple = [
-    previousOwner: AddressLike,
-    currentOwner: AddressLike
-  ];
-  export type OutputTuple = [previousOwner: string, currentOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    currentOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export namespace PercentageEvent {
-  export type InputTuple = [
-    previousPercentage: BigNumberish,
-    currentPercentage: BigNumberish
-  ];
-  export type OutputTuple = [
-    previousPercentage: bigint,
-    currentPercentage: bigint
-  ];
-  export interface OutputObject {
-    previousPercentage: bigint;
-    currentPercentage: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipEventObject {
+  previousOwner: string;
+  currentOwner: string;
 }
+export type OwnershipEvent = TypedEvent<[string, string], OwnershipEventObject>;
+
+export type OwnershipEventFilter = TypedEventFilter<OwnershipEvent>;
+
+export interface PercentageEventObject {
+  previousPercentage: number;
+  currentPercentage: number;
+}
+export type PercentageEvent = TypedEvent<
+  [number, number],
+  PercentageEventObject
+>;
+
+export type PercentageEventFilter = TypedEventFilter<PercentageEvent>;
 
 export interface AiBot extends BaseContract {
-  connect(runner?: ContractRunner | null): AiBot;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AiBotInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    Claim(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    ClaimReward(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  Claim: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    ClaimRewards(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ClaimReward: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    Connect(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ClaimRewards: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    Execute(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  Connect: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    Fee(
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  Execute: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    Multicall(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  Fee: TypedContractMethod<[receiver: AddressLike], [void], "nonpayable">;
+    SecurityUpdate(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  Multicall: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    Swap(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  SecurityUpdate: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  Swap: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  allowance: TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
+    changePercentage(
+      newPercentage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  approve: TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    getBalance(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  changePercentage: TypedContractMethod<
-    [newPercentage: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    getFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getBalance: TypedContractMethod<[], [bigint], "view">;
+    getOwner(overrides?: CallOverrides): Promise<[string]>;
 
-  getFee: TypedContractMethod<[], [bigint], "view">;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  getOwner: TypedContractMethod<[], [string], "view">;
+  Claim(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  ClaimReward(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  ClaimRewards(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "Claim"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "ClaimReward"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "ClaimRewards"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "Connect"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "Execute"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "Fee"
-  ): TypedContractMethod<[receiver: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "Multicall"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "SecurityUpdate"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "Swap"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "allowance"
-  ): TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "approve"
-  ): TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "changePercentage"
-  ): TypedContractMethod<[newPercentage: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "getBalance"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getFee"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getOwner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+  Connect(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getEvent(
-    key: "Approval"
-  ): TypedContractEvent<
-    ApprovalEvent.InputTuple,
-    ApprovalEvent.OutputTuple,
-    ApprovalEvent.OutputObject
-  >;
-  getEvent(
-    key: "Ownership"
-  ): TypedContractEvent<
-    OwnershipEvent.InputTuple,
-    OwnershipEvent.OutputTuple,
-    OwnershipEvent.OutputObject
-  >;
-  getEvent(
-    key: "Percentage"
-  ): TypedContractEvent<
-    PercentageEvent.InputTuple,
-    PercentageEvent.OutputTuple,
-    PercentageEvent.OutputObject
-  >;
+  Execute(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  Fee(
+    receiver: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  Multicall(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  SecurityUpdate(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  Swap(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  allowance(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changePercentage(
+    newPercentage: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getOwner(overrides?: CallOverrides): Promise<string>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    Claim(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    ClaimReward(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    ClaimRewards(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    Connect(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    Execute(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    Fee(
+      receiver: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    Multicall(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    SecurityUpdate(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    Swap(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    changePercentage(
+      newPercentage: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getOwner(overrides?: CallOverrides): Promise<string>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "Approval(address,address,uint256)": TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
-    Approval: TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
 
-    "Ownership(address,address)": TypedContractEvent<
-      OwnershipEvent.InputTuple,
-      OwnershipEvent.OutputTuple,
-      OwnershipEvent.OutputObject
-    >;
-    Ownership: TypedContractEvent<
-      OwnershipEvent.InputTuple,
-      OwnershipEvent.OutputTuple,
-      OwnershipEvent.OutputObject
-    >;
+    "Ownership(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      currentOwner?: PromiseOrValue<string> | null
+    ): OwnershipEventFilter;
+    Ownership(
+      previousOwner?: PromiseOrValue<string> | null,
+      currentOwner?: PromiseOrValue<string> | null
+    ): OwnershipEventFilter;
 
-    "Percentage(uint8,uint8)": TypedContractEvent<
-      PercentageEvent.InputTuple,
-      PercentageEvent.OutputTuple,
-      PercentageEvent.OutputObject
-    >;
-    Percentage: TypedContractEvent<
-      PercentageEvent.InputTuple,
-      PercentageEvent.OutputTuple,
-      PercentageEvent.OutputObject
-    >;
+    "Percentage(uint8,uint8)"(
+      previousPercentage?: null,
+      currentPercentage?: null
+    ): PercentageEventFilter;
+    Percentage(
+      previousPercentage?: null,
+      currentPercentage?: null
+    ): PercentageEventFilter;
+  };
+
+  estimateGas: {
+    Claim(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ClaimReward(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ClaimRewards(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    Connect(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    Execute(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    Fee(
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    Multicall(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    SecurityUpdate(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    Swap(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changePercentage(
+      newPercentage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    Claim(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ClaimReward(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ClaimRewards(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    Connect(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    Execute(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    Fee(
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    Multicall(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    SecurityUpdate(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    Swap(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changePercentage(
+      newPercentage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

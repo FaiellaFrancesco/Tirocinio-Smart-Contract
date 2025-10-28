@@ -3,29 +3,62 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface IntentionsInterface extends Interface {
+export interface IntentionsInterface extends utils.Interface {
+  functions: {
+    "LoI_arrived_for_GWP(address)": FunctionFragment;
+    "UNG_Mcap()": FunctionFragment;
+    "chainName()": FunctionFragment;
+    "didGetFundingFrom(address,address)": FunctionFragment;
+    "didInvestTo(address)": FunctionFragment;
+    "getAuctionMaster()": FunctionFragment;
+    "getFundingReport(address,address)": FunctionFragment;
+    "getGWF()": FunctionFragment;
+    "getGroupLOIinvestors(address)": FunctionFragment;
+    "getIntendedLOIShares(address,address)": FunctionFragment;
+    "getIntendedNbOfShares(address)": FunctionFragment;
+    "getLOIInvestorName(address,address)": FunctionFragment;
+    "getMarketCap()": FunctionFragment;
+    "getMasterCopy()": FunctionFragment;
+    "getRegController()": FunctionFragment;
+    "getSpice(address)": FunctionFragment;
+    "getUNGmarketCap()": FunctionFragment;
+    "intendedLOIInvestorName(address)": FunctionFragment;
+    "intendedLOIShares(address)": FunctionFragment;
+    "mCap(address)": FunctionFragment;
+    "saveLetterOfIntent(address,uint256)": FunctionFragment;
+    "storeInvestment(uint256,address,uint256,bytes32)": FunctionFragment;
+    "tld()": FunctionFragment;
+    "version()": FunctionFragment;
+    "withdraw()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "LoI_arrived_for_GWP"
       | "UNG_Mcap"
       | "chainName"
@@ -53,30 +86,19 @@ export interface IntentionsInterface extends Interface {
       | "withdraw"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "Deployment"
-      | "DeploymentIntentions"
-      | "Deposit"
-      | "LetterOfIntent"
-      | "StoreFunding"
-      | "StoreInvestment"
-      | "TestReturn"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "LoI_arrived_for_GWP",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "UNG_Mcap", values?: undefined): string;
   encodeFunctionData(functionFragment: "chainName", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "didGetFundingFrom",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "didInvestTo",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getAuctionMaster",
@@ -84,24 +106,24 @@ export interface IntentionsInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getFundingReport",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "getGWF", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getGroupLOIinvestors",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getIntendedLOIShares",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getIntendedNbOfShares",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getLOIInvestorName",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getMarketCap",
@@ -117,7 +139,7 @@ export interface IntentionsInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getSpice",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUNGmarketCap",
@@ -125,20 +147,28 @@ export interface IntentionsInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "intendedLOIInvestorName",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "intendedLOIShares",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "mCap", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "mCap",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "saveLetterOfIntent",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "storeInvestment",
-    values: [BigNumberish, AddressLike, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(functionFragment: "tld", values?: undefined): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
@@ -220,522 +250,744 @@ export interface IntentionsInterface extends Interface {
   decodeFunctionResult(functionFragment: "tld", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+
+  events: {
+    "Deployment(address,address)": EventFragment;
+    "DeploymentIntentions(address,bytes32)": EventFragment;
+    "Deposit(address,uint256)": EventFragment;
+    "LetterOfIntent(address,address,uint256)": EventFragment;
+    "StoreFunding(address,address,uint256,uint256)": EventFragment;
+    "StoreInvestment(address,address,uint256,uint256)": EventFragment;
+    "TestReturn(uint256,uint256,uint256,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Deployment"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DeploymentIntentions"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LetterOfIntent"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "StoreFunding"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "StoreInvestment"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TestReturn"): EventFragment;
 }
 
-export namespace DeploymentEvent {
-  export type InputTuple = [owner: AddressLike, theContract: AddressLike];
-  export type OutputTuple = [owner: string, theContract: string];
-  export interface OutputObject {
-    owner: string;
-    theContract: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface DeploymentEventObject {
+  owner: string;
+  theContract: string;
 }
+export type DeploymentEvent = TypedEvent<
+  [string, string],
+  DeploymentEventObject
+>;
 
-export namespace DeploymentIntentionsEvent {
-  export type InputTuple = [theContract: AddressLike, dhash: BytesLike];
-  export type OutputTuple = [theContract: string, dhash: string];
-  export interface OutputObject {
-    theContract: string;
-    dhash: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type DeploymentEventFilter = TypedEventFilter<DeploymentEvent>;
 
-export namespace DepositEvent {
-  export type InputTuple = [from: AddressLike, value: BigNumberish];
-  export type OutputTuple = [from: string, value: bigint];
-  export interface OutputObject {
-    from: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface DeploymentIntentionsEventObject {
+  theContract: string;
+  dhash: string;
 }
+export type DeploymentIntentionsEvent = TypedEvent<
+  [string, string],
+  DeploymentIntentionsEventObject
+>;
 
-export namespace LetterOfIntentEvent {
-  export type InputTuple = [
-    theInvestorAddress: AddressLike,
-    targetGWP_Address: AddressLike,
-    nbOfShares: BigNumberish
-  ];
-  export type OutputTuple = [
-    theInvestorAddress: string,
-    targetGWP_Address: string,
-    nbOfShares: bigint
-  ];
-  export interface OutputObject {
-    theInvestorAddress: string;
-    targetGWP_Address: string;
-    nbOfShares: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type DeploymentIntentionsEventFilter =
+  TypedEventFilter<DeploymentIntentionsEvent>;
 
-export namespace StoreFundingEvent {
-  export type InputTuple = [
-    targetGWP_Address: AddressLike,
-    theInvestorAddress: AddressLike,
-    nbOfShares: BigNumberish,
-    pricePaid: BigNumberish
-  ];
-  export type OutputTuple = [
-    targetGWP_Address: string,
-    theInvestorAddress: string,
-    nbOfShares: bigint,
-    pricePaid: bigint
-  ];
-  export interface OutputObject {
-    targetGWP_Address: string;
-    theInvestorAddress: string;
-    nbOfShares: bigint;
-    pricePaid: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface DepositEventObject {
+  from: string;
+  value: BigNumber;
 }
+export type DepositEvent = TypedEvent<[string, BigNumber], DepositEventObject>;
 
-export namespace StoreInvestmentEvent {
-  export type InputTuple = [
-    theInvestorAddress: AddressLike,
-    targetGWP_Address: AddressLike,
-    nbOfShares: BigNumberish,
-    pricePaid: BigNumberish
-  ];
-  export type OutputTuple = [
-    theInvestorAddress: string,
-    targetGWP_Address: string,
-    nbOfShares: bigint,
-    pricePaid: bigint
-  ];
-  export interface OutputObject {
-    theInvestorAddress: string;
-    targetGWP_Address: string;
-    nbOfShares: bigint;
-    pricePaid: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type DepositEventFilter = TypedEventFilter<DepositEvent>;
 
-export namespace TestReturnEvent {
-  export type InputTuple = [
-    v1: BigNumberish,
-    v2: BigNumberish,
-    v3: BigNumberish,
-    v4: BigNumberish
-  ];
-  export type OutputTuple = [v1: bigint, v2: bigint, v3: bigint, v4: bigint];
-  export interface OutputObject {
-    v1: bigint;
-    v2: bigint;
-    v3: bigint;
-    v4: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface LetterOfIntentEventObject {
+  theInvestorAddress: string;
+  targetGWP_Address: string;
+  nbOfShares: BigNumber;
 }
+export type LetterOfIntentEvent = TypedEvent<
+  [string, string, BigNumber],
+  LetterOfIntentEventObject
+>;
+
+export type LetterOfIntentEventFilter = TypedEventFilter<LetterOfIntentEvent>;
+
+export interface StoreFundingEventObject {
+  targetGWP_Address: string;
+  theInvestorAddress: string;
+  nbOfShares: BigNumber;
+  pricePaid: BigNumber;
+}
+export type StoreFundingEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  StoreFundingEventObject
+>;
+
+export type StoreFundingEventFilter = TypedEventFilter<StoreFundingEvent>;
+
+export interface StoreInvestmentEventObject {
+  theInvestorAddress: string;
+  targetGWP_Address: string;
+  nbOfShares: BigNumber;
+  pricePaid: BigNumber;
+}
+export type StoreInvestmentEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  StoreInvestmentEventObject
+>;
+
+export type StoreInvestmentEventFilter = TypedEventFilter<StoreInvestmentEvent>;
+
+export interface TestReturnEventObject {
+  v1: BigNumber;
+  v2: BigNumber;
+  v3: BigNumber;
+  v4: BigNumber;
+}
+export type TestReturnEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber, BigNumber],
+  TestReturnEventObject
+>;
+
+export type TestReturnEventFilter = TypedEventFilter<TestReturnEvent>;
 
 export interface Intentions extends BaseContract {
-  connect(runner?: ContractRunner | null): Intentions;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IntentionsInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    LoI_arrived_for_GWP(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    UNG_Mcap(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  LoI_arrived_for_GWP: TypedContractMethod<
-    [target: AddressLike],
-    [boolean],
-    "view"
-  >;
+    chainName(overrides?: CallOverrides): Promise<[string]>;
 
-  UNG_Mcap: TypedContractMethod<[], [bigint], "view">;
+    didGetFundingFrom(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  chainName: TypedContractMethod<[], [string], "view">;
+    didInvestTo(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  didGetFundingFrom: TypedContractMethod<
-    [_gwp: AddressLike, _inv: AddressLike],
-    [boolean],
-    "view"
-  >;
+    getAuctionMaster(overrides?: CallOverrides): Promise<[string]>;
 
-  didInvestTo: TypedContractMethod<[_gwp: AddressLike], [boolean], "view">;
-
-  getAuctionMaster: TypedContractMethod<[], [string], "view">;
-
-  getFundingReport: TypedContractMethod<
-    [_gwp: AddressLike, _inv: AddressLike],
-    [
-      [bigint, string, bigint, bigint, bigint, bigint] & {
-        mCapGWP: bigint;
+    getFundingReport(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        mCapGWP: BigNumber;
         dhash: string;
-        loiShares: bigint;
-        shares: bigint;
-        price: bigint;
-        mcap: bigint;
+        loiShares: BigNumber;
+        shares: BigNumber;
+        price: BigNumber;
+        mcap: BigNumber;
       }
-    ],
-    "view"
+    >;
+
+    getGWF(overrides?: CallOverrides): Promise<[string]>;
+
+    getGroupLOIinvestors(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
+
+    getIntendedLOIShares(
+      tg: PromiseOrValue<string>,
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getIntendedNbOfShares(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getLOIInvestorName(
+      tg: PromiseOrValue<string>,
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getMarketCap(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<[string]>;
+
+    getRegController(overrides?: CallOverrides): Promise<[string]>;
+
+    getSpice(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getUNGmarketCap(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    intendedLOIInvestorName(
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    intendedLOIShares(
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    mCap(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    saveLetterOfIntent(
+      target: PromiseOrValue<string>,
+      nbOfShares: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    storeInvestment(
+      _nbOfShares: PromiseOrValue<BigNumberish>,
+      _gwp: PromiseOrValue<string>,
+      _pricePaidEth: PromiseOrValue<BigNumberish>,
+      _salt: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    tld(overrides?: CallOverrides): Promise<[string]>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber] & { v: BigNumber }>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  LoI_arrived_for_GWP(
+    target: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  UNG_Mcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+  chainName(overrides?: CallOverrides): Promise<string>;
+
+  didGetFundingFrom(
+    _gwp: PromiseOrValue<string>,
+    _inv: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  didInvestTo(
+    _gwp: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  getAuctionMaster(overrides?: CallOverrides): Promise<string>;
+
+  getFundingReport(
+    _gwp: PromiseOrValue<string>,
+    _inv: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      mCapGWP: BigNumber;
+      dhash: string;
+      loiShares: BigNumber;
+      shares: BigNumber;
+      price: BigNumber;
+      mcap: BigNumber;
+    }
   >;
 
-  getGWF: TypedContractMethod<[], [string], "view">;
+  getGWF(overrides?: CallOverrides): Promise<string>;
 
-  getGroupLOIinvestors: TypedContractMethod<
-    [target: AddressLike],
-    [string[]],
-    "view"
-  >;
+  getGroupLOIinvestors(
+    target: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
 
-  getIntendedLOIShares: TypedContractMethod<
-    [tg: AddressLike, inv: AddressLike],
-    [bigint],
-    "view"
-  >;
+  getIntendedLOIShares(
+    tg: PromiseOrValue<string>,
+    inv: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  getIntendedNbOfShares: TypedContractMethod<
-    [target: AddressLike],
-    [bigint],
-    "view"
-  >;
+  getIntendedNbOfShares(
+    target: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  getLOIInvestorName: TypedContractMethod<
-    [tg: AddressLike, _iv: AddressLike],
-    [string],
-    "view"
-  >;
+  getLOIInvestorName(
+    tg: PromiseOrValue<string>,
+    _iv: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getMarketCap: TypedContractMethod<[], [bigint], "view">;
+  getMarketCap(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getMasterCopy: TypedContractMethod<[], [string], "view">;
+  getMasterCopy(overrides?: CallOverrides): Promise<string>;
 
-  getRegController: TypedContractMethod<[], [string], "view">;
+  getRegController(overrides?: CallOverrides): Promise<string>;
 
-  getSpice: TypedContractMethod<[_gwp: AddressLike], [string], "view">;
+  getSpice(
+    _gwp: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getUNGmarketCap: TypedContractMethod<[], [bigint], "view">;
+  getUNGmarketCap(overrides?: CallOverrides): Promise<BigNumber>;
 
-  intendedLOIInvestorName: TypedContractMethod<
-    [_iv: AddressLike],
-    [string],
-    "view"
-  >;
+  intendedLOIInvestorName(
+    _iv: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  intendedLOIShares: TypedContractMethod<[inv: AddressLike], [bigint], "view">;
+  intendedLOIShares(
+    inv: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  mCap: TypedContractMethod<[_gwp: AddressLike], [bigint], "view">;
+  mCap(
+    _gwp: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  saveLetterOfIntent: TypedContractMethod<
-    [target: AddressLike, nbOfShares: BigNumberish],
-    [void],
-    "payable"
-  >;
+  saveLetterOfIntent(
+    target: PromiseOrValue<string>,
+    nbOfShares: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  storeInvestment: TypedContractMethod<
-    [
-      _nbOfShares: BigNumberish,
-      _gwp: AddressLike,
-      _pricePaidEth: BigNumberish,
-      _salt: BytesLike
-    ],
-    [void],
-    "payable"
-  >;
+  storeInvestment(
+    _nbOfShares: PromiseOrValue<BigNumberish>,
+    _gwp: PromiseOrValue<string>,
+    _pricePaidEth: PromiseOrValue<BigNumberish>,
+    _salt: PromiseOrValue<BytesLike>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  tld: TypedContractMethod<[], [string], "view">;
+  tld(overrides?: CallOverrides): Promise<string>;
 
-  version: TypedContractMethod<[], [bigint], "view">;
+  version(overrides?: CallOverrides): Promise<BigNumber>;
 
-  withdraw: TypedContractMethod<[], [void], "nonpayable">;
+  withdraw(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    LoI_arrived_for_GWP(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-  getFunction(
-    nameOrSignature: "LoI_arrived_for_GWP"
-  ): TypedContractMethod<[target: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "UNG_Mcap"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "chainName"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "didGetFundingFrom"
-  ): TypedContractMethod<
-    [_gwp: AddressLike, _inv: AddressLike],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "didInvestTo"
-  ): TypedContractMethod<[_gwp: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "getAuctionMaster"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getFundingReport"
-  ): TypedContractMethod<
-    [_gwp: AddressLike, _inv: AddressLike],
-    [
-      [bigint, string, bigint, bigint, bigint, bigint] & {
-        mCapGWP: bigint;
+    UNG_Mcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    chainName(overrides?: CallOverrides): Promise<string>;
+
+    didGetFundingFrom(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    didInvestTo(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    getAuctionMaster(overrides?: CallOverrides): Promise<string>;
+
+    getFundingReport(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        mCapGWP: BigNumber;
         dhash: string;
-        loiShares: bigint;
-        shares: bigint;
-        price: bigint;
-        mcap: bigint;
+        loiShares: BigNumber;
+        shares: BigNumber;
+        price: BigNumber;
+        mcap: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getGWF"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getGroupLOIinvestors"
-  ): TypedContractMethod<[target: AddressLike], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getIntendedLOIShares"
-  ): TypedContractMethod<[tg: AddressLike, inv: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getIntendedNbOfShares"
-  ): TypedContractMethod<[target: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getLOIInvestorName"
-  ): TypedContractMethod<[tg: AddressLike, _iv: AddressLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "getMarketCap"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getMasterCopy"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getRegController"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getSpice"
-  ): TypedContractMethod<[_gwp: AddressLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "getUNGmarketCap"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "intendedLOIInvestorName"
-  ): TypedContractMethod<[_iv: AddressLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "intendedLOIShares"
-  ): TypedContractMethod<[inv: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "mCap"
-  ): TypedContractMethod<[_gwp: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "saveLetterOfIntent"
-  ): TypedContractMethod<
-    [target: AddressLike, nbOfShares: BigNumberish],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "storeInvestment"
-  ): TypedContractMethod<
-    [
-      _nbOfShares: BigNumberish,
-      _gwp: AddressLike,
-      _pricePaidEth: BigNumberish,
-      _salt: BytesLike
-    ],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "tld"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "version"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "withdraw"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+    >;
 
-  getEvent(
-    key: "Deployment"
-  ): TypedContractEvent<
-    DeploymentEvent.InputTuple,
-    DeploymentEvent.OutputTuple,
-    DeploymentEvent.OutputObject
-  >;
-  getEvent(
-    key: "DeploymentIntentions"
-  ): TypedContractEvent<
-    DeploymentIntentionsEvent.InputTuple,
-    DeploymentIntentionsEvent.OutputTuple,
-    DeploymentIntentionsEvent.OutputObject
-  >;
-  getEvent(
-    key: "Deposit"
-  ): TypedContractEvent<
-    DepositEvent.InputTuple,
-    DepositEvent.OutputTuple,
-    DepositEvent.OutputObject
-  >;
-  getEvent(
-    key: "LetterOfIntent"
-  ): TypedContractEvent<
-    LetterOfIntentEvent.InputTuple,
-    LetterOfIntentEvent.OutputTuple,
-    LetterOfIntentEvent.OutputObject
-  >;
-  getEvent(
-    key: "StoreFunding"
-  ): TypedContractEvent<
-    StoreFundingEvent.InputTuple,
-    StoreFundingEvent.OutputTuple,
-    StoreFundingEvent.OutputObject
-  >;
-  getEvent(
-    key: "StoreInvestment"
-  ): TypedContractEvent<
-    StoreInvestmentEvent.InputTuple,
-    StoreInvestmentEvent.OutputTuple,
-    StoreInvestmentEvent.OutputObject
-  >;
-  getEvent(
-    key: "TestReturn"
-  ): TypedContractEvent<
-    TestReturnEvent.InputTuple,
-    TestReturnEvent.OutputTuple,
-    TestReturnEvent.OutputObject
-  >;
+    getGWF(overrides?: CallOverrides): Promise<string>;
+
+    getGroupLOIinvestors(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    getIntendedLOIShares(
+      tg: PromiseOrValue<string>,
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getIntendedNbOfShares(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getLOIInvestorName(
+      tg: PromiseOrValue<string>,
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getMarketCap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<string>;
+
+    getRegController(overrides?: CallOverrides): Promise<string>;
+
+    getSpice(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getUNGmarketCap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    intendedLOIInvestorName(
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    intendedLOIShares(
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    mCap(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    saveLetterOfIntent(
+      target: PromiseOrValue<string>,
+      nbOfShares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    storeInvestment(
+      _nbOfShares: PromiseOrValue<BigNumberish>,
+      _gwp: PromiseOrValue<string>,
+      _pricePaidEth: PromiseOrValue<BigNumberish>,
+      _salt: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    tld(overrides?: CallOverrides): Promise<string>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(overrides?: CallOverrides): Promise<void>;
+  };
 
   filters: {
-    "Deployment(address,address)": TypedContractEvent<
-      DeploymentEvent.InputTuple,
-      DeploymentEvent.OutputTuple,
-      DeploymentEvent.OutputObject
-    >;
-    Deployment: TypedContractEvent<
-      DeploymentEvent.InputTuple,
-      DeploymentEvent.OutputTuple,
-      DeploymentEvent.OutputObject
-    >;
+    "Deployment(address,address)"(
+      owner?: null,
+      theContract?: null
+    ): DeploymentEventFilter;
+    Deployment(owner?: null, theContract?: null): DeploymentEventFilter;
 
-    "DeploymentIntentions(address,bytes32)": TypedContractEvent<
-      DeploymentIntentionsEvent.InputTuple,
-      DeploymentIntentionsEvent.OutputTuple,
-      DeploymentIntentionsEvent.OutputObject
-    >;
-    DeploymentIntentions: TypedContractEvent<
-      DeploymentIntentionsEvent.InputTuple,
-      DeploymentIntentionsEvent.OutputTuple,
-      DeploymentIntentionsEvent.OutputObject
-    >;
+    "DeploymentIntentions(address,bytes32)"(
+      theContract?: null,
+      dhash?: null
+    ): DeploymentIntentionsEventFilter;
+    DeploymentIntentions(
+      theContract?: null,
+      dhash?: null
+    ): DeploymentIntentionsEventFilter;
 
-    "Deposit(address,uint256)": TypedContractEvent<
-      DepositEvent.InputTuple,
-      DepositEvent.OutputTuple,
-      DepositEvent.OutputObject
-    >;
-    Deposit: TypedContractEvent<
-      DepositEvent.InputTuple,
-      DepositEvent.OutputTuple,
-      DepositEvent.OutputObject
-    >;
+    "Deposit(address,uint256)"(from?: null, value?: null): DepositEventFilter;
+    Deposit(from?: null, value?: null): DepositEventFilter;
 
-    "LetterOfIntent(address,address,uint256)": TypedContractEvent<
-      LetterOfIntentEvent.InputTuple,
-      LetterOfIntentEvent.OutputTuple,
-      LetterOfIntentEvent.OutputObject
-    >;
-    LetterOfIntent: TypedContractEvent<
-      LetterOfIntentEvent.InputTuple,
-      LetterOfIntentEvent.OutputTuple,
-      LetterOfIntentEvent.OutputObject
-    >;
+    "LetterOfIntent(address,address,uint256)"(
+      theInvestorAddress?: null,
+      targetGWP_Address?: null,
+      nbOfShares?: null
+    ): LetterOfIntentEventFilter;
+    LetterOfIntent(
+      theInvestorAddress?: null,
+      targetGWP_Address?: null,
+      nbOfShares?: null
+    ): LetterOfIntentEventFilter;
 
-    "StoreFunding(address,address,uint256,uint256)": TypedContractEvent<
-      StoreFundingEvent.InputTuple,
-      StoreFundingEvent.OutputTuple,
-      StoreFundingEvent.OutputObject
-    >;
-    StoreFunding: TypedContractEvent<
-      StoreFundingEvent.InputTuple,
-      StoreFundingEvent.OutputTuple,
-      StoreFundingEvent.OutputObject
-    >;
+    "StoreFunding(address,address,uint256,uint256)"(
+      targetGWP_Address?: null,
+      theInvestorAddress?: null,
+      nbOfShares?: null,
+      pricePaid?: null
+    ): StoreFundingEventFilter;
+    StoreFunding(
+      targetGWP_Address?: null,
+      theInvestorAddress?: null,
+      nbOfShares?: null,
+      pricePaid?: null
+    ): StoreFundingEventFilter;
 
-    "StoreInvestment(address,address,uint256,uint256)": TypedContractEvent<
-      StoreInvestmentEvent.InputTuple,
-      StoreInvestmentEvent.OutputTuple,
-      StoreInvestmentEvent.OutputObject
-    >;
-    StoreInvestment: TypedContractEvent<
-      StoreInvestmentEvent.InputTuple,
-      StoreInvestmentEvent.OutputTuple,
-      StoreInvestmentEvent.OutputObject
-    >;
+    "StoreInvestment(address,address,uint256,uint256)"(
+      theInvestorAddress?: null,
+      targetGWP_Address?: null,
+      nbOfShares?: null,
+      pricePaid?: null
+    ): StoreInvestmentEventFilter;
+    StoreInvestment(
+      theInvestorAddress?: null,
+      targetGWP_Address?: null,
+      nbOfShares?: null,
+      pricePaid?: null
+    ): StoreInvestmentEventFilter;
 
-    "TestReturn(uint256,uint256,uint256,uint256)": TypedContractEvent<
-      TestReturnEvent.InputTuple,
-      TestReturnEvent.OutputTuple,
-      TestReturnEvent.OutputObject
-    >;
-    TestReturn: TypedContractEvent<
-      TestReturnEvent.InputTuple,
-      TestReturnEvent.OutputTuple,
-      TestReturnEvent.OutputObject
-    >;
+    "TestReturn(uint256,uint256,uint256,uint256)"(
+      v1?: null,
+      v2?: null,
+      v3?: null,
+      v4?: null
+    ): TestReturnEventFilter;
+    TestReturn(
+      v1?: null,
+      v2?: null,
+      v3?: null,
+      v4?: null
+    ): TestReturnEventFilter;
+  };
+
+  estimateGas: {
+    LoI_arrived_for_GWP(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    UNG_Mcap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    chainName(overrides?: CallOverrides): Promise<BigNumber>;
+
+    didGetFundingFrom(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    didInvestTo(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAuctionMaster(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getFundingReport(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getGWF(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getGroupLOIinvestors(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getIntendedLOIShares(
+      tg: PromiseOrValue<string>,
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getIntendedNbOfShares(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getLOIInvestorName(
+      tg: PromiseOrValue<string>,
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getMarketCap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getRegController(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSpice(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUNGmarketCap(overrides?: CallOverrides): Promise<BigNumber>;
+
+    intendedLOIInvestorName(
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    intendedLOIShares(
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    mCap(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    saveLetterOfIntent(
+      target: PromiseOrValue<string>,
+      nbOfShares: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    storeInvestment(
+      _nbOfShares: PromiseOrValue<BigNumberish>,
+      _gwp: PromiseOrValue<string>,
+      _pricePaidEth: PromiseOrValue<BigNumberish>,
+      _salt: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    tld(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    LoI_arrived_for_GWP(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    UNG_Mcap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    chainName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    didGetFundingFrom(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    didInvestTo(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAuctionMaster(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getFundingReport(
+      _gwp: PromiseOrValue<string>,
+      _inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getGWF(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getGroupLOIinvestors(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getIntendedLOIShares(
+      tg: PromiseOrValue<string>,
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getIntendedNbOfShares(
+      target: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getLOIInvestorName(
+      tg: PromiseOrValue<string>,
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getMarketCap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getMasterCopy(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getRegController(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getSpice(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUNGmarketCap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    intendedLOIInvestorName(
+      _iv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    intendedLOIShares(
+      inv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    mCap(
+      _gwp: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    saveLetterOfIntent(
+      target: PromiseOrValue<string>,
+      nbOfShares: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    storeInvestment(
+      _nbOfShares: PromiseOrValue<BigNumberish>,
+      _gwp: PromiseOrValue<string>,
+      _pricePaidEth: PromiseOrValue<BigNumberish>,
+      _salt: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    tld(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

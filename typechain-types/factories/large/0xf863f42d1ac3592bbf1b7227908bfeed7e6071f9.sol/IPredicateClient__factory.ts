@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IPredicateClient,
   IPredicateClientInterface,
@@ -61,17 +62,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IPredicateClient__factory {
   static readonly abi = _abi;
   static createInterface(): IPredicateClientInterface {
-    return new Interface(_abi) as IPredicateClientInterface;
+    return new utils.Interface(_abi) as IPredicateClientInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IPredicateClient {
-    return new Contract(address, _abi, runner) as unknown as IPredicateClient;
+    return new Contract(address, _abi, signerOrProvider) as IPredicateClient;
   }
 }

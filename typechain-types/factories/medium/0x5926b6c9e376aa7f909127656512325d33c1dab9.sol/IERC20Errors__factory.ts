@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IERC20Errors,
   IERC20ErrorsInterface,
@@ -41,17 +42,17 @@ const _abi = [
     name: "ERC20InvalidSender",
     type: "error",
   },
-] as const;
+];
 
 export class IERC20Errors__factory {
   static readonly abi = _abi;
   static createInterface(): IERC20ErrorsInterface {
-    return new Interface(_abi) as IERC20ErrorsInterface;
+    return new utils.Interface(_abi) as IERC20ErrorsInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IERC20Errors {
-    return new Contract(address, _abi, runner) as unknown as IERC20Errors;
+    return new Contract(address, _abi, signerOrProvider) as IERC20Errors;
   }
 }

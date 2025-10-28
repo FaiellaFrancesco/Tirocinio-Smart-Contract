@@ -3,27 +3,48 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractTokenProxy_intInterface extends Interface {
+export interface AbstractTokenProxy_intInterface extends utils.Interface {
+  functions: {
+    "approve_v2d(address,uint256)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "buyPrice()": FunctionFragment;
+    "drainLegacyShares(bytes32,address,address)": FunctionFragment;
+    "drainShares(bytes32,address,address)": FunctionFragment;
+    "name()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "sellPrice()": FunctionFragment;
+    "sell_LA2(uint256)": FunctionFragment;
+    "substring(bytes,uint256,uint256)": FunctionFragment;
+    "tokenAllow(address,address)": FunctionFragment;
+    "transferFrom_78S(address,address,uint256)": FunctionFragment;
+    "transfer_G8l(address,uint256)": FunctionFragment;
+    "upgradeGWM(bytes32,address)": FunctionFragment;
+    "upgradeTokenMaster(bytes32,address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "approve_v2d"
       | "balanceOf"
       | "buyPrice"
@@ -43,51 +64,67 @@ export interface AbstractTokenProxy_intInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "approve_v2d",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "buyPrice", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "drainLegacyShares",
-    values: [BytesLike, AddressLike, AddressLike]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "drainShares",
-    values: [BytesLike, AddressLike, AddressLike]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "sellPrice", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "sell_LA2",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "substring",
-    values: [BytesLike, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenAllow",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom_78S",
-    values: [AddressLike, AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "transfer_G8l",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeGWM",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeTokenMaster",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -123,202 +160,427 @@ export interface AbstractTokenProxy_intInterface extends Interface {
     functionFragment: "upgradeTokenMaster",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface AbstractTokenProxy_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractTokenProxy_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractTokenProxy_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    approve_v2d(
+      spender: PromiseOrValue<string>,
+      tokens: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    balanceOf(
+      tokenOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { thebalance: BigNumber }>;
 
-  approve_v2d: TypedContractMethod<
-    [spender: AddressLike, tokens: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    buyPrice(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { bp: BigNumber }>;
 
-  balanceOf: TypedContractMethod<[tokenOwner: AddressLike], [bigint], "view">;
+    drainLegacyShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  buyPrice: TypedContractMethod<[], [bigint], "view">;
+    drainShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  drainLegacyShares: TypedContractMethod<
-    [dHash: BytesLike, from: AddressLike, toReceiver: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-  drainShares: TypedContractMethod<
-    [dHash: BytesLike, from: AddressLike, toReceiver: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    owner(overrides?: CallOverrides): Promise<[string] & { ow: string }>;
 
-  name: TypedContractMethod<[], [string], "view">;
+    sellPrice(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { sp: BigNumber }>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    sell_LA2(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  sellPrice: TypedContractMethod<[], [bigint], "view">;
+    substring(
+      self: PromiseOrValue<BytesLike>,
+      offset: PromiseOrValue<BigNumberish>,
+      len: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  sell_LA2: TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+    tokenAllow(
+      tokenOwner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { tokens: BigNumber }>;
 
-  substring: TypedContractMethod<
-    [self: BytesLike, offset: BigNumberish, len: BigNumberish],
-    [string],
-    "view"
-  >;
+    transferFrom_78S(
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  tokenAllow: TypedContractMethod<
-    [tokenOwner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
+    transfer_G8l(
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  transferFrom_78S: TypedContractMethod<
-    [from: AddressLike, toReceiver: AddressLike, amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    upgradeGWM(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  transfer_G8l: TypedContractMethod<
-    [toReceiver: AddressLike, amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    upgradeTokenMaster(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  upgradeGWM: TypedContractMethod<
-    [dHash: BytesLike, master: AddressLike],
-    [void],
-    "payable"
-  >;
+  approve_v2d(
+    spender: PromiseOrValue<string>,
+    tokens: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  upgradeTokenMaster: TypedContractMethod<
-    [dHash: BytesLike, master: AddressLike],
-    [void],
-    "payable"
-  >;
+  balanceOf(
+    tokenOwner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  buyPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "approve_v2d"
-  ): TypedContractMethod<
-    [spender: AddressLike, tokens: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "balanceOf"
-  ): TypedContractMethod<[tokenOwner: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "buyPrice"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "drainLegacyShares"
-  ): TypedContractMethod<
-    [dHash: BytesLike, from: AddressLike, toReceiver: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "drainShares"
-  ): TypedContractMethod<
-    [dHash: BytesLike, from: AddressLike, toReceiver: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "sellPrice"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "sell_LA2"
-  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "substring"
-  ): TypedContractMethod<
-    [self: BytesLike, offset: BigNumberish, len: BigNumberish],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "tokenAllow"
-  ): TypedContractMethod<
-    [tokenOwner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "transferFrom_78S"
-  ): TypedContractMethod<
-    [from: AddressLike, toReceiver: AddressLike, amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transfer_G8l"
-  ): TypedContractMethod<
-    [toReceiver: AddressLike, amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "upgradeGWM"
-  ): TypedContractMethod<
-    [dHash: BytesLike, master: AddressLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "upgradeTokenMaster"
-  ): TypedContractMethod<
-    [dHash: BytesLike, master: AddressLike],
-    [void],
-    "payable"
-  >;
+  drainLegacyShares(
+    dHash: PromiseOrValue<BytesLike>,
+    from: PromiseOrValue<string>,
+    toReceiver: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  drainShares(
+    dHash: PromiseOrValue<BytesLike>,
+    from: PromiseOrValue<string>,
+    toReceiver: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  sellPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+  sell_LA2(
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  substring(
+    self: PromiseOrValue<BytesLike>,
+    offset: PromiseOrValue<BigNumberish>,
+    len: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  tokenAllow(
+    tokenOwner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  transferFrom_78S(
+    from: PromiseOrValue<string>,
+    toReceiver: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transfer_G8l(
+    toReceiver: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradeGWM(
+    dHash: PromiseOrValue<BytesLike>,
+    master: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradeTokenMaster(
+    dHash: PromiseOrValue<BytesLike>,
+    master: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    approve_v2d(
+      spender: PromiseOrValue<string>,
+      tokens: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    balanceOf(
+      tokenOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    buyPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    drainLegacyShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    drainShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    sellPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sell_LA2(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    substring(
+      self: PromiseOrValue<BytesLike>,
+      offset: PromiseOrValue<BigNumberish>,
+      len: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    tokenAllow(
+      tokenOwner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    transferFrom_78S(
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    transfer_G8l(
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradeGWM(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradeTokenMaster(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    approve_v2d(
+      spender: PromiseOrValue<string>,
+      tokens: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    balanceOf(
+      tokenOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    buyPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    drainLegacyShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    drainShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sellPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sell_LA2(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    substring(
+      self: PromiseOrValue<BytesLike>,
+      offset: PromiseOrValue<BigNumberish>,
+      len: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    tokenAllow(
+      tokenOwner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    transferFrom_78S(
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transfer_G8l(
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    upgradeGWM(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    upgradeTokenMaster(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    approve_v2d(
+      spender: PromiseOrValue<string>,
+      tokens: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      tokenOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    buyPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    drainLegacyShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    drainShares(
+      dHash: PromiseOrValue<BytesLike>,
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sellPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sell_LA2(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    substring(
+      self: PromiseOrValue<BytesLike>,
+      offset: PromiseOrValue<BigNumberish>,
+      len: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tokenAllow(
+      tokenOwner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom_78S(
+      from: PromiseOrValue<string>,
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transfer_G8l(
+      toReceiver: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradeGWM(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradeTokenMaster(
+      dHash: PromiseOrValue<BytesLike>,
+      master: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

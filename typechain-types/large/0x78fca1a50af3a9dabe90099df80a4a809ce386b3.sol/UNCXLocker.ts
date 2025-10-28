@@ -3,63 +3,71 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace StructsLibrary {
   export type FeeStructStruct = {
-    ethFee: BigNumberish;
-    secondaryFeeToken: AddressLike;
-    secondaryTokenFee: BigNumberish;
-    secondaryTokenDiscount: BigNumberish;
-    liquidityFee: BigNumberish;
-    referralPercent: BigNumberish;
-    referralToken: AddressLike;
-    referralHold: BigNumberish;
-    referralDiscount: BigNumberish;
+    ethFee: PromiseOrValue<BigNumberish>;
+    secondaryFeeToken: PromiseOrValue<string>;
+    secondaryTokenFee: PromiseOrValue<BigNumberish>;
+    secondaryTokenDiscount: PromiseOrValue<BigNumberish>;
+    liquidityFee: PromiseOrValue<BigNumberish>;
+    referralPercent: PromiseOrValue<BigNumberish>;
+    referralToken: PromiseOrValue<string>;
+    referralHold: PromiseOrValue<BigNumberish>;
+    referralDiscount: PromiseOrValue<BigNumberish>;
   };
 
   export type FeeStructStructOutput = [
-    ethFee: bigint,
-    secondaryFeeToken: string,
-    secondaryTokenFee: bigint,
-    secondaryTokenDiscount: bigint,
-    liquidityFee: bigint,
-    referralPercent: bigint,
-    referralToken: string,
-    referralHold: bigint,
-    referralDiscount: bigint
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber
   ] & {
-    ethFee: bigint;
+    ethFee: BigNumber;
     secondaryFeeToken: string;
-    secondaryTokenFee: bigint;
-    secondaryTokenDiscount: bigint;
-    liquidityFee: bigint;
-    referralPercent: bigint;
+    secondaryTokenFee: BigNumber;
+    secondaryTokenDiscount: BigNumber;
+    liquidityFee: BigNumber;
+    referralPercent: BigNumber;
     referralToken: string;
-    referralHold: bigint;
-    referralDiscount: bigint;
+    referralHold: BigNumber;
+    referralDiscount: BigNumber;
   };
 }
 
-export interface UNCXLockerInterface extends Interface {
+export interface UNCXLockerInterface extends utils.Interface {
+  functions: {
+    "gFees()": FunctionFragment;
+    "lockLPToken(address,uint256,uint256,address,bool,address)": FunctionFragment;
+    "lockLPToken(address,uint256,uint256,address,bool,address,uint16)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "gFees"
       | "lockLPToken(address,uint256,uint256,address,bool,address)"
       | "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"
@@ -69,24 +77,24 @@ export interface UNCXLockerInterface extends Interface {
   encodeFunctionData(
     functionFragment: "lockLPToken(address,uint256,uint256,address,bool,address)",
     values: [
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      boolean,
-      AddressLike
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<string>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "lockLPToken(address,uint256,uint256,address,bool,address,uint16)",
     values: [
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      boolean,
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
 
@@ -99,120 +107,168 @@ export interface UNCXLockerInterface extends Interface {
     functionFragment: "lockLPToken(address,uint256,uint256,address,bool,address,uint16)",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface UNCXLocker extends BaseContract {
-  connect(runner?: ContractRunner | null): UNCXLocker;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: UNCXLockerInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    gFees(
+      overrides?: CallOverrides
+    ): Promise<
+      [StructsLibrary.FeeStructStructOutput] & {
+        feeStruct: StructsLibrary.FeeStructStructOutput;
+      }
+    >;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    "lockLPToken(address,uint256,uint256,address,bool,address)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  gFees: TypedContractMethod<
-    [],
-    [StructsLibrary.FeeStructStructOutput],
-    "view"
-  >;
+    "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      _countryCode: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  "lockLPToken(address,uint256,uint256,address,bool,address)": TypedContractMethod<
-    [
-      _lpToken: AddressLike,
-      _amount: BigNumberish,
-      _unlock_date: BigNumberish,
-      _referral: AddressLike,
-      _fee_in_eth: boolean,
-      _withdrawer: AddressLike
-    ],
-    [void],
-    "payable"
-  >;
+  gFees(
+    overrides?: CallOverrides
+  ): Promise<StructsLibrary.FeeStructStructOutput>;
 
-  "lockLPToken(address,uint256,uint256,address,bool,address,uint16)": TypedContractMethod<
-    [
-      _lpToken: AddressLike,
-      _amount: BigNumberish,
-      _unlock_date: BigNumberish,
-      _referral: AddressLike,
-      _fee_in_eth: boolean,
-      _withdrawer: AddressLike,
-      _countryCode: BigNumberish
-    ],
-    [void],
-    "payable"
-  >;
+  "lockLPToken(address,uint256,uint256,address,bool,address)"(
+    _lpToken: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
+    _unlock_date: PromiseOrValue<BigNumberish>,
+    _referral: PromiseOrValue<string>,
+    _fee_in_eth: PromiseOrValue<boolean>,
+    _withdrawer: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"(
+    _lpToken: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
+    _unlock_date: PromiseOrValue<BigNumberish>,
+    _referral: PromiseOrValue<string>,
+    _fee_in_eth: PromiseOrValue<boolean>,
+    _withdrawer: PromiseOrValue<string>,
+    _countryCode: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "gFees"
-  ): TypedContractMethod<[], [StructsLibrary.FeeStructStructOutput], "view">;
-  getFunction(
-    nameOrSignature: "lockLPToken(address,uint256,uint256,address,bool,address)"
-  ): TypedContractMethod<
-    [
-      _lpToken: AddressLike,
-      _amount: BigNumberish,
-      _unlock_date: BigNumberish,
-      _referral: AddressLike,
-      _fee_in_eth: boolean,
-      _withdrawer: AddressLike
-    ],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"
-  ): TypedContractMethod<
-    [
-      _lpToken: AddressLike,
-      _amount: BigNumberish,
-      _unlock_date: BigNumberish,
-      _referral: AddressLike,
-      _fee_in_eth: boolean,
-      _withdrawer: AddressLike,
-      _countryCode: BigNumberish
-    ],
-    [void],
-    "payable"
-  >;
+  callStatic: {
+    gFees(
+      overrides?: CallOverrides
+    ): Promise<StructsLibrary.FeeStructStructOutput>;
+
+    "lockLPToken(address,uint256,uint256,address,bool,address)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      _countryCode: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    gFees(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "lockLPToken(address,uint256,uint256,address,bool,address)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      _countryCode: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    gFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "lockLPToken(address,uint256,uint256,address,bool,address)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "lockLPToken(address,uint256,uint256,address,bool,address,uint16)"(
+      _lpToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _unlock_date: PromiseOrValue<BigNumberish>,
+      _referral: PromiseOrValue<string>,
+      _fee_in_eth: PromiseOrValue<boolean>,
+      _withdrawer: PromiseOrValue<string>,
+      _countryCode: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

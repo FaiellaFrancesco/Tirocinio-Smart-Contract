@@ -3,26 +3,45 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface VaultInterface extends Interface {
+export interface VaultInterface extends utils.Interface {
+  functions: {
+    "FEE_DIVISOR()": FunctionFragment;
+    "approveTaxesFullyForTeam()": FunctionFragment;
+    "ethDispersed()": FunctionFragment;
+    "ethReceived()": FunctionFragment;
+    "ethRelease(uint256)": FunctionFragment;
+    "forceBuyBack(uint256,uint256)": FunctionFragment;
+    "incubatorAddress()": FunctionFragment;
+    "incubatorFullApproved()": FunctionFragment;
+    "incubatorRejected()": FunctionFragment;
+    "overrideAddress()": FunctionFragment;
+    "parentToken()": FunctionFragment;
+    "tokenRelease(uint256)": FunctionFragment;
+    "tokensDispersed()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "FEE_DIVISOR"
       | "approveTaxesFullyForTeam"
       | "ethDispersed"
@@ -56,11 +75,11 @@ export interface VaultInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "ethRelease",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "forceBuyBack",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "incubatorAddress",
@@ -84,7 +103,7 @@ export interface VaultInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "tokenRelease",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "tokensDispersed",
@@ -140,136 +159,233 @@ export interface VaultInterface extends Interface {
     functionFragment: "tokensDispersed",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface Vault extends BaseContract {
-  connect(runner?: ContractRunner | null): Vault;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: VaultInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    approveTaxesFullyForTeam(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  FEE_DIVISOR: TypedContractMethod<[], [bigint], "view">;
+    ethDispersed(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  approveTaxesFullyForTeam: TypedContractMethod<[], [void], "nonpayable">;
+    ethReceived(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  ethDispersed: TypedContractMethod<[], [bigint], "view">;
+    ethRelease(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ethReceived: TypedContractMethod<[], [bigint], "view">;
+    forceBuyBack(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ethRelease: TypedContractMethod<
-    [ethAmount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    incubatorAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  forceBuyBack: TypedContractMethod<
-    [ethAmount: BigNumberish, minOutput: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    incubatorFullApproved(overrides?: CallOverrides): Promise<[boolean]>;
 
-  incubatorAddress: TypedContractMethod<[], [string], "view">;
+    incubatorRejected(overrides?: CallOverrides): Promise<[boolean]>;
 
-  incubatorFullApproved: TypedContractMethod<[], [boolean], "view">;
+    overrideAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  incubatorRejected: TypedContractMethod<[], [boolean], "view">;
+    parentToken(overrides?: CallOverrides): Promise<[string]>;
 
-  overrideAddress: TypedContractMethod<[], [string], "view">;
+    tokenRelease(
+      tokenAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  parentToken: TypedContractMethod<[], [string], "view">;
+    tokensDispersed(overrides?: CallOverrides): Promise<[BigNumber]>;
+  };
 
-  tokenRelease: TypedContractMethod<
-    [tokenAmount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  FEE_DIVISOR(overrides?: CallOverrides): Promise<BigNumber>;
 
-  tokensDispersed: TypedContractMethod<[], [bigint], "view">;
+  approveTaxesFullyForTeam(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  ethDispersed(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "FEE_DIVISOR"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "approveTaxesFullyForTeam"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "ethDispersed"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "ethReceived"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "ethRelease"
-  ): TypedContractMethod<[ethAmount: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "forceBuyBack"
-  ): TypedContractMethod<
-    [ethAmount: BigNumberish, minOutput: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "incubatorAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "incubatorFullApproved"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "incubatorRejected"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "overrideAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "parentToken"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tokenRelease"
-  ): TypedContractMethod<[tokenAmount: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "tokensDispersed"
-  ): TypedContractMethod<[], [bigint], "view">;
+  ethReceived(overrides?: CallOverrides): Promise<BigNumber>;
+
+  ethRelease(
+    ethAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  forceBuyBack(
+    ethAmount: PromiseOrValue<BigNumberish>,
+    minOutput: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  incubatorAddress(overrides?: CallOverrides): Promise<string>;
+
+  incubatorFullApproved(overrides?: CallOverrides): Promise<boolean>;
+
+  incubatorRejected(overrides?: CallOverrides): Promise<boolean>;
+
+  overrideAddress(overrides?: CallOverrides): Promise<string>;
+
+  parentToken(overrides?: CallOverrides): Promise<string>;
+
+  tokenRelease(
+    tokenAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  tokensDispersed(overrides?: CallOverrides): Promise<BigNumber>;
+
+  callStatic: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    approveTaxesFullyForTeam(overrides?: CallOverrides): Promise<void>;
+
+    ethDispersed(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ethReceived(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ethRelease(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    forceBuyBack(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    incubatorAddress(overrides?: CallOverrides): Promise<string>;
+
+    incubatorFullApproved(overrides?: CallOverrides): Promise<boolean>;
+
+    incubatorRejected(overrides?: CallOverrides): Promise<boolean>;
+
+    overrideAddress(overrides?: CallOverrides): Promise<string>;
+
+    parentToken(overrides?: CallOverrides): Promise<string>;
+
+    tokenRelease(
+      tokenAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    tokensDispersed(overrides?: CallOverrides): Promise<BigNumber>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    approveTaxesFullyForTeam(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ethDispersed(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ethReceived(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ethRelease(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    forceBuyBack(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    incubatorAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    incubatorFullApproved(overrides?: CallOverrides): Promise<BigNumber>;
+
+    incubatorRejected(overrides?: CallOverrides): Promise<BigNumber>;
+
+    overrideAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    parentToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenRelease(
+      tokenAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    tokensDispersed(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    FEE_DIVISOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    approveTaxesFullyForTeam(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ethDispersed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ethReceived(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ethRelease(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    forceBuyBack(
+      ethAmount: PromiseOrValue<BigNumberish>,
+      minOutput: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    incubatorAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    incubatorFullApproved(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    incubatorRejected(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    overrideAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    parentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokenRelease(
+      tokenAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    tokensDispersed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+  };
 }

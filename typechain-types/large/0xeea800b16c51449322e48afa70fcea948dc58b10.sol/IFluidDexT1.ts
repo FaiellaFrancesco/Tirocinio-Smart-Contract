@@ -3,39 +3,42 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IFluidDexT1 {
   export type ImplementationsStruct = {
-    shift: AddressLike;
-    admin: AddressLike;
-    colOperations: AddressLike;
-    debtOperations: AddressLike;
-    perfectOperationsAndOracle: AddressLike;
+    shift: PromiseOrValue<string>;
+    admin: PromiseOrValue<string>;
+    colOperations: PromiseOrValue<string>;
+    debtOperations: PromiseOrValue<string>;
+    perfectOperationsAndOracle: PromiseOrValue<string>;
   };
 
   export type ImplementationsStructOutput = [
-    shift: string,
-    admin: string,
-    colOperations: string,
-    debtOperations: string,
-    perfectOperationsAndOracle: string
+    string,
+    string,
+    string,
+    string,
+    string
   ] & {
     shift: string;
     admin: string;
@@ -45,39 +48,39 @@ export declare namespace IFluidDexT1 {
   };
 
   export type ConstantViewsStruct = {
-    dexId: BigNumberish;
-    liquidity: AddressLike;
-    factory: AddressLike;
+    dexId: PromiseOrValue<BigNumberish>;
+    liquidity: PromiseOrValue<string>;
+    factory: PromiseOrValue<string>;
     implementations: IFluidDexT1.ImplementationsStruct;
-    deployerContract: AddressLike;
-    token0: AddressLike;
-    token1: AddressLike;
-    supplyToken0Slot: BytesLike;
-    borrowToken0Slot: BytesLike;
-    supplyToken1Slot: BytesLike;
-    borrowToken1Slot: BytesLike;
-    exchangePriceToken0Slot: BytesLike;
-    exchangePriceToken1Slot: BytesLike;
-    oracleMapping: BigNumberish;
+    deployerContract: PromiseOrValue<string>;
+    token0: PromiseOrValue<string>;
+    token1: PromiseOrValue<string>;
+    supplyToken0Slot: PromiseOrValue<BytesLike>;
+    borrowToken0Slot: PromiseOrValue<BytesLike>;
+    supplyToken1Slot: PromiseOrValue<BytesLike>;
+    borrowToken1Slot: PromiseOrValue<BytesLike>;
+    exchangePriceToken0Slot: PromiseOrValue<BytesLike>;
+    exchangePriceToken1Slot: PromiseOrValue<BytesLike>;
+    oracleMapping: PromiseOrValue<BigNumberish>;
   };
 
   export type ConstantViewsStructOutput = [
-    dexId: bigint,
-    liquidity: string,
-    factory: string,
-    implementations: IFluidDexT1.ImplementationsStructOutput,
-    deployerContract: string,
-    token0: string,
-    token1: string,
-    supplyToken0Slot: string,
-    borrowToken0Slot: string,
-    supplyToken1Slot: string,
-    borrowToken1Slot: string,
-    exchangePriceToken0Slot: string,
-    exchangePriceToken1Slot: string,
-    oracleMapping: bigint
+    BigNumber,
+    string,
+    string,
+    IFluidDexT1.ImplementationsStructOutput,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    BigNumber
   ] & {
-    dexId: bigint;
+    dexId: BigNumber;
     liquidity: string;
     factory: string;
     implementations: IFluidDexT1.ImplementationsStructOutput;
@@ -90,101 +93,124 @@ export declare namespace IFluidDexT1 {
     borrowToken1Slot: string;
     exchangePriceToken0Slot: string;
     exchangePriceToken1Slot: string;
-    oracleMapping: bigint;
+    oracleMapping: BigNumber;
   };
 
   export type ConstantViews2Struct = {
-    token0NumeratorPrecision: BigNumberish;
-    token0DenominatorPrecision: BigNumberish;
-    token1NumeratorPrecision: BigNumberish;
-    token1DenominatorPrecision: BigNumberish;
+    token0NumeratorPrecision: PromiseOrValue<BigNumberish>;
+    token0DenominatorPrecision: PromiseOrValue<BigNumberish>;
+    token1NumeratorPrecision: PromiseOrValue<BigNumberish>;
+    token1DenominatorPrecision: PromiseOrValue<BigNumberish>;
   };
 
   export type ConstantViews2StructOutput = [
-    token0NumeratorPrecision: bigint,
-    token0DenominatorPrecision: bigint,
-    token1NumeratorPrecision: bigint,
-    token1DenominatorPrecision: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    token0NumeratorPrecision: bigint;
-    token0DenominatorPrecision: bigint;
-    token1NumeratorPrecision: bigint;
-    token1DenominatorPrecision: bigint;
+    token0NumeratorPrecision: BigNumber;
+    token0DenominatorPrecision: BigNumber;
+    token1NumeratorPrecision: BigNumber;
+    token1DenominatorPrecision: BigNumber;
   };
 
   export type CollateralReservesStruct = {
-    token0RealReserves: BigNumberish;
-    token1RealReserves: BigNumberish;
-    token0ImaginaryReserves: BigNumberish;
-    token1ImaginaryReserves: BigNumberish;
+    token0RealReserves: PromiseOrValue<BigNumberish>;
+    token1RealReserves: PromiseOrValue<BigNumberish>;
+    token0ImaginaryReserves: PromiseOrValue<BigNumberish>;
+    token1ImaginaryReserves: PromiseOrValue<BigNumberish>;
   };
 
   export type CollateralReservesStructOutput = [
-    token0RealReserves: bigint,
-    token1RealReserves: bigint,
-    token0ImaginaryReserves: bigint,
-    token1ImaginaryReserves: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    token0RealReserves: bigint;
-    token1RealReserves: bigint;
-    token0ImaginaryReserves: bigint;
-    token1ImaginaryReserves: bigint;
+    token0RealReserves: BigNumber;
+    token1RealReserves: BigNumber;
+    token0ImaginaryReserves: BigNumber;
+    token1ImaginaryReserves: BigNumber;
   };
 
   export type DebtReservesStruct = {
-    token0Debt: BigNumberish;
-    token1Debt: BigNumberish;
-    token0RealReserves: BigNumberish;
-    token1RealReserves: BigNumberish;
-    token0ImaginaryReserves: BigNumberish;
-    token1ImaginaryReserves: BigNumberish;
+    token0Debt: PromiseOrValue<BigNumberish>;
+    token1Debt: PromiseOrValue<BigNumberish>;
+    token0RealReserves: PromiseOrValue<BigNumberish>;
+    token1RealReserves: PromiseOrValue<BigNumberish>;
+    token0ImaginaryReserves: PromiseOrValue<BigNumberish>;
+    token1ImaginaryReserves: PromiseOrValue<BigNumberish>;
   };
 
   export type DebtReservesStructOutput = [
-    token0Debt: bigint,
-    token1Debt: bigint,
-    token0RealReserves: bigint,
-    token1RealReserves: bigint,
-    token0ImaginaryReserves: bigint,
-    token1ImaginaryReserves: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    token0Debt: bigint;
-    token1Debt: bigint;
-    token0RealReserves: bigint;
-    token1RealReserves: bigint;
-    token0ImaginaryReserves: bigint;
-    token1ImaginaryReserves: bigint;
+    token0Debt: BigNumber;
+    token1Debt: BigNumber;
+    token0RealReserves: BigNumber;
+    token1RealReserves: BigNumber;
+    token0ImaginaryReserves: BigNumber;
+    token1ImaginaryReserves: BigNumber;
   };
 
   export type OracleStruct = {
-    twap1by0: BigNumberish;
-    lowestPrice1by0: BigNumberish;
-    highestPrice1by0: BigNumberish;
-    twap0by1: BigNumberish;
-    lowestPrice0by1: BigNumberish;
-    highestPrice0by1: BigNumberish;
+    twap1by0: PromiseOrValue<BigNumberish>;
+    lowestPrice1by0: PromiseOrValue<BigNumberish>;
+    highestPrice1by0: PromiseOrValue<BigNumberish>;
+    twap0by1: PromiseOrValue<BigNumberish>;
+    lowestPrice0by1: PromiseOrValue<BigNumberish>;
+    highestPrice0by1: PromiseOrValue<BigNumberish>;
   };
 
   export type OracleStructOutput = [
-    twap1by0: bigint,
-    lowestPrice1by0: bigint,
-    highestPrice1by0: bigint,
-    twap0by1: bigint,
-    lowestPrice0by1: bigint,
-    highestPrice0by1: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    twap1by0: bigint;
-    lowestPrice1by0: bigint;
-    highestPrice1by0: bigint;
-    twap0by1: bigint;
-    lowestPrice0by1: bigint;
-    highestPrice0by1: bigint;
+    twap1by0: BigNumber;
+    lowestPrice1by0: BigNumber;
+    highestPrice1by0: BigNumber;
+    twap0by1: BigNumber;
+    lowestPrice0by1: BigNumber;
+    highestPrice0by1: BigNumber;
   };
 }
 
-export interface IFluidDexT1Interface extends Interface {
+export interface IFluidDexT1Interface extends utils.Interface {
+  functions: {
+    "DEX_ID()": FunctionFragment;
+    "borrow(uint256,uint256,uint256,address)": FunctionFragment;
+    "borrowPerfect(uint256,uint256,uint256,address)": FunctionFragment;
+    "constantsView()": FunctionFragment;
+    "constantsView2()": FunctionFragment;
+    "deposit(uint256,uint256,uint256,bool)": FunctionFragment;
+    "depositPerfect(uint256,uint256,uint256,bool)": FunctionFragment;
+    "getCollateralReserves(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "getDebtReserves(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "getPricesAndExchangePrices()": FunctionFragment;
+    "oraclePrice(uint256[])": FunctionFragment;
+    "payback(uint256,uint256,uint256,bool)": FunctionFragment;
+    "paybackPerfect(uint256,uint256,uint256,bool)": FunctionFragment;
+    "paybackPerfectInOneToken(uint256,uint256,uint256,bool)": FunctionFragment;
+    "readFromStorage(bytes32)": FunctionFragment;
+    "swapIn(bool,uint256,uint256,address)": FunctionFragment;
+    "swapOut(bool,uint256,uint256,address)": FunctionFragment;
+    "withdraw(uint256,uint256,uint256,address)": FunctionFragment;
+    "withdrawPerfect(uint256,uint256,uint256,address)": FunctionFragment;
+    "withdrawPerfectInOneToken(uint256,uint256,uint256,address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "DEX_ID"
       | "borrow"
       | "borrowPerfect"
@@ -210,11 +236,21 @@ export interface IFluidDexT1Interface extends Interface {
   encodeFunctionData(functionFragment: "DEX_ID", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "borrow",
-    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "borrowPerfect",
-    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "constantsView",
@@ -226,30 +262,40 @@ export interface IFluidDexT1Interface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish, BigNumberish, BigNumberish, boolean]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "depositPerfect",
-    values: [BigNumberish, BigNumberish, BigNumberish, boolean]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getCollateralReserves",
     values: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "getDebtReserves",
     values: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
@@ -258,43 +304,83 @@ export interface IFluidDexT1Interface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "oraclePrice",
-    values: [BigNumberish[]]
+    values: [PromiseOrValue<BigNumberish>[]]
   ): string;
   encodeFunctionData(
     functionFragment: "payback",
-    values: [BigNumberish, BigNumberish, BigNumberish, boolean]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "paybackPerfect",
-    values: [BigNumberish, BigNumberish, BigNumberish, boolean]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "paybackPerfectInOneToken",
-    values: [BigNumberish, BigNumberish, BigNumberish, boolean]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "readFromStorage",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "swapIn",
-    values: [boolean, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapOut",
-    values: [boolean, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawPerfect",
-    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawPerfectInOneToken",
-    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
 
   decodeFunctionResult(functionFragment: "DEX_ID", data: BytesLike): Result;
@@ -356,437 +442,762 @@ export interface IFluidDexT1Interface extends Interface {
     functionFragment: "withdrawPerfectInOneToken",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IFluidDexT1 extends BaseContract {
-  connect(runner?: ContractRunner | null): IFluidDexT1;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IFluidDexT1Interface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    DEX_ID(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    borrow(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  DEX_ID: TypedContractMethod<[], [bigint], "view">;
+    borrowPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Borrow_: PromiseOrValue<BigNumberish>,
+      minToken1Borrow_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  borrow: TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-
-  borrowPerfect: TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      minToken0Borrow_: BigNumberish,
-      minToken1Borrow_: BigNumberish,
-      to_: AddressLike
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "nonpayable"
-  >;
-
-  constantsView: TypedContractMethod<
-    [],
-    [IFluidDexT1.ConstantViewsStructOutput],
-    "view"
-  >;
-
-  constantsView2: TypedContractMethod<
-    [],
-    [IFluidDexT1.ConstantViews2StructOutput],
-    "view"
-  >;
-
-  deposit: TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish,
-      estimate_: boolean
-    ],
-    [bigint],
-    "payable"
-  >;
-
-  depositPerfect: TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      maxToken0Deposit_: BigNumberish,
-      maxToken1Deposit_: BigNumberish,
-      estimate_: boolean
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "payable"
-  >;
-
-  getCollateralReserves: TypedContractMethod<
-    [
-      geometricMean_: BigNumberish,
-      upperRange_: BigNumberish,
-      lowerRange_: BigNumberish,
-      token0SupplyExchangePrice_: BigNumberish,
-      token1SupplyExchangePrice_: BigNumberish
-    ],
-    [IFluidDexT1.CollateralReservesStructOutput],
-    "view"
-  >;
-
-  getDebtReserves: TypedContractMethod<
-    [
-      geometricMean_: BigNumberish,
-      upperRange_: BigNumberish,
-      lowerRange_: BigNumberish,
-      token0BorrowExchangePrice_: BigNumberish,
-      token1BorrowExchangePrice_: BigNumberish
-    ],
-    [IFluidDexT1.DebtReservesStructOutput],
-    "view"
-  >;
-
-  getPricesAndExchangePrices: TypedContractMethod<[], [void], "nonpayable">;
-
-  oraclePrice: TypedContractMethod<
-    [secondsAgos_: BigNumberish[]],
-    [
-      [IFluidDexT1.OracleStructOutput[], bigint] & {
-        twaps_: IFluidDexT1.OracleStructOutput[];
-        currentPrice_: bigint;
+    constantsView(
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidDexT1.ConstantViewsStructOutput] & {
+        constantsView_: IFluidDexT1.ConstantViewsStructOutput;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  payback: TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish,
-      estimate_: boolean
-    ],
-    [bigint],
-    "payable"
-  >;
-
-  paybackPerfect: TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      maxToken0Payback_: BigNumberish,
-      maxToken1Payback_: BigNumberish,
-      estimate_: boolean
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "payable"
-  >;
-
-  paybackPerfectInOneToken: TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      maxToken0_: BigNumberish,
-      maxToken1_: BigNumberish,
-      estimate_: boolean
-    ],
-    [bigint],
-    "payable"
-  >;
-
-  readFromStorage: TypedContractMethod<[slot_: BytesLike], [bigint], "view">;
-
-  swapIn: TypedContractMethod<
-    [
-      swap0to1_: boolean,
-      amountIn_: BigNumberish,
-      amountOutMin_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "payable"
-  >;
-
-  swapOut: TypedContractMethod<
-    [
-      swap0to1_: boolean,
-      amountOut_: BigNumberish,
-      amountInMax_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "payable"
-  >;
-
-  withdraw: TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-
-  withdrawPerfect: TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      minToken0Withdraw_: BigNumberish,
-      minToken1Withdraw_: BigNumberish,
-      to_: AddressLike
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "nonpayable"
-  >;
-
-  withdrawPerfectInOneToken: TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      minToken0_: BigNumberish,
-      minToken1_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "DEX_ID"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "borrow"
-  ): TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "borrowPerfect"
-  ): TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      minToken0Borrow_: BigNumberish,
-      minToken1Borrow_: BigNumberish,
-      to_: AddressLike
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "constantsView"
-  ): TypedContractMethod<[], [IFluidDexT1.ConstantViewsStructOutput], "view">;
-  getFunction(
-    nameOrSignature: "constantsView2"
-  ): TypedContractMethod<[], [IFluidDexT1.ConstantViews2StructOutput], "view">;
-  getFunction(
-    nameOrSignature: "deposit"
-  ): TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish,
-      estimate_: boolean
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "depositPerfect"
-  ): TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      maxToken0Deposit_: BigNumberish,
-      maxToken1Deposit_: BigNumberish,
-      estimate_: boolean
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "getCollateralReserves"
-  ): TypedContractMethod<
-    [
-      geometricMean_: BigNumberish,
-      upperRange_: BigNumberish,
-      lowerRange_: BigNumberish,
-      token0SupplyExchangePrice_: BigNumberish,
-      token1SupplyExchangePrice_: BigNumberish
-    ],
-    [IFluidDexT1.CollateralReservesStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getDebtReserves"
-  ): TypedContractMethod<
-    [
-      geometricMean_: BigNumberish,
-      upperRange_: BigNumberish,
-      lowerRange_: BigNumberish,
-      token0BorrowExchangePrice_: BigNumberish,
-      token1BorrowExchangePrice_: BigNumberish
-    ],
-    [IFluidDexT1.DebtReservesStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getPricesAndExchangePrices"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "oraclePrice"
-  ): TypedContractMethod<
-    [secondsAgos_: BigNumberish[]],
-    [
-      [IFluidDexT1.OracleStructOutput[], bigint] & {
-        twaps_: IFluidDexT1.OracleStructOutput[];
-        currentPrice_: bigint;
+    constantsView2(
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidDexT1.ConstantViews2StructOutput] & {
+        constantsView2_: IFluidDexT1.ConstantViews2StructOutput;
       }
-    ],
-    "view"
+    >;
+
+    deposit(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    depositPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Deposit_: PromiseOrValue<BigNumberish>,
+      maxToken1Deposit_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    getCollateralReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidDexT1.CollateralReservesStructOutput] & {
+        c_: IFluidDexT1.CollateralReservesStructOutput;
+      }
+    >;
+
+    getDebtReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidDexT1.DebtReservesStructOutput] & {
+        d_: IFluidDexT1.DebtReservesStructOutput;
+      }
+    >;
+
+    getPricesAndExchangePrices(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    oraclePrice(
+      secondsAgos_: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidDexT1.OracleStructOutput[], BigNumber] & {
+        twaps_: IFluidDexT1.OracleStructOutput[];
+        currentPrice_: BigNumber;
+      }
+    >;
+
+    payback(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    paybackPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Payback_: PromiseOrValue<BigNumberish>,
+      maxToken1Payback_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    paybackPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    readFromStorage(
+      slot_: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { result_: BigNumber }>;
+
+    swapIn(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountIn_: PromiseOrValue<BigNumberish>,
+      amountOutMin_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    swapOut(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountOut_: PromiseOrValue<BigNumberish>,
+      amountInMax_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdraw(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Withdraw_: PromiseOrValue<BigNumberish>,
+      minToken1Withdraw_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  DEX_ID(overrides?: CallOverrides): Promise<BigNumber>;
+
+  borrow(
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    maxSharesAmt_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  borrowPerfect(
+    shares_: PromiseOrValue<BigNumberish>,
+    minToken0Borrow_: PromiseOrValue<BigNumberish>,
+    minToken1Borrow_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  constantsView(
+    overrides?: CallOverrides
+  ): Promise<IFluidDexT1.ConstantViewsStructOutput>;
+
+  constantsView2(
+    overrides?: CallOverrides
+  ): Promise<IFluidDexT1.ConstantViews2StructOutput>;
+
+  deposit(
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    minSharesAmt_: PromiseOrValue<BigNumberish>,
+    estimate_: PromiseOrValue<boolean>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  depositPerfect(
+    shares_: PromiseOrValue<BigNumberish>,
+    maxToken0Deposit_: PromiseOrValue<BigNumberish>,
+    maxToken1Deposit_: PromiseOrValue<BigNumberish>,
+    estimate_: PromiseOrValue<boolean>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getCollateralReserves(
+    geometricMean_: PromiseOrValue<BigNumberish>,
+    upperRange_: PromiseOrValue<BigNumberish>,
+    lowerRange_: PromiseOrValue<BigNumberish>,
+    token0SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+    token1SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<IFluidDexT1.CollateralReservesStructOutput>;
+
+  getDebtReserves(
+    geometricMean_: PromiseOrValue<BigNumberish>,
+    upperRange_: PromiseOrValue<BigNumberish>,
+    lowerRange_: PromiseOrValue<BigNumberish>,
+    token0BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+    token1BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<IFluidDexT1.DebtReservesStructOutput>;
+
+  getPricesAndExchangePrices(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  oraclePrice(
+    secondsAgos_: PromiseOrValue<BigNumberish>[],
+    overrides?: CallOverrides
+  ): Promise<
+    [IFluidDexT1.OracleStructOutput[], BigNumber] & {
+      twaps_: IFluidDexT1.OracleStructOutput[];
+      currentPrice_: BigNumber;
+    }
   >;
-  getFunction(
-    nameOrSignature: "payback"
-  ): TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish,
-      estimate_: boolean
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "paybackPerfect"
-  ): TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      maxToken0Payback_: BigNumberish,
-      maxToken1Payback_: BigNumberish,
-      estimate_: boolean
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "paybackPerfectInOneToken"
-  ): TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      maxToken0_: BigNumberish,
-      maxToken1_: BigNumberish,
-      estimate_: boolean
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "readFromStorage"
-  ): TypedContractMethod<[slot_: BytesLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "swapIn"
-  ): TypedContractMethod<
-    [
-      swap0to1_: boolean,
-      amountIn_: BigNumberish,
-      amountOutMin_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "swapOut"
-  ): TypedContractMethod<
-    [
-      swap0to1_: boolean,
-      amountOut_: BigNumberish,
-      amountInMax_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "withdraw"
-  ): TypedContractMethod<
-    [
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "withdrawPerfect"
-  ): TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      minToken0Withdraw_: BigNumberish,
-      minToken1Withdraw_: BigNumberish,
-      to_: AddressLike
-    ],
-    [[bigint, bigint] & { token0Amt_: bigint; token1Amt_: bigint }],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "withdrawPerfectInOneToken"
-  ): TypedContractMethod<
-    [
-      shares_: BigNumberish,
-      minToken0_: BigNumberish,
-      minToken1_: BigNumberish,
-      to_: AddressLike
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+
+  payback(
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    minSharesAmt_: PromiseOrValue<BigNumberish>,
+    estimate_: PromiseOrValue<boolean>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  paybackPerfect(
+    shares_: PromiseOrValue<BigNumberish>,
+    maxToken0Payback_: PromiseOrValue<BigNumberish>,
+    maxToken1Payback_: PromiseOrValue<BigNumberish>,
+    estimate_: PromiseOrValue<boolean>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  paybackPerfectInOneToken(
+    shares_: PromiseOrValue<BigNumberish>,
+    maxToken0_: PromiseOrValue<BigNumberish>,
+    maxToken1_: PromiseOrValue<BigNumberish>,
+    estimate_: PromiseOrValue<boolean>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  readFromStorage(
+    slot_: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  swapIn(
+    swap0to1_: PromiseOrValue<boolean>,
+    amountIn_: PromiseOrValue<BigNumberish>,
+    amountOutMin_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  swapOut(
+    swap0to1_: PromiseOrValue<boolean>,
+    amountOut_: PromiseOrValue<BigNumberish>,
+    amountInMax_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdraw(
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    maxSharesAmt_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawPerfect(
+    shares_: PromiseOrValue<BigNumberish>,
+    minToken0Withdraw_: PromiseOrValue<BigNumberish>,
+    minToken1Withdraw_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawPerfectInOneToken(
+    shares_: PromiseOrValue<BigNumberish>,
+    minToken0_: PromiseOrValue<BigNumberish>,
+    minToken1_: PromiseOrValue<BigNumberish>,
+    to_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    DEX_ID(overrides?: CallOverrides): Promise<BigNumber>;
+
+    borrow(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    borrowPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Borrow_: PromiseOrValue<BigNumberish>,
+      minToken1Borrow_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { token0Amt_: BigNumber; token1Amt_: BigNumber }
+    >;
+
+    constantsView(
+      overrides?: CallOverrides
+    ): Promise<IFluidDexT1.ConstantViewsStructOutput>;
+
+    constantsView2(
+      overrides?: CallOverrides
+    ): Promise<IFluidDexT1.ConstantViews2StructOutput>;
+
+    deposit(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    depositPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Deposit_: PromiseOrValue<BigNumberish>,
+      maxToken1Deposit_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { token0Amt_: BigNumber; token1Amt_: BigNumber }
+    >;
+
+    getCollateralReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<IFluidDexT1.CollateralReservesStructOutput>;
+
+    getDebtReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<IFluidDexT1.DebtReservesStructOutput>;
+
+    getPricesAndExchangePrices(overrides?: CallOverrides): Promise<void>;
+
+    oraclePrice(
+      secondsAgos_: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidDexT1.OracleStructOutput[], BigNumber] & {
+        twaps_: IFluidDexT1.OracleStructOutput[];
+        currentPrice_: BigNumber;
+      }
+    >;
+
+    payback(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    paybackPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Payback_: PromiseOrValue<BigNumberish>,
+      maxToken1Payback_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { token0Amt_: BigNumber; token1Amt_: BigNumber }
+    >;
+
+    paybackPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    readFromStorage(
+      slot_: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    swapIn(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountIn_: PromiseOrValue<BigNumberish>,
+      amountOutMin_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    swapOut(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountOut_: PromiseOrValue<BigNumberish>,
+      amountInMax_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    withdraw(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    withdrawPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Withdraw_: PromiseOrValue<BigNumberish>,
+      minToken1Withdraw_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { token0Amt_: BigNumber; token1Amt_: BigNumber }
+    >;
+
+    withdrawPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    DEX_ID(overrides?: CallOverrides): Promise<BigNumber>;
+
+    borrow(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    borrowPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Borrow_: PromiseOrValue<BigNumberish>,
+      minToken1Borrow_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    constantsView(overrides?: CallOverrides): Promise<BigNumber>;
+
+    constantsView2(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    depositPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Deposit_: PromiseOrValue<BigNumberish>,
+      maxToken1Deposit_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getCollateralReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDebtReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPricesAndExchangePrices(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    oraclePrice(
+      secondsAgos_: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    payback(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    paybackPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Payback_: PromiseOrValue<BigNumberish>,
+      maxToken1Payback_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    paybackPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    readFromStorage(
+      slot_: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    swapIn(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountIn_: PromiseOrValue<BigNumberish>,
+      amountOutMin_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    swapOut(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountOut_: PromiseOrValue<BigNumberish>,
+      amountInMax_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdraw(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Withdraw_: PromiseOrValue<BigNumberish>,
+      minToken1Withdraw_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    DEX_ID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    borrow(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    borrowPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Borrow_: PromiseOrValue<BigNumberish>,
+      minToken1Borrow_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    constantsView(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    constantsView2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    deposit(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    depositPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Deposit_: PromiseOrValue<BigNumberish>,
+      maxToken1Deposit_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getCollateralReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1SupplyExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDebtReserves(
+      geometricMean_: PromiseOrValue<BigNumberish>,
+      upperRange_: PromiseOrValue<BigNumberish>,
+      lowerRange_: PromiseOrValue<BigNumberish>,
+      token0BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      token1BorrowExchangePrice_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPricesAndExchangePrices(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    oraclePrice(
+      secondsAgos_: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    payback(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    paybackPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0Payback_: PromiseOrValue<BigNumberish>,
+      maxToken1Payback_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    paybackPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      estimate_: PromiseOrValue<boolean>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    readFromStorage(
+      slot_: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    swapIn(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountIn_: PromiseOrValue<BigNumberish>,
+      amountOutMin_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swapOut(
+      swap0to1_: PromiseOrValue<boolean>,
+      amountOut_: PromiseOrValue<BigNumberish>,
+      amountInMax_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawPerfect(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0Withdraw_: PromiseOrValue<BigNumberish>,
+      minToken1Withdraw_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawPerfectInOneToken(
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      to_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

@@ -3,29 +3,61 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface TardoInterface extends Interface {
+export interface TardoInterface extends utils.Interface {
+  functions: {
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "decreaseAllowance(address,uint256)": FunctionFragment;
+    "increaseAllowance(address,uint256)": FunctionFragment;
+    "manualSwap()": FunctionFragment;
+    "maxTxSet(uint256)": FunctionFragment;
+    "maxWalletSet(uint256)": FunctionFragment;
+    "name()": FunctionFragment;
+    "openTrading()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "readView()": FunctionFragment;
+    "removeLimitsNow()": FunctionFragment;
+    "removeStuckBalance()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "setFeeAddress(address)": FunctionFragment;
+    "setFeeExempt(address,bool)": FunctionFragment;
+    "setSBValues(uint256,uint256)": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "taxesSet(uint256,uint256)": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "allowance"
       | "approve"
       | "balanceOf"
@@ -53,41 +85,26 @@ export interface TardoInterface extends Interface {
       | "transferOwnership"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "Approval"
-      | "ExcludedFromFee"
-      | "FeeReceiverUpdated"
-      | "FeesUpdated"
-      | "LimitsRemoved"
-      | "MaxTxAmountUpdated"
-      | "MaxWalletAmountUpdated"
-      | "OwnershipTransferred"
-      | "SwapbackUpdated"
-      | "TradingOpened"
-      | "Transfer"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "manualSwap",
@@ -95,11 +112,11 @@ export interface TardoInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "maxTxSet",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "maxWalletSet",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
@@ -122,20 +139,20 @@ export interface TardoInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeAddress",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeExempt",
-    values: [AddressLike, boolean]
+    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
     functionFragment: "setSBValues",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "taxesSet",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
@@ -143,15 +160,19 @@ export interface TardoInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [AddressLike, AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
@@ -218,636 +239,837 @@ export interface TardoInterface extends Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "ExcludedFromFee(address,bool)": EventFragment;
+    "FeeReceiverUpdated(address)": EventFragment;
+    "FeesUpdated(uint256,uint256)": EventFragment;
+    "LimitsRemoved()": EventFragment;
+    "MaxTxAmountUpdated(uint256)": EventFragment;
+    "MaxWalletAmountUpdated(uint256)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "SwapbackUpdated(uint256,uint256)": EventFragment;
+    "TradingOpened()": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ExcludedFromFee"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeeReceiverUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LimitsRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MaxTxAmountUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MaxWalletAmountUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SwapbackUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TradingOpened"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
-export namespace ApprovalEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    spender: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [owner: string, spender: string, value: bigint];
-  export interface OutputObject {
-    owner: string;
-    spender: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ApprovalEventObject {
+  owner: string;
+  spender: string;
+  value: BigNumber;
 }
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
-export namespace ExcludedFromFeeEvent {
-  export type InputTuple = [account: AddressLike, status: boolean];
-  export type OutputTuple = [account: string, status: boolean];
-  export interface OutputObject {
-    account: string;
-    status: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export namespace FeeReceiverUpdatedEvent {
-  export type InputTuple = [_taxWallet: AddressLike];
-  export type OutputTuple = [_taxWallet: string];
-  export interface OutputObject {
-    _taxWallet: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ExcludedFromFeeEventObject {
+  account: string;
+  status: boolean;
 }
+export type ExcludedFromFeeEvent = TypedEvent<
+  [string, boolean],
+  ExcludedFromFeeEventObject
+>;
 
-export namespace FeesUpdatedEvent {
-  export type InputTuple = [buyFee: BigNumberish, sellFee: BigNumberish];
-  export type OutputTuple = [buyFee: bigint, sellFee: bigint];
-  export interface OutputObject {
-    buyFee: bigint;
-    sellFee: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ExcludedFromFeeEventFilter = TypedEventFilter<ExcludedFromFeeEvent>;
 
-export namespace LimitsRemovedEvent {
-  export type InputTuple = [];
-  export type OutputTuple = [];
-  export interface OutputObject {}
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface FeeReceiverUpdatedEventObject {
+  _taxWallet: string;
 }
+export type FeeReceiverUpdatedEvent = TypedEvent<
+  [string],
+  FeeReceiverUpdatedEventObject
+>;
 
-export namespace MaxTxAmountUpdatedEvent {
-  export type InputTuple = [_txAmountLimit: BigNumberish];
-  export type OutputTuple = [_txAmountLimit: bigint];
-  export interface OutputObject {
-    _txAmountLimit: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type FeeReceiverUpdatedEventFilter =
+  TypedEventFilter<FeeReceiverUpdatedEvent>;
 
-export namespace MaxWalletAmountUpdatedEvent {
-  export type InputTuple = [_walletAmountLimit: BigNumberish];
-  export type OutputTuple = [_walletAmountLimit: bigint];
-  export interface OutputObject {
-    _walletAmountLimit: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface FeesUpdatedEventObject {
+  buyFee: BigNumber;
+  sellFee: BigNumber;
 }
+export type FeesUpdatedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  FeesUpdatedEventObject
+>;
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type FeesUpdatedEventFilter = TypedEventFilter<FeesUpdatedEvent>;
 
-export namespace SwapbackUpdatedEvent {
-  export type InputTuple = [
-    _swapbackMin: BigNumberish,
-    _swapbackMax: BigNumberish
-  ];
-  export type OutputTuple = [_swapbackMin: bigint, _swapbackMax: bigint];
-  export interface OutputObject {
-    _swapbackMin: bigint;
-    _swapbackMax: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export interface LimitsRemovedEventObject {}
+export type LimitsRemovedEvent = TypedEvent<[], LimitsRemovedEventObject>;
 
-export namespace TradingOpenedEvent {
-  export type InputTuple = [];
-  export type OutputTuple = [];
-  export interface OutputObject {}
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type LimitsRemovedEventFilter = TypedEventFilter<LimitsRemovedEvent>;
 
-export namespace TransferEvent {
-  export type InputTuple = [
-    from: AddressLike,
-    to: AddressLike,
-    value: BigNumberish
-  ];
-  export type OutputTuple = [from: string, to: string, value: bigint];
-  export interface OutputObject {
-    from: string;
-    to: string;
-    value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface MaxTxAmountUpdatedEventObject {
+  _txAmountLimit: BigNumber;
 }
+export type MaxTxAmountUpdatedEvent = TypedEvent<
+  [BigNumber],
+  MaxTxAmountUpdatedEventObject
+>;
+
+export type MaxTxAmountUpdatedEventFilter =
+  TypedEventFilter<MaxTxAmountUpdatedEvent>;
+
+export interface MaxWalletAmountUpdatedEventObject {
+  _walletAmountLimit: BigNumber;
+}
+export type MaxWalletAmountUpdatedEvent = TypedEvent<
+  [BigNumber],
+  MaxWalletAmountUpdatedEventObject
+>;
+
+export type MaxWalletAmountUpdatedEventFilter =
+  TypedEventFilter<MaxWalletAmountUpdatedEvent>;
+
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
+}
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
+
+export interface SwapbackUpdatedEventObject {
+  _swapbackMin: BigNumber;
+  _swapbackMax: BigNumber;
+}
+export type SwapbackUpdatedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  SwapbackUpdatedEventObject
+>;
+
+export type SwapbackUpdatedEventFilter = TypedEventFilter<SwapbackUpdatedEvent>;
+
+export interface TradingOpenedEventObject {}
+export type TradingOpenedEvent = TypedEvent<[], TradingOpenedEventObject>;
+
+export type TradingOpenedEventFilter = TypedEventFilter<TradingOpenedEvent>;
+
+export interface TransferEventObject {
+  from: string;
+  to: string;
+  value: BigNumber;
+}
+export type TransferEvent = TypedEvent<
+  [string, string, BigNumber],
+  TransferEventObject
+>;
+
+export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface Tardo extends BaseContract {
-  connect(runner?: ContractRunner | null): Tardo;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: TardoInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  allowance: TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  approve: TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
-  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  decimals: TypedContractMethod<[], [bigint], "view">;
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  decreaseAllowance: TypedContractMethod<
-    [spender: AddressLike, subtractedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    manualSwap(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  increaseAllowance: TypedContractMethod<
-    [spender: AddressLike, addedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    maxTxSet(
+      newTxMax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  manualSwap: TypedContractMethod<[], [void], "nonpayable">;
+    maxWalletSet(
+      newWalletMax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  maxTxSet: TypedContractMethod<[newTxMax: BigNumberish], [void], "nonpayable">;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-  maxWalletSet: TypedContractMethod<
-    [newWalletMax: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    openTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  name: TypedContractMethod<[], [string], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  openTrading: TypedContractMethod<[], [void], "nonpayable">;
-
-  owner: TypedContractMethod<[], [string], "view">;
-
-  readView: TypedContractMethod<
-    [],
-    [
-      [bigint, bigint, bigint, bigint, bigint, bigint] & {
-        _buyFee: bigint;
-        _sellFee: bigint;
-        maxTxAmount: bigint;
-        maxWalletSize: bigint;
-        taxSwapThreshold: bigint;
-        maxTaxSwap: bigint;
+    readView(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        _buyFee: BigNumber;
+        _sellFee: BigNumber;
+        maxTxAmount: BigNumber;
+        maxWalletSize: BigNumber;
+        taxSwapThreshold: BigNumber;
+        maxTaxSwap: BigNumber;
       }
-    ],
-    "view"
+    >;
+
+    removeLimitsNow(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    removeStuckBalance(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setFeeAddress(
+      newRcv: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setFeeExempt(
+      target: PromiseOrValue<string>,
+      exempt: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setSBValues(
+      taxSwapThreshold: PromiseOrValue<BigNumberish>,
+      maxTaxSwap: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<[string]>;
+
+    taxesSet(
+      feeBuy: PromiseOrValue<BigNumberish>,
+      feeSell: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  allowance(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  balanceOf(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  decreaseAllowance(
+    spender: PromiseOrValue<string>,
+    subtractedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  increaseAllowance(
+    spender: PromiseOrValue<string>,
+    addedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  manualSwap(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  maxTxSet(
+    newTxMax: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  maxWalletSet(
+    newWalletMax: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  openTrading(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  readView(
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      _buyFee: BigNumber;
+      _sellFee: BigNumber;
+      maxTxAmount: BigNumber;
+      maxWalletSize: BigNumber;
+      taxSwapThreshold: BigNumber;
+      maxTaxSwap: BigNumber;
+    }
   >;
 
-  removeLimitsNow: TypedContractMethod<[], [void], "nonpayable">;
+  removeLimitsNow(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  removeStuckBalance: TypedContractMethod<[], [void], "nonpayable">;
+  removeStuckBalance(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+  renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  setFeeAddress: TypedContractMethod<
-    [newRcv: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  setFeeAddress(
+    newRcv: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  setFeeExempt: TypedContractMethod<
-    [target: AddressLike, exempt: boolean],
-    [void],
-    "nonpayable"
-  >;
+  setFeeExempt(
+    target: PromiseOrValue<string>,
+    exempt: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  setSBValues: TypedContractMethod<
-    [taxSwapThreshold: BigNumberish, maxTaxSwap: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  setSBValues(
+    taxSwapThreshold: PromiseOrValue<BigNumberish>,
+    maxTaxSwap: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  symbol: TypedContractMethod<[], [string], "view">;
+  symbol(overrides?: CallOverrides): Promise<string>;
 
-  taxesSet: TypedContractMethod<
-    [feeBuy: BigNumberish, feeSell: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  taxesSet(
+    feeBuy: PromiseOrValue<BigNumberish>,
+    feeSell: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  totalSupply: TypedContractMethod<[], [bigint], "view">;
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
-  transfer: TypedContractMethod<
-    [recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  transfer(
+    recipient: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  transferFrom: TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  transferFrom(
+    sender: PromiseOrValue<string>,
+    recipient: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "allowance"
-  ): TypedContractMethod<
-    [owner: AddressLike, spender: AddressLike],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "approve"
-  ): TypedContractMethod<
-    [spender: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "balanceOf"
-  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "decimals"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "decreaseAllowance"
-  ): TypedContractMethod<
-    [spender: AddressLike, subtractedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "increaseAllowance"
-  ): TypedContractMethod<
-    [spender: AddressLike, addedValue: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "manualSwap"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "maxTxSet"
-  ): TypedContractMethod<[newTxMax: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "maxWalletSet"
-  ): TypedContractMethod<[newWalletMax: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "openTrading"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "readView"
-  ): TypedContractMethod<
-    [],
-    [
-      [bigint, bigint, bigint, bigint, bigint, bigint] & {
-        _buyFee: bigint;
-        _sellFee: bigint;
-        maxTxAmount: bigint;
-        maxWalletSize: bigint;
-        taxSwapThreshold: bigint;
-        maxTaxSwap: bigint;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    manualSwap(overrides?: CallOverrides): Promise<void>;
+
+    maxTxSet(
+      newTxMax: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    maxWalletSet(
+      newWalletMax: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
+    openTrading(overrides?: CallOverrides): Promise<void>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    readView(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        _buyFee: BigNumber;
+        _sellFee: BigNumber;
+        maxTxAmount: BigNumber;
+        maxWalletSize: BigNumber;
+        taxSwapThreshold: BigNumber;
+        maxTaxSwap: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "removeLimitsNow"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "removeStuckBalance"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setFeeAddress"
-  ): TypedContractMethod<[newRcv: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setFeeExempt"
-  ): TypedContractMethod<
-    [target: AddressLike, exempt: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setSBValues"
-  ): TypedContractMethod<
-    [taxSwapThreshold: BigNumberish, maxTaxSwap: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "symbol"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "taxesSet"
-  ): TypedContractMethod<
-    [feeBuy: BigNumberish, feeSell: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "totalSupply"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transfer"
-  ): TypedContractMethod<
-    [recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transferFrom"
-  ): TypedContractMethod<
-    [sender: AddressLike, recipient: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+    >;
 
-  getEvent(
-    key: "Approval"
-  ): TypedContractEvent<
-    ApprovalEvent.InputTuple,
-    ApprovalEvent.OutputTuple,
-    ApprovalEvent.OutputObject
-  >;
-  getEvent(
-    key: "ExcludedFromFee"
-  ): TypedContractEvent<
-    ExcludedFromFeeEvent.InputTuple,
-    ExcludedFromFeeEvent.OutputTuple,
-    ExcludedFromFeeEvent.OutputObject
-  >;
-  getEvent(
-    key: "FeeReceiverUpdated"
-  ): TypedContractEvent<
-    FeeReceiverUpdatedEvent.InputTuple,
-    FeeReceiverUpdatedEvent.OutputTuple,
-    FeeReceiverUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "FeesUpdated"
-  ): TypedContractEvent<
-    FeesUpdatedEvent.InputTuple,
-    FeesUpdatedEvent.OutputTuple,
-    FeesUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "LimitsRemoved"
-  ): TypedContractEvent<
-    LimitsRemovedEvent.InputTuple,
-    LimitsRemovedEvent.OutputTuple,
-    LimitsRemovedEvent.OutputObject
-  >;
-  getEvent(
-    key: "MaxTxAmountUpdated"
-  ): TypedContractEvent<
-    MaxTxAmountUpdatedEvent.InputTuple,
-    MaxTxAmountUpdatedEvent.OutputTuple,
-    MaxTxAmountUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "MaxWalletAmountUpdated"
-  ): TypedContractEvent<
-    MaxWalletAmountUpdatedEvent.InputTuple,
-    MaxWalletAmountUpdatedEvent.OutputTuple,
-    MaxWalletAmountUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "SwapbackUpdated"
-  ): TypedContractEvent<
-    SwapbackUpdatedEvent.InputTuple,
-    SwapbackUpdatedEvent.OutputTuple,
-    SwapbackUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "TradingOpened"
-  ): TypedContractEvent<
-    TradingOpenedEvent.InputTuple,
-    TradingOpenedEvent.OutputTuple,
-    TradingOpenedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Transfer"
-  ): TypedContractEvent<
-    TransferEvent.InputTuple,
-    TransferEvent.OutputTuple,
-    TransferEvent.OutputObject
-  >;
+    removeLimitsNow(overrides?: CallOverrides): Promise<void>;
+
+    removeStuckBalance(overrides?: CallOverrides): Promise<void>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setFeeAddress(
+      newRcv: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setFeeExempt(
+      target: PromiseOrValue<string>,
+      exempt: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setSBValues(
+      taxSwapThreshold: PromiseOrValue<BigNumberish>,
+      maxTaxSwap: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
+
+    taxesSet(
+      feeBuy: PromiseOrValue<BigNumberish>,
+      feeSell: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "Approval(address,address,uint256)": TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
-    Approval: TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
 
-    "ExcludedFromFee(address,bool)": TypedContractEvent<
-      ExcludedFromFeeEvent.InputTuple,
-      ExcludedFromFeeEvent.OutputTuple,
-      ExcludedFromFeeEvent.OutputObject
-    >;
-    ExcludedFromFee: TypedContractEvent<
-      ExcludedFromFeeEvent.InputTuple,
-      ExcludedFromFeeEvent.OutputTuple,
-      ExcludedFromFeeEvent.OutputObject
-    >;
+    "ExcludedFromFee(address,bool)"(
+      account?: null,
+      status?: null
+    ): ExcludedFromFeeEventFilter;
+    ExcludedFromFee(account?: null, status?: null): ExcludedFromFeeEventFilter;
 
-    "FeeReceiverUpdated(address)": TypedContractEvent<
-      FeeReceiverUpdatedEvent.InputTuple,
-      FeeReceiverUpdatedEvent.OutputTuple,
-      FeeReceiverUpdatedEvent.OutputObject
-    >;
-    FeeReceiverUpdated: TypedContractEvent<
-      FeeReceiverUpdatedEvent.InputTuple,
-      FeeReceiverUpdatedEvent.OutputTuple,
-      FeeReceiverUpdatedEvent.OutputObject
-    >;
+    "FeeReceiverUpdated(address)"(
+      _taxWallet?: null
+    ): FeeReceiverUpdatedEventFilter;
+    FeeReceiverUpdated(_taxWallet?: null): FeeReceiverUpdatedEventFilter;
 
-    "FeesUpdated(uint256,uint256)": TypedContractEvent<
-      FeesUpdatedEvent.InputTuple,
-      FeesUpdatedEvent.OutputTuple,
-      FeesUpdatedEvent.OutputObject
-    >;
-    FeesUpdated: TypedContractEvent<
-      FeesUpdatedEvent.InputTuple,
-      FeesUpdatedEvent.OutputTuple,
-      FeesUpdatedEvent.OutputObject
-    >;
+    "FeesUpdated(uint256,uint256)"(
+      buyFee?: null,
+      sellFee?: null
+    ): FeesUpdatedEventFilter;
+    FeesUpdated(buyFee?: null, sellFee?: null): FeesUpdatedEventFilter;
 
-    "LimitsRemoved()": TypedContractEvent<
-      LimitsRemovedEvent.InputTuple,
-      LimitsRemovedEvent.OutputTuple,
-      LimitsRemovedEvent.OutputObject
-    >;
-    LimitsRemoved: TypedContractEvent<
-      LimitsRemovedEvent.InputTuple,
-      LimitsRemovedEvent.OutputTuple,
-      LimitsRemovedEvent.OutputObject
-    >;
+    "LimitsRemoved()"(): LimitsRemovedEventFilter;
+    LimitsRemoved(): LimitsRemovedEventFilter;
 
-    "MaxTxAmountUpdated(uint256)": TypedContractEvent<
-      MaxTxAmountUpdatedEvent.InputTuple,
-      MaxTxAmountUpdatedEvent.OutputTuple,
-      MaxTxAmountUpdatedEvent.OutputObject
-    >;
-    MaxTxAmountUpdated: TypedContractEvent<
-      MaxTxAmountUpdatedEvent.InputTuple,
-      MaxTxAmountUpdatedEvent.OutputTuple,
-      MaxTxAmountUpdatedEvent.OutputObject
-    >;
+    "MaxTxAmountUpdated(uint256)"(
+      _txAmountLimit?: null
+    ): MaxTxAmountUpdatedEventFilter;
+    MaxTxAmountUpdated(_txAmountLimit?: null): MaxTxAmountUpdatedEventFilter;
 
-    "MaxWalletAmountUpdated(uint256)": TypedContractEvent<
-      MaxWalletAmountUpdatedEvent.InputTuple,
-      MaxWalletAmountUpdatedEvent.OutputTuple,
-      MaxWalletAmountUpdatedEvent.OutputObject
-    >;
-    MaxWalletAmountUpdated: TypedContractEvent<
-      MaxWalletAmountUpdatedEvent.InputTuple,
-      MaxWalletAmountUpdatedEvent.OutputTuple,
-      MaxWalletAmountUpdatedEvent.OutputObject
-    >;
+    "MaxWalletAmountUpdated(uint256)"(
+      _walletAmountLimit?: null
+    ): MaxWalletAmountUpdatedEventFilter;
+    MaxWalletAmountUpdated(
+      _walletAmountLimit?: null
+    ): MaxWalletAmountUpdatedEventFilter;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "SwapbackUpdated(uint256,uint256)": TypedContractEvent<
-      SwapbackUpdatedEvent.InputTuple,
-      SwapbackUpdatedEvent.OutputTuple,
-      SwapbackUpdatedEvent.OutputObject
-    >;
-    SwapbackUpdated: TypedContractEvent<
-      SwapbackUpdatedEvent.InputTuple,
-      SwapbackUpdatedEvent.OutputTuple,
-      SwapbackUpdatedEvent.OutputObject
-    >;
+    "SwapbackUpdated(uint256,uint256)"(
+      _swapbackMin?: null,
+      _swapbackMax?: null
+    ): SwapbackUpdatedEventFilter;
+    SwapbackUpdated(
+      _swapbackMin?: null,
+      _swapbackMax?: null
+    ): SwapbackUpdatedEventFilter;
 
-    "TradingOpened()": TypedContractEvent<
-      TradingOpenedEvent.InputTuple,
-      TradingOpenedEvent.OutputTuple,
-      TradingOpenedEvent.OutputObject
-    >;
-    TradingOpened: TypedContractEvent<
-      TradingOpenedEvent.InputTuple,
-      TradingOpenedEvent.OutputTuple,
-      TradingOpenedEvent.OutputObject
-    >;
+    "TradingOpened()"(): TradingOpenedEventFilter;
+    TradingOpened(): TradingOpenedEventFilter;
 
-    "Transfer(address,address,uint256)": TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
-    Transfer: TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
+    "Transfer(address,address,uint256)"(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+    Transfer(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+  };
+
+  estimateGas: {
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    manualSwap(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    maxTxSet(
+      newTxMax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    maxWalletSet(
+      newWalletMax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    openTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    readView(overrides?: CallOverrides): Promise<BigNumber>;
+
+    removeLimitsNow(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    removeStuckBalance(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setFeeAddress(
+      newRcv: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setFeeExempt(
+      target: PromiseOrValue<string>,
+      exempt: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setSBValues(
+      taxSwapThreshold: PromiseOrValue<BigNumberish>,
+      maxTaxSwap: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    taxesSet(
+      feeBuy: PromiseOrValue<BigNumberish>,
+      feeSell: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    manualSwap(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    maxTxSet(
+      newTxMax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    maxWalletSet(
+      newWalletMax: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    openTrading(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    readView(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    removeLimitsNow(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeStuckBalance(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFeeAddress(
+      newRcv: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFeeExempt(
+      target: PromiseOrValue<string>,
+      exempt: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setSBValues(
+      taxSwapThreshold: PromiseOrValue<BigNumberish>,
+      maxTaxSwap: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    taxesSet(
+      feeBuy: PromiseOrValue<BigNumberish>,
+      feeSell: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      sender: PromiseOrValue<string>,
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

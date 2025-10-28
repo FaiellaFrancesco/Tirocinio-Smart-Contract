@@ -3,70 +3,75 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IFluidVault {
-  export type TokensStruct = { token0: AddressLike; token1: AddressLike };
+  export type TokensStruct = {
+    token0: PromiseOrValue<string>;
+    token1: PromiseOrValue<string>;
+  };
 
-  export type TokensStructOutput = [token0: string, token1: string] & {
+  export type TokensStructOutput = [string, string] & {
     token0: string;
     token1: string;
   };
 
   export type ConstantViewsStruct = {
-    liquidity: AddressLike;
-    factory: AddressLike;
-    operateImplementation: AddressLike;
-    adminImplementation: AddressLike;
-    secondaryImplementation: AddressLike;
-    deployer: AddressLike;
-    supply: AddressLike;
-    borrow: AddressLike;
+    liquidity: PromiseOrValue<string>;
+    factory: PromiseOrValue<string>;
+    operateImplementation: PromiseOrValue<string>;
+    adminImplementation: PromiseOrValue<string>;
+    secondaryImplementation: PromiseOrValue<string>;
+    deployer: PromiseOrValue<string>;
+    supply: PromiseOrValue<string>;
+    borrow: PromiseOrValue<string>;
     supplyToken: IFluidVault.TokensStruct;
     borrowToken: IFluidVault.TokensStruct;
-    vaultId: BigNumberish;
-    vaultType: BigNumberish;
-    supplyExchangePriceSlot: BytesLike;
-    borrowExchangePriceSlot: BytesLike;
-    userSupplySlot: BytesLike;
-    userBorrowSlot: BytesLike;
+    vaultId: PromiseOrValue<BigNumberish>;
+    vaultType: PromiseOrValue<BigNumberish>;
+    supplyExchangePriceSlot: PromiseOrValue<BytesLike>;
+    borrowExchangePriceSlot: PromiseOrValue<BytesLike>;
+    userSupplySlot: PromiseOrValue<BytesLike>;
+    userBorrowSlot: PromiseOrValue<BytesLike>;
   };
 
   export type ConstantViewsStructOutput = [
-    liquidity: string,
-    factory: string,
-    operateImplementation: string,
-    adminImplementation: string,
-    secondaryImplementation: string,
-    deployer: string,
-    supply: string,
-    borrow: string,
-    supplyToken: IFluidVault.TokensStructOutput,
-    borrowToken: IFluidVault.TokensStructOutput,
-    vaultId: bigint,
-    vaultType: bigint,
-    supplyExchangePriceSlot: string,
-    borrowExchangePriceSlot: string,
-    userSupplySlot: string,
-    userBorrowSlot: string
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    IFluidVault.TokensStructOutput,
+    IFluidVault.TokensStructOutput,
+    BigNumber,
+    BigNumber,
+    string,
+    string,
+    string,
+    string
   ] & {
     liquidity: string;
     factory: string;
@@ -78,8 +83,8 @@ export declare namespace IFluidVault {
     borrow: string;
     supplyToken: IFluidVault.TokensStructOutput;
     borrowToken: IFluidVault.TokensStructOutput;
-    vaultId: bigint;
-    vaultType: bigint;
+    vaultId: BigNumber;
+    vaultType: BigNumber;
     supplyExchangePriceSlot: string;
     borrowExchangePriceSlot: string;
     userSupplySlot: string;
@@ -87,10 +92,12 @@ export declare namespace IFluidVault {
   };
 }
 
-export interface IFluidVaultInterface extends Interface {
-  getFunction(nameOrSignature: "constantsView"): FunctionFragment;
+export interface IFluidVaultInterface extends utils.Interface {
+  functions: {
+    "constantsView()": FunctionFragment;
+  };
 
-  getEvent(nameOrSignatureOrTopic: "LogOperate"): EventFragment;
+  getFunction(nameOrSignatureOrTopic: "constantsView"): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "constantsView",
@@ -101,111 +108,96 @@ export interface IFluidVaultInterface extends Interface {
     functionFragment: "constantsView",
     data: BytesLike
   ): Result;
+
+  events: {
+    "LogOperate(address,uint256,int256,int256,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "LogOperate"): EventFragment;
 }
 
-export namespace LogOperateEvent {
-  export type InputTuple = [
-    user_: AddressLike,
-    nftId_: BigNumberish,
-    colAmt_: BigNumberish,
-    debtAmt_: BigNumberish,
-    to_: AddressLike
-  ];
-  export type OutputTuple = [
-    user_: string,
-    nftId_: bigint,
-    colAmt_: bigint,
-    debtAmt_: bigint,
-    to_: string
-  ];
-  export interface OutputObject {
-    user_: string;
-    nftId_: bigint;
-    colAmt_: bigint;
-    debtAmt_: bigint;
-    to_: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface LogOperateEventObject {
+  user_: string;
+  nftId_: BigNumber;
+  colAmt_: BigNumber;
+  debtAmt_: BigNumber;
+  to_: string;
 }
+export type LogOperateEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber, string],
+  LogOperateEventObject
+>;
+
+export type LogOperateEventFilter = TypedEventFilter<LogOperateEvent>;
 
 export interface IFluidVault extends BaseContract {
-  connect(runner?: ContractRunner | null): IFluidVault;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IFluidVaultInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    constantsView(
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidVault.ConstantViewsStructOutput] & {
+        constantsView_: IFluidVault.ConstantViewsStructOutput;
+      }
+    >;
+  };
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  constantsView(
+    overrides?: CallOverrides
+  ): Promise<IFluidVault.ConstantViewsStructOutput>;
 
-  constantsView: TypedContractMethod<
-    [],
-    [IFluidVault.ConstantViewsStructOutput],
-    "view"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "constantsView"
-  ): TypedContractMethod<[], [IFluidVault.ConstantViewsStructOutput], "view">;
-
-  getEvent(
-    key: "LogOperate"
-  ): TypedContractEvent<
-    LogOperateEvent.InputTuple,
-    LogOperateEvent.OutputTuple,
-    LogOperateEvent.OutputObject
-  >;
+  callStatic: {
+    constantsView(
+      overrides?: CallOverrides
+    ): Promise<IFluidVault.ConstantViewsStructOutput>;
+  };
 
   filters: {
-    "LogOperate(address,uint256,int256,int256,address)": TypedContractEvent<
-      LogOperateEvent.InputTuple,
-      LogOperateEvent.OutputTuple,
-      LogOperateEvent.OutputObject
-    >;
-    LogOperate: TypedContractEvent<
-      LogOperateEvent.InputTuple,
-      LogOperateEvent.OutputTuple,
-      LogOperateEvent.OutputObject
-    >;
+    "LogOperate(address,uint256,int256,int256,address)"(
+      user_?: null,
+      nftId_?: null,
+      colAmt_?: null,
+      debtAmt_?: null,
+      to_?: null
+    ): LogOperateEventFilter;
+    LogOperate(
+      user_?: null,
+      nftId_?: null,
+      colAmt_?: null,
+      debtAmt_?: null,
+      to_?: null
+    ): LogOperateEventFilter;
+  };
+
+  estimateGas: {
+    constantsView(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    constantsView(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -3,29 +3,44 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface IUniswapV2FactoryInterface extends Interface {
+export interface IUniswapV2FactoryInterface extends utils.Interface {
+  functions: {
+    "allPairs(uint256)": FunctionFragment;
+    "allPairsLength()": FunctionFragment;
+    "createPair(address,address)": FunctionFragment;
+    "feeTo()": FunctionFragment;
+    "feeToSetter()": FunctionFragment;
+    "getPair(address,address)": FunctionFragment;
+    "setFeeTo(address)": FunctionFragment;
+    "setFeeToSetter(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "allPairs"
       | "allPairsLength"
       | "createPair"
@@ -36,11 +51,9 @@ export interface IUniswapV2FactoryInterface extends Interface {
       | "setFeeToSetter"
   ): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: "PairCreated"): EventFragment;
-
   encodeFunctionData(
     functionFragment: "allPairs",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "allPairsLength",
@@ -48,7 +61,7 @@ export interface IUniswapV2FactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createPair",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "feeTo", values?: undefined): string;
   encodeFunctionData(
@@ -57,15 +70,15 @@ export interface IUniswapV2FactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPair",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeTo",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeToSetter",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "allPairs", data: BytesLike): Result;
@@ -85,159 +98,238 @@ export interface IUniswapV2FactoryInterface extends Interface {
     functionFragment: "setFeeToSetter",
     data: BytesLike
   ): Result;
+
+  events: {
+    "PairCreated(address,address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "PairCreated"): EventFragment;
 }
 
-export namespace PairCreatedEvent {
-  export type InputTuple = [
-    token0: AddressLike,
-    token1: AddressLike,
-    pair: AddressLike,
-    arg3: BigNumberish
-  ];
-  export type OutputTuple = [
-    token0: string,
-    token1: string,
-    pair: string,
-    arg3: bigint
-  ];
-  export interface OutputObject {
-    token0: string;
-    token1: string;
-    pair: string;
-    arg3: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface PairCreatedEventObject {
+  token0: string;
+  token1: string;
+  pair: string;
+  arg3: BigNumber;
 }
+export type PairCreatedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  PairCreatedEventObject
+>;
+
+export type PairCreatedEventFilter = TypedEventFilter<PairCreatedEvent>;
 
 export interface IUniswapV2Factory extends BaseContract {
-  connect(runner?: ContractRunner | null): IUniswapV2Factory;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IUniswapV2FactoryInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    allPairs(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { pair: string }>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    allPairsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  allPairs: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+    createPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  allPairsLength: TypedContractMethod<[], [bigint], "view">;
+    feeTo(overrides?: CallOverrides): Promise<[string]>;
 
-  createPair: TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [string],
-    "nonpayable"
-  >;
+    feeToSetter(overrides?: CallOverrides): Promise<[string]>;
 
-  feeTo: TypedContractMethod<[], [string], "view">;
+    getPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { pair: string }>;
 
-  feeToSetter: TypedContractMethod<[], [string], "view">;
+    setFeeTo(
+      arg0: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  getPair: TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [string],
-    "view"
-  >;
+    setFeeToSetter(
+      arg0: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  setFeeTo: TypedContractMethod<[arg0: AddressLike], [void], "nonpayable">;
+  allPairs(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  setFeeToSetter: TypedContractMethod<
-    [arg0: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  createPair(
+    tokenA: PromiseOrValue<string>,
+    tokenB: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "allPairs"
-  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "allPairsLength"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "createPair"
-  ): TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [string],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "feeTo"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "feeToSetter"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getPair"
-  ): TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "setFeeTo"
-  ): TypedContractMethod<[arg0: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setFeeToSetter"
-  ): TypedContractMethod<[arg0: AddressLike], [void], "nonpayable">;
+  feeTo(overrides?: CallOverrides): Promise<string>;
 
-  getEvent(
-    key: "PairCreated"
-  ): TypedContractEvent<
-    PairCreatedEvent.InputTuple,
-    PairCreatedEvent.OutputTuple,
-    PairCreatedEvent.OutputObject
-  >;
+  feeToSetter(overrides?: CallOverrides): Promise<string>;
+
+  getPair(
+    tokenA: PromiseOrValue<string>,
+    tokenB: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  setFeeTo(
+    arg0: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setFeeToSetter(
+    arg0: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    allPairs(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    createPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    feeTo(overrides?: CallOverrides): Promise<string>;
+
+    feeToSetter(overrides?: CallOverrides): Promise<string>;
+
+    getPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    setFeeTo(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setFeeToSetter(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "PairCreated(address,address,address,uint256)": TypedContractEvent<
-      PairCreatedEvent.InputTuple,
-      PairCreatedEvent.OutputTuple,
-      PairCreatedEvent.OutputObject
-    >;
-    PairCreated: TypedContractEvent<
-      PairCreatedEvent.InputTuple,
-      PairCreatedEvent.OutputTuple,
-      PairCreatedEvent.OutputObject
-    >;
+    "PairCreated(address,address,address,uint256)"(
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      pair?: null,
+      arg3?: null
+    ): PairCreatedEventFilter;
+    PairCreated(
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      pair?: null,
+      arg3?: null
+    ): PairCreatedEventFilter;
+  };
+
+  estimateGas: {
+    allPairs(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    createPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    feeTo(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeToSetter(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    setFeeTo(
+      arg0: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setFeeToSetter(
+      arg0: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    allPairs(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    allPairsLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    createPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    feeTo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    feeToSetter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPair(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    setFeeTo(
+      arg0: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFeeToSetter(
+      arg0: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

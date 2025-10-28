@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IFluidDexResolver,
   IFluidDexResolverInterface,
@@ -1625,17 +1626,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IFluidDexResolver__factory {
   static readonly abi = _abi;
   static createInterface(): IFluidDexResolverInterface {
-    return new Interface(_abi) as IFluidDexResolverInterface;
+    return new utils.Interface(_abi) as IFluidDexResolverInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IFluidDexResolver {
-    return new Contract(address, _abi, runner) as unknown as IFluidDexResolver;
+    return new Contract(address, _abi, signerOrProvider) as IFluidDexResolver;
   }
 }

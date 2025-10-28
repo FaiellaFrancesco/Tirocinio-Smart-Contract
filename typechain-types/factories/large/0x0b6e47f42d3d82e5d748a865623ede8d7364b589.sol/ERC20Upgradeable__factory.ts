@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   ERC20Upgradeable,
   ERC20UpgradeableInterface,
@@ -340,17 +341,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class ERC20Upgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): ERC20UpgradeableInterface {
-    return new Interface(_abi) as ERC20UpgradeableInterface;
+    return new utils.Interface(_abi) as ERC20UpgradeableInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): ERC20Upgradeable {
-    return new Contract(address, _abi, runner) as unknown as ERC20Upgradeable;
+    return new Contract(address, _abi, signerOrProvider) as ERC20Upgradeable;
   }
 }

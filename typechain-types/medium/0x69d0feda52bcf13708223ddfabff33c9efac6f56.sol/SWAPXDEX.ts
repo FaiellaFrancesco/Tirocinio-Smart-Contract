@@ -3,29 +3,69 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface SWAPXDEXInterface extends Interface {
+export interface SWAPXDEXInterface extends utils.Interface {
+  functions: {
+    "ETHBuyHelper(uint256)": FunctionFragment;
+    "MaxUSDTRaised()": FunctionFragment;
+    "PresaleRate()": FunctionFragment;
+    "USDTRaised()": FunctionFragment;
+    "aggregatorInterface()": FunctionFragment;
+    "buyWithETH()": FunctionFragment;
+    "buyWithUSDT(uint256)": FunctionFragment;
+    "changeMaxTokensToBuy(uint256)": FunctionFragment;
+    "changeSaleEndTime(uint256)": FunctionFragment;
+    "changeSaleStartTime(uint256)": FunctionFragment;
+    "claim()": FunctionFragment;
+    "endTime()": FunctionFragment;
+    "getETHBalance()": FunctionFragment;
+    "getLatestPrice()": FunctionFragment;
+    "getTokenBalance()": FunctionFragment;
+    "getUsdtBalance()": FunctionFragment;
+    "maxTokensToBuy()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pause()": FunctionFragment;
+    "paused()": FunctionFragment;
+    "setMaxUSDTRaised(uint256)": FunctionFragment;
+    "startTime()": FunctionFragment;
+    "token()": FunctionFragment;
+    "totalTokensSold()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "unpause()": FunctionFragment;
+    "updatePresaleRate(uint256)": FunctionFragment;
+    "usdt()": FunctionFragment;
+    "usdtBuyHelper(uint256)": FunctionFragment;
+    "userDeposits(address)": FunctionFragment;
+    "withdrawETH(uint256)": FunctionFragment;
+    "withdrawTokens(address,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "ETHBuyHelper"
       | "MaxUSDTRaised"
       | "PresaleRate"
@@ -60,19 +100,9 @@ export interface SWAPXDEXInterface extends Interface {
       | "withdrawTokens"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "MaxTokensUpdated"
-      | "OwnershipTransferred"
-      | "Paused"
-      | "TokensBought"
-      | "TokensClaimed"
-      | "Unpaused"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "ETHBuyHelper",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "MaxUSDTRaised",
@@ -96,19 +126,19 @@ export interface SWAPXDEXInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "buyWithUSDT",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "changeMaxTokensToBuy",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "changeSaleEndTime",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "changeSaleStartTime",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "claim", values?: undefined): string;
   encodeFunctionData(functionFragment: "endTime", values?: undefined): string;
@@ -137,7 +167,7 @@ export interface SWAPXDEXInterface extends Interface {
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setMaxUSDTRaised",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "startTime", values?: undefined): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
@@ -147,29 +177,29 @@ export interface SWAPXDEXInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updatePresaleRate",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "usdt", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "usdtBuyHelper",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "userDeposits",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawETH",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawTokens",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
@@ -267,469 +297,717 @@ export interface SWAPXDEXInterface extends Interface {
     functionFragment: "withdrawTokens",
     data: BytesLike
   ): Result;
+
+  events: {
+    "MaxTokensUpdated(uint256,uint256,uint256)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "Paused(address)": EventFragment;
+    "TokensBought(address,uint256,address,uint256,uint256)": EventFragment;
+    "TokensClaimed(address,uint256,uint256)": EventFragment;
+    "Unpaused(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "MaxTokensUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokensBought"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokensClaimed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
-export namespace MaxTokensUpdatedEvent {
-  export type InputTuple = [
-    prevValue: BigNumberish,
-    newValue: BigNumberish,
-    timestamp: BigNumberish
-  ];
-  export type OutputTuple = [
-    prevValue: bigint,
-    newValue: bigint,
-    timestamp: bigint
-  ];
-  export interface OutputObject {
-    prevValue: bigint;
-    newValue: bigint;
-    timestamp: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface MaxTokensUpdatedEventObject {
+  prevValue: BigNumber;
+  newValue: BigNumber;
+  timestamp: BigNumber;
 }
+export type MaxTokensUpdatedEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber],
+  MaxTokensUpdatedEventObject
+>;
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type MaxTokensUpdatedEventFilter =
+  TypedEventFilter<MaxTokensUpdatedEvent>;
 
-export namespace PausedEvent {
-  export type InputTuple = [account: AddressLike];
-  export type OutputTuple = [account: string];
-  export interface OutputObject {
-    account: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
 
-export namespace TokensBoughtEvent {
-  export type InputTuple = [
-    user: AddressLike,
-    tokensBought: BigNumberish,
-    purchaseToken: AddressLike,
-    amountPaid: BigNumberish,
-    timestamp: BigNumberish
-  ];
-  export type OutputTuple = [
-    user: string,
-    tokensBought: bigint,
-    purchaseToken: string,
-    amountPaid: bigint,
-    timestamp: bigint
-  ];
-  export interface OutputObject {
-    user: string;
-    tokensBought: bigint;
-    purchaseToken: string;
-    amountPaid: bigint;
-    timestamp: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
-export namespace TokensClaimedEvent {
-  export type InputTuple = [
-    user: AddressLike,
-    amount: BigNumberish,
-    timestamp: BigNumberish
-  ];
-  export type OutputTuple = [user: string, amount: bigint, timestamp: bigint];
-  export interface OutputObject {
-    user: string;
-    amount: bigint;
-    timestamp: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface PausedEventObject {
+  account: string;
 }
+export type PausedEvent = TypedEvent<[string], PausedEventObject>;
 
-export namespace UnpausedEvent {
-  export type InputTuple = [account: AddressLike];
-  export type OutputTuple = [account: string];
-  export interface OutputObject {
-    account: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type PausedEventFilter = TypedEventFilter<PausedEvent>;
+
+export interface TokensBoughtEventObject {
+  user: string;
+  tokensBought: BigNumber;
+  purchaseToken: string;
+  amountPaid: BigNumber;
+  timestamp: BigNumber;
 }
+export type TokensBoughtEvent = TypedEvent<
+  [string, BigNumber, string, BigNumber, BigNumber],
+  TokensBoughtEventObject
+>;
+
+export type TokensBoughtEventFilter = TypedEventFilter<TokensBoughtEvent>;
+
+export interface TokensClaimedEventObject {
+  user: string;
+  amount: BigNumber;
+  timestamp: BigNumber;
+}
+export type TokensClaimedEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  TokensClaimedEventObject
+>;
+
+export type TokensClaimedEventFilter = TypedEventFilter<TokensClaimedEvent>;
+
+export interface UnpausedEventObject {
+  account: string;
+}
+export type UnpausedEvent = TypedEvent<[string], UnpausedEventObject>;
+
+export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 
 export interface SWAPXDEX extends BaseContract {
-  connect(runner?: ContractRunner | null): SWAPXDEX;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: SWAPXDEXInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    ETHBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { numOfTokens: BigNumber }>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    MaxUSDTRaised(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  ETHBuyHelper: TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
+    PresaleRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  MaxUSDTRaised: TypedContractMethod<[], [bigint], "view">;
+    USDTRaised(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  PresaleRate: TypedContractMethod<[], [bigint], "view">;
+    aggregatorInterface(overrides?: CallOverrides): Promise<[string]>;
 
-  USDTRaised: TypedContractMethod<[], [bigint], "view">;
+    buyWithETH(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  aggregatorInterface: TypedContractMethod<[], [string], "view">;
+    buyWithUSDT(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  buyWithETH: TypedContractMethod<[], [void], "payable">;
+    changeMaxTokensToBuy(
+      _maxTokensToBuy: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  buyWithUSDT: TypedContractMethod<
-    [amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    changeSaleEndTime(
+      _endTime: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  changeMaxTokensToBuy: TypedContractMethod<
-    [_maxTokensToBuy: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    changeSaleStartTime(
+      _startTime: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  changeSaleEndTime: TypedContractMethod<
-    [_endTime: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    claim(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  changeSaleStartTime: TypedContractMethod<
-    [_startTime: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    endTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  claim: TypedContractMethod<[], [boolean], "nonpayable">;
+    getETHBalance(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  endTime: TypedContractMethod<[], [bigint], "view">;
+    getLatestPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getETHBalance: TypedContractMethod<[], [bigint], "view">;
+    getTokenBalance(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { tokenBalance: BigNumber }>;
 
-  getLatestPrice: TypedContractMethod<[], [bigint], "view">;
+    getUsdtBalance(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { usdtBalance: BigNumber }>;
 
-  getTokenBalance: TypedContractMethod<[], [bigint], "view">;
+    maxTokensToBuy(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getUsdtBalance: TypedContractMethod<[], [bigint], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  maxTokensToBuy: TypedContractMethod<[], [bigint], "view">;
+    pause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
 
-  pause: TypedContractMethod<[], [boolean], "nonpayable">;
+    setMaxUSDTRaised(
+      _newUsdtRaised: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  paused: TypedContractMethod<[], [boolean], "view">;
+    startTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  setMaxUSDTRaised: TypedContractMethod<
-    [_newUsdtRaised: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    token(overrides?: CallOverrides): Promise<[string]>;
 
-  startTime: TypedContractMethod<[], [bigint], "view">;
+    totalTokensSold(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  token: TypedContractMethod<[], [string], "view">;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  totalTokensSold: TypedContractMethod<[], [bigint], "view">;
+    unpause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    updatePresaleRate(
+      _newRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  unpause: TypedContractMethod<[], [boolean], "nonpayable">;
+    usdt(overrides?: CallOverrides): Promise<[string]>;
 
-  updatePresaleRate: TypedContractMethod<
-    [_newRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    usdtBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { numOfTokens: BigNumber }>;
 
-  usdt: TypedContractMethod<[], [string], "view">;
+    userDeposits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  usdtBuyHelper: TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
+    withdrawETH(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  userDeposits: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+    withdrawTokens(
+      _token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  withdrawETH: TypedContractMethod<
-    [amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  ETHBuyHelper(
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  withdrawTokens: TypedContractMethod<
-    [_token: AddressLike, amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  MaxUSDTRaised(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  PresaleRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "ETHBuyHelper"
-  ): TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "MaxUSDTRaised"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "PresaleRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "USDTRaised"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "aggregatorInterface"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "buyWithETH"
-  ): TypedContractMethod<[], [void], "payable">;
-  getFunction(
-    nameOrSignature: "buyWithUSDT"
-  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "changeMaxTokensToBuy"
-  ): TypedContractMethod<[_maxTokensToBuy: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "changeSaleEndTime"
-  ): TypedContractMethod<[_endTime: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "changeSaleStartTime"
-  ): TypedContractMethod<[_startTime: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "claim"
-  ): TypedContractMethod<[], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "endTime"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getETHBalance"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getLatestPrice"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getTokenBalance"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getUsdtBalance"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "maxTokensToBuy"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "pause"
-  ): TypedContractMethod<[], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "paused"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "setMaxUSDTRaised"
-  ): TypedContractMethod<[_newUsdtRaised: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "startTime"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "token"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "totalTokensSold"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "unpause"
-  ): TypedContractMethod<[], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updatePresaleRate"
-  ): TypedContractMethod<[_newRate: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "usdt"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "usdtBuyHelper"
-  ): TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "userDeposits"
-  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "withdrawETH"
-  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "withdrawTokens"
-  ): TypedContractMethod<
-    [_token: AddressLike, amount: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  USDTRaised(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getEvent(
-    key: "MaxTokensUpdated"
-  ): TypedContractEvent<
-    MaxTokensUpdatedEvent.InputTuple,
-    MaxTokensUpdatedEvent.OutputTuple,
-    MaxTokensUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "Paused"
-  ): TypedContractEvent<
-    PausedEvent.InputTuple,
-    PausedEvent.OutputTuple,
-    PausedEvent.OutputObject
-  >;
-  getEvent(
-    key: "TokensBought"
-  ): TypedContractEvent<
-    TokensBoughtEvent.InputTuple,
-    TokensBoughtEvent.OutputTuple,
-    TokensBoughtEvent.OutputObject
-  >;
-  getEvent(
-    key: "TokensClaimed"
-  ): TypedContractEvent<
-    TokensClaimedEvent.InputTuple,
-    TokensClaimedEvent.OutputTuple,
-    TokensClaimedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Unpaused"
-  ): TypedContractEvent<
-    UnpausedEvent.InputTuple,
-    UnpausedEvent.OutputTuple,
-    UnpausedEvent.OutputObject
-  >;
+  aggregatorInterface(overrides?: CallOverrides): Promise<string>;
+
+  buyWithETH(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  buyWithUSDT(
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changeMaxTokensToBuy(
+    _maxTokensToBuy: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changeSaleEndTime(
+    _endTime: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changeSaleStartTime(
+    _startTime: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  claim(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  endTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getETHBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getLatestPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getTokenBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getUsdtBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxTokensToBuy(overrides?: CallOverrides): Promise<BigNumber>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pause(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  paused(overrides?: CallOverrides): Promise<boolean>;
+
+  setMaxUSDTRaised(
+    _newUsdtRaised: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  startTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+  token(overrides?: CallOverrides): Promise<string>;
+
+  totalTokensSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  unpause(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updatePresaleRate(
+    _newRate: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  usdt(overrides?: CallOverrides): Promise<string>;
+
+  usdtBuyHelper(
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  userDeposits(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  withdrawETH(
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawTokens(
+    _token: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    ETHBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    MaxUSDTRaised(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PresaleRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USDTRaised(overrides?: CallOverrides): Promise<BigNumber>;
+
+    aggregatorInterface(overrides?: CallOverrides): Promise<string>;
+
+    buyWithETH(overrides?: CallOverrides): Promise<void>;
+
+    buyWithUSDT(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    changeMaxTokensToBuy(
+      _maxTokensToBuy: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    changeSaleEndTime(
+      _endTime: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    changeSaleStartTime(
+      _startTime: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    claim(overrides?: CallOverrides): Promise<boolean>;
+
+    endTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getETHBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLatestPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTokenBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getUsdtBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxTokensToBuy(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    pause(overrides?: CallOverrides): Promise<boolean>;
+
+    paused(overrides?: CallOverrides): Promise<boolean>;
+
+    setMaxUSDTRaised(
+      _newUsdtRaised: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    startTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<string>;
+
+    totalTokensSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    unpause(overrides?: CallOverrides): Promise<boolean>;
+
+    updatePresaleRate(
+      _newRate: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    usdt(overrides?: CallOverrides): Promise<string>;
+
+    usdtBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    userDeposits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    withdrawETH(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawTokens(
+      _token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "MaxTokensUpdated(uint256,uint256,uint256)": TypedContractEvent<
-      MaxTokensUpdatedEvent.InputTuple,
-      MaxTokensUpdatedEvent.OutputTuple,
-      MaxTokensUpdatedEvent.OutputObject
-    >;
-    MaxTokensUpdated: TypedContractEvent<
-      MaxTokensUpdatedEvent.InputTuple,
-      MaxTokensUpdatedEvent.OutputTuple,
-      MaxTokensUpdatedEvent.OutputObject
-    >;
+    "MaxTokensUpdated(uint256,uint256,uint256)"(
+      prevValue?: null,
+      newValue?: null,
+      timestamp?: null
+    ): MaxTokensUpdatedEventFilter;
+    MaxTokensUpdated(
+      prevValue?: null,
+      newValue?: null,
+      timestamp?: null
+    ): MaxTokensUpdatedEventFilter;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "Paused(address)": TypedContractEvent<
-      PausedEvent.InputTuple,
-      PausedEvent.OutputTuple,
-      PausedEvent.OutputObject
-    >;
-    Paused: TypedContractEvent<
-      PausedEvent.InputTuple,
-      PausedEvent.OutputTuple,
-      PausedEvent.OutputObject
-    >;
+    "Paused(address)"(account?: null): PausedEventFilter;
+    Paused(account?: null): PausedEventFilter;
 
-    "TokensBought(address,uint256,address,uint256,uint256)": TypedContractEvent<
-      TokensBoughtEvent.InputTuple,
-      TokensBoughtEvent.OutputTuple,
-      TokensBoughtEvent.OutputObject
-    >;
-    TokensBought: TypedContractEvent<
-      TokensBoughtEvent.InputTuple,
-      TokensBoughtEvent.OutputTuple,
-      TokensBoughtEvent.OutputObject
-    >;
+    "TokensBought(address,uint256,address,uint256,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      tokensBought?: PromiseOrValue<BigNumberish> | null,
+      purchaseToken?: PromiseOrValue<string> | null,
+      amountPaid?: null,
+      timestamp?: null
+    ): TokensBoughtEventFilter;
+    TokensBought(
+      user?: PromiseOrValue<string> | null,
+      tokensBought?: PromiseOrValue<BigNumberish> | null,
+      purchaseToken?: PromiseOrValue<string> | null,
+      amountPaid?: null,
+      timestamp?: null
+    ): TokensBoughtEventFilter;
 
-    "TokensClaimed(address,uint256,uint256)": TypedContractEvent<
-      TokensClaimedEvent.InputTuple,
-      TokensClaimedEvent.OutputTuple,
-      TokensClaimedEvent.OutputObject
-    >;
-    TokensClaimed: TypedContractEvent<
-      TokensClaimedEvent.InputTuple,
-      TokensClaimedEvent.OutputTuple,
-      TokensClaimedEvent.OutputObject
-    >;
+    "TokensClaimed(address,uint256,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      amount?: null,
+      timestamp?: null
+    ): TokensClaimedEventFilter;
+    TokensClaimed(
+      user?: PromiseOrValue<string> | null,
+      amount?: null,
+      timestamp?: null
+    ): TokensClaimedEventFilter;
 
-    "Unpaused(address)": TypedContractEvent<
-      UnpausedEvent.InputTuple,
-      UnpausedEvent.OutputTuple,
-      UnpausedEvent.OutputObject
-    >;
-    Unpaused: TypedContractEvent<
-      UnpausedEvent.InputTuple,
-      UnpausedEvent.OutputTuple,
-      UnpausedEvent.OutputObject
-    >;
+    "Unpaused(address)"(account?: null): UnpausedEventFilter;
+    Unpaused(account?: null): UnpausedEventFilter;
+  };
+
+  estimateGas: {
+    ETHBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    MaxUSDTRaised(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PresaleRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USDTRaised(overrides?: CallOverrides): Promise<BigNumber>;
+
+    aggregatorInterface(overrides?: CallOverrides): Promise<BigNumber>;
+
+    buyWithETH(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    buyWithUSDT(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeMaxTokensToBuy(
+      _maxTokensToBuy: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeSaleEndTime(
+      _endTime: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeSaleStartTime(
+      _startTime: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    claim(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    endTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getETHBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLatestPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTokenBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getUsdtBalance(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxTokensToBuy(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setMaxUSDTRaised(
+      _newUsdtRaised: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    startTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalTokensSold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    unpause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updatePresaleRate(
+      _newRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    usdt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    usdtBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    userDeposits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    withdrawETH(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawTokens(
+      _token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    ETHBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    MaxUSDTRaised(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PresaleRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    USDTRaised(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    aggregatorInterface(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    buyWithETH(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    buyWithUSDT(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeMaxTokensToBuy(
+      _maxTokensToBuy: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeSaleEndTime(
+      _endTime: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeSaleStartTime(
+      _startTime: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    claim(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    endTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getETHBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLatestPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getTokenBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getUsdtBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    maxTokensToBuy(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setMaxUSDTRaised(
+      _newUsdtRaised: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    startTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalTokensSold(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    unpause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updatePresaleRate(
+      _newRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    usdt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    usdtBuyHelper(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    userDeposits(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    withdrawETH(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawTokens(
+      _token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

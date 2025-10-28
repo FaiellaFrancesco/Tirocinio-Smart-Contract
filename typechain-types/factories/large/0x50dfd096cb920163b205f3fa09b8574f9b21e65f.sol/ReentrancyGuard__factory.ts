@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   ReentrancyGuard,
   ReentrancyGuardInterface,
@@ -14,17 +15,17 @@ const _abi = [
     name: "ReentrancyGuardReentrantCall",
     type: "error",
   },
-] as const;
+];
 
 export class ReentrancyGuard__factory {
   static readonly abi = _abi;
   static createInterface(): ReentrancyGuardInterface {
-    return new Interface(_abi) as ReentrancyGuardInterface;
+    return new utils.Interface(_abi) as ReentrancyGuardInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): ReentrancyGuard {
-    return new Contract(address, _abi, runner) as unknown as ReentrancyGuard;
+    return new Contract(address, _abi, signerOrProvider) as ReentrancyGuard;
   }
 }

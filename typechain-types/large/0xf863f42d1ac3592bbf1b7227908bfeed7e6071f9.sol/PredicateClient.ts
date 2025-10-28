@@ -3,26 +3,35 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface PredicateClientInterface extends Interface {
+export interface PredicateClientInterface extends utils.Interface {
+  functions: {
+    "getPolicy()": FunctionFragment;
+    "getPredicateManager()": FunctionFragment;
+    "setPolicy(string)": FunctionFragment;
+    "setPredicateManager(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "getPolicy"
       | "getPredicateManager"
       | "setPolicy"
@@ -34,10 +43,13 @@ export interface PredicateClientInterface extends Interface {
     functionFragment: "getPredicateManager",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "setPolicy", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setPolicy",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "setPredicateManager",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "getPolicy", data: BytesLike): Result;
@@ -50,83 +62,115 @@ export interface PredicateClientInterface extends Interface {
     functionFragment: "setPredicateManager",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface PredicateClient extends BaseContract {
-  connect(runner?: ContractRunner | null): PredicateClient;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: PredicateClientInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    getPolicy(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    getPredicateManager(overrides?: CallOverrides): Promise<[string]>;
 
-  getPolicy: TypedContractMethod<[], [string], "view">;
+    setPolicy(
+      _policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  getPredicateManager: TypedContractMethod<[], [string], "view">;
+    setPredicateManager(
+      _predicateManager: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  setPolicy: TypedContractMethod<[_policyID: string], [void], "nonpayable">;
+  getPolicy(overrides?: CallOverrides): Promise<string>;
 
-  setPredicateManager: TypedContractMethod<
-    [_predicateManager: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  getPredicateManager(overrides?: CallOverrides): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  setPolicy(
+    _policyID: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "getPolicy"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getPredicateManager"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "setPolicy"
-  ): TypedContractMethod<[_policyID: string], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setPredicateManager"
-  ): TypedContractMethod<
-    [_predicateManager: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  setPredicateManager(
+    _predicateManager: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    getPolicy(overrides?: CallOverrides): Promise<string>;
+
+    getPredicateManager(overrides?: CallOverrides): Promise<string>;
+
+    setPolicy(
+      _policyID: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setPredicateManager(
+      _predicateManager: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    getPolicy(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPredicateManager(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setPolicy(
+      _policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setPredicateManager(
+      _predicateManager: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    getPolicy(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPredicateManager(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    setPolicy(
+      _policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPredicateManager(
+      _predicateManager: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

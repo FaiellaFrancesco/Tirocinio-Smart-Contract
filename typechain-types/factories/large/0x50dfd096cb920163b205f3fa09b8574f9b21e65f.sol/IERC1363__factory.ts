@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IERC1363,
   IERC1363Interface,
@@ -380,14 +381,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IERC1363__factory {
   static readonly abi = _abi;
   static createInterface(): IERC1363Interface {
-    return new Interface(_abi) as IERC1363Interface;
+    return new utils.Interface(_abi) as IERC1363Interface;
   }
-  static connect(address: string, runner?: ContractRunner | null): IERC1363 {
-    return new Contract(address, _abi, runner) as unknown as IERC1363;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IERC1363 {
+    return new Contract(address, _abi, signerOrProvider) as IERC1363;
   }
 }

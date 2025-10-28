@@ -3,72 +3,78 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IPermit2 {
   export type TokenPermissionsStruct = {
-    token: AddressLike;
-    amount: BigNumberish;
+    token: PromiseOrValue<string>;
+    amount: PromiseOrValue<BigNumberish>;
   };
 
-  export type TokenPermissionsStructOutput = [token: string, amount: bigint] & {
+  export type TokenPermissionsStructOutput = [string, BigNumber] & {
     token: string;
-    amount: bigint;
+    amount: BigNumber;
   };
 
   export type PermitTransferFromStruct = {
     permitted: IPermit2.TokenPermissionsStruct[];
-    nonce: BigNumberish;
-    deadline: BigNumberish;
+    nonce: PromiseOrValue<BigNumberish>;
+    deadline: PromiseOrValue<BigNumberish>;
   };
 
   export type PermitTransferFromStructOutput = [
-    permitted: IPermit2.TokenPermissionsStructOutput[],
-    nonce: bigint,
-    deadline: bigint
+    IPermit2.TokenPermissionsStructOutput[],
+    BigNumber,
+    BigNumber
   ] & {
     permitted: IPermit2.TokenPermissionsStructOutput[];
-    nonce: bigint;
-    deadline: bigint;
+    nonce: BigNumber;
+    deadline: BigNumber;
   };
 
   export type SignatureTransferDetailsStruct = {
-    to: AddressLike;
-    requestedAmount: BigNumberish;
+    to: PromiseOrValue<string>;
+    requestedAmount: PromiseOrValue<BigNumberish>;
   };
 
-  export type SignatureTransferDetailsStructOutput = [
-    to: string,
-    requestedAmount: bigint
-  ] & { to: string; requestedAmount: bigint };
+  export type SignatureTransferDetailsStructOutput = [string, BigNumber] & {
+    to: string;
+    requestedAmount: BigNumber;
+  };
 }
 
-export interface IPermit2Interface extends Interface {
-  getFunction(nameOrSignature: "permitTransferFrom"): FunctionFragment;
+export interface IPermit2Interface extends utils.Interface {
+  functions: {
+    "permitTransferFrom(((address,uint256)[],uint256,uint256),(address,uint256)[],address,bytes)": FunctionFragment;
+  };
+
+  getFunction(nameOrSignatureOrTopic: "permitTransferFrom"): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "permitTransferFrom",
     values: [
       IPermit2.PermitTransferFromStruct,
       IPermit2.SignatureTransferDetailsStruct[],
-      AddressLike,
-      BytesLike
+      PromiseOrValue<string>,
+      PromiseOrValue<BytesLike>
     ]
   ): string;
 
@@ -76,78 +82,83 @@ export interface IPermit2Interface extends Interface {
     functionFragment: "permitTransferFrom",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IPermit2 extends BaseContract {
-  connect(runner?: ContractRunner | null): IPermit2;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IPermit2Interface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
-
-  permitTransferFrom: TypedContractMethod<
-    [
+  functions: {
+    permitTransferFrom(
       permit: IPermit2.PermitTransferFromStruct,
       transferDetails: IPermit2.SignatureTransferDetailsStruct[],
-      owner: AddressLike,
-      signature: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  permitTransferFrom(
+    permit: IPermit2.PermitTransferFromStruct,
+    transferDetails: IPermit2.SignatureTransferDetailsStruct[],
+    owner: PromiseOrValue<string>,
+    signature: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "permitTransferFrom"
-  ): TypedContractMethod<
-    [
+  callStatic: {
+    permitTransferFrom(
       permit: IPermit2.PermitTransferFromStruct,
       transferDetails: IPermit2.SignatureTransferDetailsStruct[],
-      owner: AddressLike,
-      signature: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    permitTransferFrom(
+      permit: IPermit2.PermitTransferFromStruct,
+      transferDetails: IPermit2.SignatureTransferDetailsStruct[],
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    permitTransferFrom(
+      permit: IPermit2.PermitTransferFromStruct,
+      transferDetails: IPermit2.SignatureTransferDetailsStruct[],
+      owner: PromiseOrValue<string>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

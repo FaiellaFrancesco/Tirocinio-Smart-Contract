@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IERC20PermitUpgradeable,
   IERC20PermitUpgradeableInterface,
@@ -84,21 +85,21 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IERC20PermitUpgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): IERC20PermitUpgradeableInterface {
-    return new Interface(_abi) as IERC20PermitUpgradeableInterface;
+    return new utils.Interface(_abi) as IERC20PermitUpgradeableInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IERC20PermitUpgradeable {
     return new Contract(
       address,
       _abi,
-      runner
-    ) as unknown as IERC20PermitUpgradeable;
+      signerOrProvider
+    ) as IERC20PermitUpgradeable;
   }
 }

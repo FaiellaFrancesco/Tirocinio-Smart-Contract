@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   Zebecio,
   ZebecioInterface,
@@ -231,14 +232,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class Zebecio__factory {
   static readonly abi = _abi;
   static createInterface(): ZebecioInterface {
-    return new Interface(_abi) as ZebecioInterface;
+    return new utils.Interface(_abi) as ZebecioInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): Zebecio {
-    return new Contract(address, _abi, runner) as unknown as Zebecio;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): Zebecio {
+    return new Contract(address, _abi, signerOrProvider) as Zebecio;
   }
 }

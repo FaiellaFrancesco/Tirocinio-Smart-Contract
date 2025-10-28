@@ -3,90 +3,99 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace StructsLibrary {
   export type TokenInfoStruct = {
-    _name: string;
-    _symbol: string;
-    _supply: BigNumberish;
-    _teamTokenPercent: BigNumberish;
-    _teamTokensWallet: AddressLike;
-    _maxWallets: BigNumberish[];
-    _buyTaxes: BigNumberish[];
-    _sellTaxes: BigNumberish[];
-    _incubatorWallet: AddressLike;
-    _taxWallet1: AddressLike;
-    _taxWallet1Split: BigNumberish;
-    _taxWallet2: AddressLike;
-    _isWhitelistLaunch: boolean;
-    lpLockDurationInMonths: BigNumberish;
-    _vestTeamTokens: boolean;
+    _name: PromiseOrValue<string>;
+    _symbol: PromiseOrValue<string>;
+    _supply: PromiseOrValue<BigNumberish>;
+    _teamTokenPercent: PromiseOrValue<BigNumberish>;
+    _teamTokensWallet: PromiseOrValue<string>;
+    _maxWallets: PromiseOrValue<BigNumberish>[];
+    _buyTaxes: PromiseOrValue<BigNumberish>[];
+    _sellTaxes: PromiseOrValue<BigNumberish>[];
+    _incubatorWallet: PromiseOrValue<string>;
+    _taxWallet1: PromiseOrValue<string>;
+    _taxWallet1Split: PromiseOrValue<BigNumberish>;
+    _taxWallet2: PromiseOrValue<string>;
+    _isWhitelistLaunch: PromiseOrValue<boolean>;
+    lpLockDurationInMonths: PromiseOrValue<BigNumberish>;
+    _vestTeamTokens: PromiseOrValue<boolean>;
   };
 
   export type TokenInfoStructOutput = [
-    _name: string,
-    _symbol: string,
-    _supply: bigint,
-    _teamTokenPercent: bigint,
-    _teamTokensWallet: string,
-    _maxWallets: bigint[],
-    _buyTaxes: bigint[],
-    _sellTaxes: bigint[],
-    _incubatorWallet: string,
-    _taxWallet1: string,
-    _taxWallet1Split: bigint,
-    _taxWallet2: string,
-    _isWhitelistLaunch: boolean,
-    lpLockDurationInMonths: bigint,
-    _vestTeamTokens: boolean
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    string,
+    number[],
+    number[],
+    number[],
+    string,
+    string,
+    number,
+    string,
+    boolean,
+    BigNumber,
+    boolean
   ] & {
     _name: string;
     _symbol: string;
-    _supply: bigint;
-    _teamTokenPercent: bigint;
+    _supply: BigNumber;
+    _teamTokenPercent: BigNumber;
     _teamTokensWallet: string;
-    _maxWallets: bigint[];
-    _buyTaxes: bigint[];
-    _sellTaxes: bigint[];
+    _maxWallets: number[];
+    _buyTaxes: number[];
+    _sellTaxes: number[];
     _incubatorWallet: string;
     _taxWallet1: string;
-    _taxWallet1Split: bigint;
+    _taxWallet1Split: number;
     _taxWallet2: string;
     _isWhitelistLaunch: boolean;
-    lpLockDurationInMonths: bigint;
+    lpLockDurationInMonths: BigNumber;
     _vestTeamTokens: boolean;
   };
 }
 
-export interface SparkStarterTokenFactoryInterface extends Interface {
+export interface SparkStarterTokenFactoryInterface extends utils.Interface {
+  functions: {
+    "authorizedChecker()": FunctionFragment;
+    "generateToken((string,string,uint256,uint256,address,uint32[],uint24[],uint24[],address,address,uint24,address,bool,uint256,bool))": FunctionFragment;
+    "platformAddress()": FunctionFragment;
+    "vaultFactory()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "authorizedChecker"
       | "generateToken"
       | "platformAddress"
       | "vaultFactory"
   ): FunctionFragment;
-
-  getEvent(nameOrSignatureOrTopic: "NewTokenCreated"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "authorizedChecker",
@@ -121,114 +130,119 @@ export interface SparkStarterTokenFactoryInterface extends Interface {
     functionFragment: "vaultFactory",
     data: BytesLike
   ): Result;
+
+  events: {
+    "NewTokenCreated(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "NewTokenCreated"): EventFragment;
 }
 
-export namespace NewTokenCreatedEvent {
-  export type InputTuple = [newToken: AddressLike];
-  export type OutputTuple = [newToken: string];
-  export interface OutputObject {
-    newToken: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface NewTokenCreatedEventObject {
+  newToken: string;
 }
+export type NewTokenCreatedEvent = TypedEvent<
+  [string],
+  NewTokenCreatedEventObject
+>;
+
+export type NewTokenCreatedEventFilter = TypedEventFilter<NewTokenCreatedEvent>;
 
 export interface SparkStarterTokenFactory extends BaseContract {
-  connect(runner?: ContractRunner | null): SparkStarterTokenFactory;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: SparkStarterTokenFactoryInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    authorizedChecker(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    generateToken(
+      params: StructsLibrary.TokenInfoStruct,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  authorizedChecker: TypedContractMethod<[], [string], "view">;
+    platformAddress(overrides?: CallOverrides): Promise<[string]>;
 
-  generateToken: TypedContractMethod<
-    [params: StructsLibrary.TokenInfoStruct],
-    [string],
-    "payable"
-  >;
+    vaultFactory(overrides?: CallOverrides): Promise<[string]>;
+  };
 
-  platformAddress: TypedContractMethod<[], [string], "view">;
+  authorizedChecker(overrides?: CallOverrides): Promise<string>;
 
-  vaultFactory: TypedContractMethod<[], [string], "view">;
+  generateToken(
+    params: StructsLibrary.TokenInfoStruct,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  platformAddress(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "authorizedChecker"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "generateToken"
-  ): TypedContractMethod<
-    [params: StructsLibrary.TokenInfoStruct],
-    [string],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "platformAddress"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "vaultFactory"
-  ): TypedContractMethod<[], [string], "view">;
+  vaultFactory(overrides?: CallOverrides): Promise<string>;
 
-  getEvent(
-    key: "NewTokenCreated"
-  ): TypedContractEvent<
-    NewTokenCreatedEvent.InputTuple,
-    NewTokenCreatedEvent.OutputTuple,
-    NewTokenCreatedEvent.OutputObject
-  >;
+  callStatic: {
+    authorizedChecker(overrides?: CallOverrides): Promise<string>;
+
+    generateToken(
+      params: StructsLibrary.TokenInfoStruct,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    platformAddress(overrides?: CallOverrides): Promise<string>;
+
+    vaultFactory(overrides?: CallOverrides): Promise<string>;
+  };
 
   filters: {
-    "NewTokenCreated(address)": TypedContractEvent<
-      NewTokenCreatedEvent.InputTuple,
-      NewTokenCreatedEvent.OutputTuple,
-      NewTokenCreatedEvent.OutputObject
-    >;
-    NewTokenCreated: TypedContractEvent<
-      NewTokenCreatedEvent.InputTuple,
-      NewTokenCreatedEvent.OutputTuple,
-      NewTokenCreatedEvent.OutputObject
-    >;
+    "NewTokenCreated(address)"(
+      newToken?: PromiseOrValue<string> | null
+    ): NewTokenCreatedEventFilter;
+    NewTokenCreated(
+      newToken?: PromiseOrValue<string> | null
+    ): NewTokenCreatedEventFilter;
+  };
+
+  estimateGas: {
+    authorizedChecker(overrides?: CallOverrides): Promise<BigNumber>;
+
+    generateToken(
+      params: StructsLibrary.TokenInfoStruct,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    platformAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    vaultFactory(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    authorizedChecker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    generateToken(
+      params: StructsLibrary.TokenInfoStruct,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    platformAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    vaultFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

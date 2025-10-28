@@ -3,27 +3,45 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractGWF_intInterface extends Interface {
+export interface AbstractGWF_intInterface extends utils.Interface {
+  functions: {
+    "auctionContract()": FunctionFragment;
+    "base()": FunctionFragment;
+    "controllerContract()": FunctionFragment;
+    "domainReport(string,uint256)": FunctionFragment;
+    "ens()": FunctionFragment;
+    "getGWF()": FunctionFragment;
+    "getGWProxy(bytes32)": FunctionFragment;
+    "getIsOwner(bytes32,address)": FunctionFragment;
+    "getOwner(bytes32)": FunctionFragment;
+    "getProxyToken(bytes32)": FunctionFragment;
+    "resolverContract()": FunctionFragment;
+    "reverseContract()": FunctionFragment;
+    "tld()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "auctionContract"
       | "base"
       | "controllerContract"
@@ -50,22 +68,25 @@ export interface AbstractGWF_intInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "domainReport",
-    values: [string, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "ens", values?: undefined): string;
   encodeFunctionData(functionFragment: "getGWF", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getGWProxy",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "getIsOwner",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "getOwner", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "getOwner",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
   encodeFunctionData(
     functionFragment: "getProxyToken",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "resolverContract",
@@ -108,156 +129,268 @@ export interface AbstractGWF_intInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "tld", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface AbstractGWF_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractGWF_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractGWF_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    auctionContract(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    base(overrides?: CallOverrides): Promise<[string]>;
 
-  auctionContract: TypedContractMethod<[], [string], "view">;
+    controllerContract(overrides?: CallOverrides): Promise<[string]>;
 
-  base: TypedContractMethod<[], [string], "view">;
+    domainReport(
+      _dom: PromiseOrValue<string>,
+      command: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  controllerContract: TypedContractMethod<[], [string], "view">;
+    ens(overrides?: CallOverrides): Promise<[string]>;
 
-  domainReport: TypedContractMethod<
-    [_dom: string, command: BigNumberish],
-    [
-      [bigint, string, string, string, string] & {
-        report: bigint;
+    getGWF(overrides?: CallOverrides): Promise<[string]>;
+
+    getGWProxy(
+      _dHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getIsOwner(
+      _dHash: PromiseOrValue<BytesLike>,
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    getOwner(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getProxyToken(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { p: string }>;
+
+    resolverContract(overrides?: CallOverrides): Promise<[string]>;
+
+    reverseContract(overrides?: CallOverrides): Promise<[string]>;
+
+    tld(overrides?: CallOverrides): Promise<[string]>;
+  };
+
+  auctionContract(overrides?: CallOverrides): Promise<string>;
+
+  base(overrides?: CallOverrides): Promise<string>;
+
+  controllerContract(overrides?: CallOverrides): Promise<string>;
+
+  domainReport(
+    _dom: PromiseOrValue<string>,
+    command: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  ens(overrides?: CallOverrides): Promise<string>;
+
+  getGWF(overrides?: CallOverrides): Promise<string>;
+
+  getGWProxy(
+    _dHash: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getIsOwner(
+    _dHash: PromiseOrValue<BytesLike>,
+    _owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  getOwner(
+    _domainHash: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getProxyToken(
+    _domainHash: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  resolverContract(overrides?: CallOverrides): Promise<string>;
+
+  reverseContract(overrides?: CallOverrides): Promise<string>;
+
+  tld(overrides?: CallOverrides): Promise<string>;
+
+  callStatic: {
+    auctionContract(overrides?: CallOverrides): Promise<string>;
+
+    base(overrides?: CallOverrides): Promise<string>;
+
+    controllerContract(overrides?: CallOverrides): Promise<string>;
+
+    domainReport(
+      _dom: PromiseOrValue<string>,
+      command: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, string, string, string] & {
+        report: BigNumber;
         gwpc: string;
         ptc: string;
         gwfc: string;
         structure: string;
       }
-    ],
-    "payable"
-  >;
+    >;
 
-  ens: TypedContractMethod<[], [string], "view">;
+    ens(overrides?: CallOverrides): Promise<string>;
 
-  getGWF: TypedContractMethod<[], [string], "view">;
+    getGWF(overrides?: CallOverrides): Promise<string>;
 
-  getGWProxy: TypedContractMethod<[_dHash: BytesLike], [string], "view">;
+    getGWProxy(
+      _dHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
-  getIsOwner: TypedContractMethod<
-    [_dHash: BytesLike, _owner: AddressLike],
-    [boolean],
-    "view"
-  >;
+    getIsOwner(
+      _dHash: PromiseOrValue<BytesLike>,
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-  getOwner: TypedContractMethod<[_domainHash: BytesLike], [string], "view">;
+    getOwner(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
-  getProxyToken: TypedContractMethod<
-    [_domainHash: BytesLike],
-    [string],
-    "view"
-  >;
+    getProxyToken(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
-  resolverContract: TypedContractMethod<[], [string], "view">;
+    resolverContract(overrides?: CallOverrides): Promise<string>;
 
-  reverseContract: TypedContractMethod<[], [string], "view">;
+    reverseContract(overrides?: CallOverrides): Promise<string>;
 
-  tld: TypedContractMethod<[], [string], "view">;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "auctionContract"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "base"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "controllerContract"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "domainReport"
-  ): TypedContractMethod<
-    [_dom: string, command: BigNumberish],
-    [
-      [bigint, string, string, string, string] & {
-        report: bigint;
-        gwpc: string;
-        ptc: string;
-        gwfc: string;
-        structure: string;
-      }
-    ],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "ens"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getGWF"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getGWProxy"
-  ): TypedContractMethod<[_dHash: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "getIsOwner"
-  ): TypedContractMethod<
-    [_dHash: BytesLike, _owner: AddressLike],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getOwner"
-  ): TypedContractMethod<[_domainHash: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "getProxyToken"
-  ): TypedContractMethod<[_domainHash: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "resolverContract"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "reverseContract"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tld"
-  ): TypedContractMethod<[], [string], "view">;
+    tld(overrides?: CallOverrides): Promise<string>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    auctionContract(overrides?: CallOverrides): Promise<BigNumber>;
+
+    base(overrides?: CallOverrides): Promise<BigNumber>;
+
+    controllerContract(overrides?: CallOverrides): Promise<BigNumber>;
+
+    domainReport(
+      _dom: PromiseOrValue<string>,
+      command: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getGWF(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getGWProxy(
+      _dHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getIsOwner(
+      _dHash: PromiseOrValue<BytesLike>,
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getOwner(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getProxyToken(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    resolverContract(overrides?: CallOverrides): Promise<BigNumber>;
+
+    reverseContract(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tld(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    auctionContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    base(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    controllerContract(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    domainReport(
+      _dom: PromiseOrValue<string>,
+      command: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getGWF(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getGWProxy(
+      _dHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getIsOwner(
+      _dHash: PromiseOrValue<BytesLike>,
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getOwner(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getProxyToken(
+      _domainHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    resolverContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    reverseContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tld(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+  };
 }

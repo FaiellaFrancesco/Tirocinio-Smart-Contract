@@ -3,46 +3,62 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
-export interface VotingSystemInterface extends Interface {
-  getFunction(
-    nameOrSignature: "createProposal" | "getProposal" | "proposalCount" | "vote"
-  ): FunctionFragment;
+export interface VotingSystemInterface extends utils.Interface {
+  functions: {
+    "createProposal(string,uint256)": FunctionFragment;
+    "getProposal(uint256)": FunctionFragment;
+    "proposalCount()": FunctionFragment;
+    "vote(uint256)": FunctionFragment;
+  };
 
-  getEvent(nameOrSignatureOrTopic: "ProposalCreated" | "Voted"): EventFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "createProposal"
+      | "getProposal"
+      | "proposalCount"
+      | "vote"
+  ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "createProposal",
-    values: [string, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getProposal",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "proposalCount",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "vote", values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "vote",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "createProposal",
@@ -57,163 +73,173 @@ export interface VotingSystemInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
+
+  events: {
+    "ProposalCreated(uint256,string,uint256)": EventFragment;
+    "Voted(uint256,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "ProposalCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Voted"): EventFragment;
 }
 
-export namespace ProposalCreatedEvent {
-  export type InputTuple = [
-    proposalId: BigNumberish,
-    description: string,
-    endTime: BigNumberish
-  ];
-  export type OutputTuple = [
-    proposalId: bigint,
-    description: string,
-    endTime: bigint
-  ];
-  export interface OutputObject {
-    proposalId: bigint;
-    description: string;
-    endTime: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ProposalCreatedEventObject {
+  proposalId: BigNumber;
+  description: string;
+  endTime: BigNumber;
 }
+export type ProposalCreatedEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  ProposalCreatedEventObject
+>;
 
-export namespace VotedEvent {
-  export type InputTuple = [proposalId: BigNumberish, voter: AddressLike];
-  export type OutputTuple = [proposalId: bigint, voter: string];
-  export interface OutputObject {
-    proposalId: bigint;
-    voter: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type ProposalCreatedEventFilter = TypedEventFilter<ProposalCreatedEvent>;
+
+export interface VotedEventObject {
+  proposalId: BigNumber;
+  voter: string;
 }
+export type VotedEvent = TypedEvent<[BigNumber, string], VotedEventObject>;
+
+export type VotedEventFilter = TypedEventFilter<VotedEvent>;
 
 export interface VotingSystem extends BaseContract {
-  connect(runner?: ContractRunner | null): VotingSystem;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: VotingSystemInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    createProposal(
+      _description: PromiseOrValue<string>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber, BigNumber, boolean]>;
 
-  createProposal: TypedContractMethod<
-    [_description: string, _duration: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    proposalCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  getProposal: TypedContractMethod<
-    [_proposalId: BigNumberish],
-    [[string, bigint, bigint, boolean]],
-    "view"
-  >;
+    vote(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  proposalCount: TypedContractMethod<[], [bigint], "view">;
+  createProposal(
+    _description: PromiseOrValue<string>,
+    _duration: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  vote: TypedContractMethod<[_proposalId: BigNumberish], [void], "nonpayable">;
+  getProposal(
+    _proposalId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[string, BigNumber, BigNumber, boolean]>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  proposalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "createProposal"
-  ): TypedContractMethod<
-    [_description: string, _duration: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getProposal"
-  ): TypedContractMethod<
-    [_proposalId: BigNumberish],
-    [[string, bigint, bigint, boolean]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "proposalCount"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "vote"
-  ): TypedContractMethod<[_proposalId: BigNumberish], [void], "nonpayable">;
+  vote(
+    _proposalId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getEvent(
-    key: "ProposalCreated"
-  ): TypedContractEvent<
-    ProposalCreatedEvent.InputTuple,
-    ProposalCreatedEvent.OutputTuple,
-    ProposalCreatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Voted"
-  ): TypedContractEvent<
-    VotedEvent.InputTuple,
-    VotedEvent.OutputTuple,
-    VotedEvent.OutputObject
-  >;
+  callStatic: {
+    createProposal(
+      _description: PromiseOrValue<string>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber, BigNumber, boolean]>;
+
+    proposalCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    vote(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "ProposalCreated(uint256,string,uint256)": TypedContractEvent<
-      ProposalCreatedEvent.InputTuple,
-      ProposalCreatedEvent.OutputTuple,
-      ProposalCreatedEvent.OutputObject
-    >;
-    ProposalCreated: TypedContractEvent<
-      ProposalCreatedEvent.InputTuple,
-      ProposalCreatedEvent.OutputTuple,
-      ProposalCreatedEvent.OutputObject
-    >;
+    "ProposalCreated(uint256,string,uint256)"(
+      proposalId?: null,
+      description?: null,
+      endTime?: null
+    ): ProposalCreatedEventFilter;
+    ProposalCreated(
+      proposalId?: null,
+      description?: null,
+      endTime?: null
+    ): ProposalCreatedEventFilter;
 
-    "Voted(uint256,address)": TypedContractEvent<
-      VotedEvent.InputTuple,
-      VotedEvent.OutputTuple,
-      VotedEvent.OutputObject
-    >;
-    Voted: TypedContractEvent<
-      VotedEvent.InputTuple,
-      VotedEvent.OutputTuple,
-      VotedEvent.OutputObject
-    >;
+    "Voted(uint256,address)"(proposalId?: null, voter?: null): VotedEventFilter;
+    Voted(proposalId?: null, voter?: null): VotedEventFilter;
+  };
+
+  estimateGas: {
+    createProposal(
+      _description: PromiseOrValue<string>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    proposalCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    vote(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    createProposal(
+      _description: PromiseOrValue<string>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    proposalCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    vote(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

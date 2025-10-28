@@ -3,26 +3,36 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractETHRegController_intInterface extends Interface {
+export interface AbstractETHRegController_intInterface extends utils.Interface {
+  functions: {
+    "available(string)": FunctionFragment;
+    "commitments(bytes32)": FunctionFragment;
+    "maxCommitmentAge()": FunctionFragment;
+    "minCommitmentAge()": FunctionFragment;
+    "nameWrapper()": FunctionFragment;
+    "rentPrice(string,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "available"
       | "commitments"
       | "maxCommitmentAge"
@@ -31,10 +41,13 @@ export interface AbstractETHRegController_intInterface extends Interface {
       | "rentPrice"
   ): FunctionFragment;
 
-  encodeFunctionData(functionFragment: "available", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "available",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "commitments",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "maxCommitmentAge",
@@ -50,7 +63,7 @@ export interface AbstractETHRegController_intInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "rentPrice",
-    values: [string, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(functionFragment: "available", data: BytesLike): Result;
@@ -71,93 +84,153 @@ export interface AbstractETHRegController_intInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rentPrice", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface AbstractETHRegController_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractETHRegController_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractETHRegController_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    available(
+      name: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    commitments(
+      arg0: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  available: TypedContractMethod<[name: string], [boolean], "view">;
+    maxCommitmentAge(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  commitments: TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
+    minCommitmentAge(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  maxCommitmentAge: TypedContractMethod<[], [bigint], "view">;
+    nameWrapper(overrides?: CallOverrides): Promise<[string]>;
 
-  minCommitmentAge: TypedContractMethod<[], [bigint], "view">;
+    rentPrice(
+      name: PromiseOrValue<string>,
+      duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+  };
 
-  nameWrapper: TypedContractMethod<[], [string], "view">;
+  available(
+    name: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  rentPrice: TypedContractMethod<
-    [name: string, duration: BigNumberish],
-    [bigint],
-    "view"
-  >;
+  commitments(
+    arg0: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  maxCommitmentAge(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "available"
-  ): TypedContractMethod<[name: string], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "commitments"
-  ): TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "maxCommitmentAge"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "minCommitmentAge"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "nameWrapper"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "rentPrice"
-  ): TypedContractMethod<
-    [name: string, duration: BigNumberish],
-    [bigint],
-    "view"
-  >;
+  minCommitmentAge(overrides?: CallOverrides): Promise<BigNumber>;
+
+  nameWrapper(overrides?: CallOverrides): Promise<string>;
+
+  rentPrice(
+    name: PromiseOrValue<string>,
+    duration: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  callStatic: {
+    available(
+      name: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    commitments(
+      arg0: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxCommitmentAge(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minCommitmentAge(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nameWrapper(overrides?: CallOverrides): Promise<string>;
+
+    rentPrice(
+      name: PromiseOrValue<string>,
+      duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    available(
+      name: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    commitments(
+      arg0: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxCommitmentAge(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minCommitmentAge(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nameWrapper(overrides?: CallOverrides): Promise<BigNumber>;
+
+    rentPrice(
+      name: PromiseOrValue<string>,
+      duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    available(
+      name: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    commitments(
+      arg0: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxCommitmentAge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    minCommitmentAge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    nameWrapper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    rentPrice(
+      name: PromiseOrValue<string>,
+      duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

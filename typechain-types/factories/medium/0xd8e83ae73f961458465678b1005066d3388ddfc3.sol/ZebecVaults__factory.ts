@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   ZebecVaults,
   ZebecVaultsInterface,
@@ -231,14 +232,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class ZebecVaults__factory {
   static readonly abi = _abi;
   static createInterface(): ZebecVaultsInterface {
-    return new Interface(_abi) as ZebecVaultsInterface;
+    return new utils.Interface(_abi) as ZebecVaultsInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): ZebecVaults {
-    return new Contract(address, _abi, runner) as unknown as ZebecVaults;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ZebecVaults {
+    return new Contract(address, _abi, signerOrProvider) as ZebecVaults;
   }
 }

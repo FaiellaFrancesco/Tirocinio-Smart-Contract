@@ -3,29 +3,45 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
-export interface SubscriptionManagerInterface extends Interface {
+export interface SubscriptionManagerInterface extends utils.Interface {
+  functions: {
+    "getExpiry(address)": FunctionFragment;
+    "isSubscribed(address)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "subscribe()": FunctionFragment;
+    "subscriptionDuration()": FunctionFragment;
+    "subscriptionPrice()": FunctionFragment;
+    "updateParameters(uint256,uint256)": FunctionFragment;
+    "withdraw()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "getExpiry"
       | "isSubscribed"
       | "owner"
@@ -36,17 +52,13 @@ export interface SubscriptionManagerInterface extends Interface {
       | "withdraw"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "ParametersUpdated" | "Subscribed"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "getExpiry",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isSubscribed",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "subscribe", values?: undefined): string;
@@ -60,7 +72,7 @@ export interface SubscriptionManagerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateParameters",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "withdraw", values?: undefined): string;
 
@@ -84,166 +96,238 @@ export interface SubscriptionManagerInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+
+  events: {
+    "ParametersUpdated(uint256,uint256)": EventFragment;
+    "Subscribed(address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "ParametersUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Subscribed"): EventFragment;
 }
 
-export namespace ParametersUpdatedEvent {
-  export type InputTuple = [newPrice: BigNumberish, newDuration: BigNumberish];
-  export type OutputTuple = [newPrice: bigint, newDuration: bigint];
-  export interface OutputObject {
-    newPrice: bigint;
-    newDuration: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ParametersUpdatedEventObject {
+  newPrice: BigNumber;
+  newDuration: BigNumber;
 }
+export type ParametersUpdatedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  ParametersUpdatedEventObject
+>;
 
-export namespace SubscribedEvent {
-  export type InputTuple = [user: AddressLike, expiresAt: BigNumberish];
-  export type OutputTuple = [user: string, expiresAt: bigint];
-  export interface OutputObject {
-    user: string;
-    expiresAt: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type ParametersUpdatedEventFilter =
+  TypedEventFilter<ParametersUpdatedEvent>;
+
+export interface SubscribedEventObject {
+  user: string;
+  expiresAt: BigNumber;
 }
+export type SubscribedEvent = TypedEvent<
+  [string, BigNumber],
+  SubscribedEventObject
+>;
+
+export type SubscribedEventFilter = TypedEventFilter<SubscribedEvent>;
 
 export interface SubscriptionManager extends BaseContract {
-  connect(runner?: ContractRunner | null): SubscriptionManager;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: SubscriptionManagerInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    getExpiry(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    isSubscribed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  getExpiry: TypedContractMethod<[user: AddressLike], [bigint], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  isSubscribed: TypedContractMethod<[user: AddressLike], [boolean], "view">;
+    subscribe(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    subscriptionDuration(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  subscribe: TypedContractMethod<[], [void], "payable">;
+    subscriptionPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  subscriptionDuration: TypedContractMethod<[], [bigint], "view">;
+    updateParameters(
+      _price: PromiseOrValue<BigNumberish>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  subscriptionPrice: TypedContractMethod<[], [bigint], "view">;
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  updateParameters: TypedContractMethod<
-    [_price: BigNumberish, _duration: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  getExpiry(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  withdraw: TypedContractMethod<[], [void], "nonpayable">;
+  isSubscribed(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  owner(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "getExpiry"
-  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "isSubscribed"
-  ): TypedContractMethod<[user: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "subscribe"
-  ): TypedContractMethod<[], [void], "payable">;
-  getFunction(
-    nameOrSignature: "subscriptionDuration"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "subscriptionPrice"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "updateParameters"
-  ): TypedContractMethod<
-    [_price: BigNumberish, _duration: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "withdraw"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+  subscribe(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getEvent(
-    key: "ParametersUpdated"
-  ): TypedContractEvent<
-    ParametersUpdatedEvent.InputTuple,
-    ParametersUpdatedEvent.OutputTuple,
-    ParametersUpdatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Subscribed"
-  ): TypedContractEvent<
-    SubscribedEvent.InputTuple,
-    SubscribedEvent.OutputTuple,
-    SubscribedEvent.OutputObject
-  >;
+  subscriptionDuration(overrides?: CallOverrides): Promise<BigNumber>;
+
+  subscriptionPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+  updateParameters(
+    _price: PromiseOrValue<BigNumberish>,
+    _duration: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdraw(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    getExpiry(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSubscribed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    subscribe(overrides?: CallOverrides): Promise<void>;
+
+    subscriptionDuration(overrides?: CallOverrides): Promise<BigNumber>;
+
+    subscriptionPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateParameters(
+      _price: PromiseOrValue<BigNumberish>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdraw(overrides?: CallOverrides): Promise<void>;
+  };
 
   filters: {
-    "ParametersUpdated(uint256,uint256)": TypedContractEvent<
-      ParametersUpdatedEvent.InputTuple,
-      ParametersUpdatedEvent.OutputTuple,
-      ParametersUpdatedEvent.OutputObject
-    >;
-    ParametersUpdated: TypedContractEvent<
-      ParametersUpdatedEvent.InputTuple,
-      ParametersUpdatedEvent.OutputTuple,
-      ParametersUpdatedEvent.OutputObject
-    >;
+    "ParametersUpdated(uint256,uint256)"(
+      newPrice?: null,
+      newDuration?: null
+    ): ParametersUpdatedEventFilter;
+    ParametersUpdated(
+      newPrice?: null,
+      newDuration?: null
+    ): ParametersUpdatedEventFilter;
 
-    "Subscribed(address,uint256)": TypedContractEvent<
-      SubscribedEvent.InputTuple,
-      SubscribedEvent.OutputTuple,
-      SubscribedEvent.OutputObject
-    >;
-    Subscribed: TypedContractEvent<
-      SubscribedEvent.InputTuple,
-      SubscribedEvent.OutputTuple,
-      SubscribedEvent.OutputObject
-    >;
+    "Subscribed(address,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      expiresAt?: null
+    ): SubscribedEventFilter;
+    Subscribed(
+      user?: PromiseOrValue<string> | null,
+      expiresAt?: null
+    ): SubscribedEventFilter;
+  };
+
+  estimateGas: {
+    getExpiry(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSubscribed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    subscribe(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    subscriptionDuration(overrides?: CallOverrides): Promise<BigNumber>;
+
+    subscriptionPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateParameters(
+      _price: PromiseOrValue<BigNumberish>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    getExpiry(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isSubscribed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    subscribe(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    subscriptionDuration(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    subscriptionPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    updateParameters(
+      _price: PromiseOrValue<BigNumberish>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

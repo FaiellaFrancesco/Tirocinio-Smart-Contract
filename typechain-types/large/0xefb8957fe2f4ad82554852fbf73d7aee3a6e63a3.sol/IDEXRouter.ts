@@ -3,27 +3,40 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface IDEXRouterInterface extends Interface {
+export interface IDEXRouterInterface extends utils.Interface {
+  functions: {
+    "WETH()": FunctionFragment;
+    "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)": FunctionFragment;
+    "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
+    "factory()": FunctionFragment;
+    "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)": FunctionFragment;
+    "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)": FunctionFragment;
+    "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "WETH"
       | "addLiquidity"
       | "addLiquidityETH"
@@ -37,50 +50,55 @@ export interface IDEXRouterInterface extends Interface {
   encodeFunctionData(
     functionFragment: "addLiquidity",
     values: [
-      AddressLike,
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "addLiquidityETH",
     values: [
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "swapExactETHForTokensSupportingFeeOnTransferTokens",
-    values: [BigNumberish, AddressLike[], AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForETHSupportingFeeOnTransferTokens",
     values: [
-      BigNumberish,
-      BigNumberish,
-      AddressLike[],
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForTokensSupportingFeeOnTransferTokens",
     values: [
-      BigNumberish,
-      BigNumberish,
-      AddressLike[],
-      AddressLike,
-      BigNumberish
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
 
@@ -106,220 +124,315 @@ export interface IDEXRouterInterface extends Interface {
     functionFragment: "swapExactTokensForTokensSupportingFeeOnTransferTokens",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IDEXRouter extends BaseContract {
-  connect(runner?: ContractRunner | null): IDEXRouter;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IDEXRouterInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    WETH(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    addLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  WETH: TypedContractMethod<[], [string], "view">;
+    addLiquidityETH(
+      token: PromiseOrValue<string>,
+      amountTokenDesired: PromiseOrValue<BigNumberish>,
+      amountTokenMin: PromiseOrValue<BigNumberish>,
+      amountETHMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  addLiquidity: TypedContractMethod<
-    [
-      tokenA: AddressLike,
-      tokenB: AddressLike,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountA: bigint;
-        amountB: bigint;
-        liquidity: bigint;
+    factory(overrides?: CallOverrides): Promise<[string]>;
+
+    swapExactETHForTokensSupportingFeeOnTransferTokens(
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    swapExactTokensForETHSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  WETH(overrides?: CallOverrides): Promise<string>;
+
+  addLiquidity(
+    tokenA: PromiseOrValue<string>,
+    tokenB: PromiseOrValue<string>,
+    amountADesired: PromiseOrValue<BigNumberish>,
+    amountBDesired: PromiseOrValue<BigNumberish>,
+    amountAMin: PromiseOrValue<BigNumberish>,
+    amountBMin: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addLiquidityETH(
+    token: PromiseOrValue<string>,
+    amountTokenDesired: PromiseOrValue<BigNumberish>,
+    amountTokenMin: PromiseOrValue<BigNumberish>,
+    amountETHMin: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  factory(overrides?: CallOverrides): Promise<string>;
+
+  swapExactETHForTokensSupportingFeeOnTransferTokens(
+    amountOutMin: PromiseOrValue<BigNumberish>,
+    path: PromiseOrValue<string>[],
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  swapExactTokensForETHSupportingFeeOnTransferTokens(
+    amountIn: PromiseOrValue<BigNumberish>,
+    amountOutMin: PromiseOrValue<BigNumberish>,
+    path: PromiseOrValue<string>[],
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    amountIn: PromiseOrValue<BigNumberish>,
+    amountOutMin: PromiseOrValue<BigNumberish>,
+    path: PromiseOrValue<string>[],
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    WETH(overrides?: CallOverrides): Promise<string>;
+
+    addLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amountA: BigNumber;
+        amountB: BigNumber;
+        liquidity: BigNumber;
       }
-    ],
-    "nonpayable"
-  >;
+    >;
 
-  addLiquidityETH: TypedContractMethod<
-    [
-      token: AddressLike,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountToken: bigint;
-        amountETH: bigint;
-        liquidity: bigint;
+    addLiquidityETH(
+      token: PromiseOrValue<string>,
+      amountTokenDesired: PromiseOrValue<BigNumberish>,
+      amountTokenMin: PromiseOrValue<BigNumberish>,
+      amountETHMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amountToken: BigNumber;
+        amountETH: BigNumber;
+        liquidity: BigNumber;
       }
-    ],
-    "payable"
-  >;
+    >;
 
-  factory: TypedContractMethod<[], [string], "view">;
+    factory(overrides?: CallOverrides): Promise<string>;
 
-  swapExactETHForTokensSupportingFeeOnTransferTokens: TypedContractMethod<
-    [
-      amountOutMin: BigNumberish,
-      path: AddressLike[],
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [void],
-    "payable"
-  >;
+    swapExactETHForTokensSupportingFeeOnTransferTokens(
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-  swapExactTokensForETHSupportingFeeOnTransferTokens: TypedContractMethod<
-    [
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: AddressLike[],
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+    swapExactTokensForETHSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-  swapExactTokensForTokensSupportingFeeOnTransferTokens: TypedContractMethod<
-    [
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: AddressLike[],
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "WETH"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "addLiquidity"
-  ): TypedContractMethod<
-    [
-      tokenA: AddressLike,
-      tokenB: AddressLike,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountA: bigint;
-        amountB: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "addLiquidityETH"
-  ): TypedContractMethod<
-    [
-      token: AddressLike,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountToken: bigint;
-        amountETH: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "factory"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "swapExactETHForTokensSupportingFeeOnTransferTokens"
-  ): TypedContractMethod<
-    [
-      amountOutMin: BigNumberish,
-      path: AddressLike[],
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "swapExactTokensForETHSupportingFeeOnTransferTokens"
-  ): TypedContractMethod<
-    [
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: AddressLike[],
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "swapExactTokensForTokensSupportingFeeOnTransferTokens"
-  ): TypedContractMethod<
-    [
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: AddressLike[],
-      to: AddressLike,
-      deadline: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+    swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    WETH(overrides?: CallOverrides): Promise<BigNumber>;
+
+    addLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addLiquidityETH(
+      token: PromiseOrValue<string>,
+      amountTokenDesired: PromiseOrValue<BigNumberish>,
+      amountTokenMin: PromiseOrValue<BigNumberish>,
+      amountETHMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    factory(overrides?: CallOverrides): Promise<BigNumber>;
+
+    swapExactETHForTokensSupportingFeeOnTransferTokens(
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    swapExactTokensForETHSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    WETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    addLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addLiquidityETH(
+      token: PromiseOrValue<string>,
+      amountTokenDesired: PromiseOrValue<BigNumberish>,
+      amountTokenMin: PromiseOrValue<BigNumberish>,
+      amountETHMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    swapExactETHForTokensSupportingFeeOnTransferTokens(
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swapExactTokensForETHSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      amountIn: PromiseOrValue<BigNumberish>,
+      amountOutMin: PromiseOrValue<BigNumberish>,
+      path: PromiseOrValue<string>[],
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

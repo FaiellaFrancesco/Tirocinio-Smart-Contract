@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IDEXRouter,
   IDEXRouterInterface,
@@ -247,14 +248,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class IDEXRouter__factory {
   static readonly abi = _abi;
   static createInterface(): IDEXRouterInterface {
-    return new Interface(_abi) as IDEXRouterInterface;
+    return new utils.Interface(_abi) as IDEXRouterInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): IDEXRouter {
-    return new Contract(address, _abi, runner) as unknown as IDEXRouter;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IDEXRouter {
+    return new Contract(address, _abi, signerOrProvider) as IDEXRouter;
   }
 }

@@ -3,52 +3,67 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractTM_ENS_intInterface extends Interface {
+export interface AbstractTM_ENS_intInterface extends utils.Interface {
+  functions: {
+    "owner(bytes32)": FunctionFragment;
+    "recordExists(bytes32)": FunctionFragment;
+    "setOwner(bytes32,address)": FunctionFragment;
+    "setSubnodeRecord(bytes32,bytes32,address,address,uint64)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature: "owner" | "recordExists" | "setOwner" | "setSubnodeRecord"
+    nameOrSignatureOrTopic:
+      | "owner"
+      | "recordExists"
+      | "setOwner"
+      | "setSubnodeRecord"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "ApprovalForAll"
-      | "NewOwner"
-      | "NewResolver"
-      | "NewTTL"
-      | "Transfer"
-  ): EventFragment;
-
-  encodeFunctionData(functionFragment: "owner", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "owner",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
   encodeFunctionData(
     functionFragment: "recordExists",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "setOwner",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setSubnodeRecord",
-    values: [BytesLike, BytesLike, AddressLike, AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
 
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -61,273 +76,280 @@ export interface AbstractTM_ENS_intInterface extends Interface {
     functionFragment: "setSubnodeRecord",
     data: BytesLike
   ): Result;
+
+  events: {
+    "ApprovalForAll(address,address,bool)": EventFragment;
+    "NewOwner(bytes32,bytes32,address)": EventFragment;
+    "NewResolver(bytes32,address)": EventFragment;
+    "NewTTL(bytes32,uint64)": EventFragment;
+    "Transfer(bytes32,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewOwner"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewResolver"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewTTL"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
-export namespace ApprovalForAllEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    operator: AddressLike,
-    approved: boolean
-  ];
-  export type OutputTuple = [
-    owner: string,
-    operator: string,
-    approved: boolean
-  ];
-  export interface OutputObject {
-    owner: string;
-    operator: string;
-    approved: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface ApprovalForAllEventObject {
+  owner: string;
+  operator: string;
+  approved: boolean;
 }
+export type ApprovalForAllEvent = TypedEvent<
+  [string, string, boolean],
+  ApprovalForAllEventObject
+>;
 
-export namespace NewOwnerEvent {
-  export type InputTuple = [
-    node: BytesLike,
-    label: BytesLike,
-    owner: AddressLike
-  ];
-  export type OutputTuple = [node: string, label: string, owner: string];
-  export interface OutputObject {
-    node: string;
-    label: string;
-    owner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
 
-export namespace NewResolverEvent {
-  export type InputTuple = [node: BytesLike, resolver: AddressLike];
-  export type OutputTuple = [node: string, resolver: string];
-  export interface OutputObject {
-    node: string;
-    resolver: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface NewOwnerEventObject {
+  node: string;
+  label: string;
+  owner: string;
 }
+export type NewOwnerEvent = TypedEvent<
+  [string, string, string],
+  NewOwnerEventObject
+>;
 
-export namespace NewTTLEvent {
-  export type InputTuple = [node: BytesLike, ttl: BigNumberish];
-  export type OutputTuple = [node: string, ttl: bigint];
-  export interface OutputObject {
-    node: string;
-    ttl: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type NewOwnerEventFilter = TypedEventFilter<NewOwnerEvent>;
 
-export namespace TransferEvent {
-  export type InputTuple = [node: BytesLike, owner: AddressLike];
-  export type OutputTuple = [node: string, owner: string];
-  export interface OutputObject {
-    node: string;
-    owner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface NewResolverEventObject {
+  node: string;
+  resolver: string;
 }
+export type NewResolverEvent = TypedEvent<
+  [string, string],
+  NewResolverEventObject
+>;
+
+export type NewResolverEventFilter = TypedEventFilter<NewResolverEvent>;
+
+export interface NewTTLEventObject {
+  node: string;
+  ttl: BigNumber;
+}
+export type NewTTLEvent = TypedEvent<[string, BigNumber], NewTTLEventObject>;
+
+export type NewTTLEventFilter = TypedEventFilter<NewTTLEvent>;
+
+export interface TransferEventObject {
+  node: string;
+  owner: string;
+}
+export type TransferEvent = TypedEvent<[string, string], TransferEventObject>;
+
+export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface AbstractTM_ENS_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractTM_ENS_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractTM_ENS_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    owner(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    recordExists(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  owner: TypedContractMethod<[node: BytesLike], [string], "view">;
+    setOwner(
+      node: PromiseOrValue<BytesLike>,
+      set_owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  recordExists: TypedContractMethod<[node: BytesLike], [boolean], "view">;
+    setSubnodeRecord(
+      node: PromiseOrValue<BytesLike>,
+      label: PromiseOrValue<BytesLike>,
+      sub_owner: PromiseOrValue<string>,
+      sub_resolver: PromiseOrValue<string>,
+      sub_ttl: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  setOwner: TypedContractMethod<
-    [node: BytesLike, set_owner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  owner(
+    node: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  setSubnodeRecord: TypedContractMethod<
-    [
-      node: BytesLike,
-      label: BytesLike,
-      sub_owner: AddressLike,
-      sub_resolver: AddressLike,
-      sub_ttl: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+  recordExists(
+    node: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  setOwner(
+    node: PromiseOrValue<BytesLike>,
+    set_owner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[node: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "recordExists"
-  ): TypedContractMethod<[node: BytesLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "setOwner"
-  ): TypedContractMethod<
-    [node: BytesLike, set_owner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setSubnodeRecord"
-  ): TypedContractMethod<
-    [
-      node: BytesLike,
-      label: BytesLike,
-      sub_owner: AddressLike,
-      sub_resolver: AddressLike,
-      sub_ttl: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+  setSubnodeRecord(
+    node: PromiseOrValue<BytesLike>,
+    label: PromiseOrValue<BytesLike>,
+    sub_owner: PromiseOrValue<string>,
+    sub_resolver: PromiseOrValue<string>,
+    sub_ttl: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getEvent(
-    key: "ApprovalForAll"
-  ): TypedContractEvent<
-    ApprovalForAllEvent.InputTuple,
-    ApprovalForAllEvent.OutputTuple,
-    ApprovalForAllEvent.OutputObject
-  >;
-  getEvent(
-    key: "NewOwner"
-  ): TypedContractEvent<
-    NewOwnerEvent.InputTuple,
-    NewOwnerEvent.OutputTuple,
-    NewOwnerEvent.OutputObject
-  >;
-  getEvent(
-    key: "NewResolver"
-  ): TypedContractEvent<
-    NewResolverEvent.InputTuple,
-    NewResolverEvent.OutputTuple,
-    NewResolverEvent.OutputObject
-  >;
-  getEvent(
-    key: "NewTTL"
-  ): TypedContractEvent<
-    NewTTLEvent.InputTuple,
-    NewTTLEvent.OutputTuple,
-    NewTTLEvent.OutputObject
-  >;
-  getEvent(
-    key: "Transfer"
-  ): TypedContractEvent<
-    TransferEvent.InputTuple,
-    TransferEvent.OutputTuple,
-    TransferEvent.OutputObject
-  >;
+  callStatic: {
+    owner(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    recordExists(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    setOwner(
+      node: PromiseOrValue<BytesLike>,
+      set_owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setSubnodeRecord(
+      node: PromiseOrValue<BytesLike>,
+      label: PromiseOrValue<BytesLike>,
+      sub_owner: PromiseOrValue<string>,
+      sub_resolver: PromiseOrValue<string>,
+      sub_ttl: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "ApprovalForAll(address,address,bool)": TypedContractEvent<
-      ApprovalForAllEvent.InputTuple,
-      ApprovalForAllEvent.OutputTuple,
-      ApprovalForAllEvent.OutputObject
-    >;
-    ApprovalForAll: TypedContractEvent<
-      ApprovalForAllEvent.InputTuple,
-      ApprovalForAllEvent.OutputTuple,
-      ApprovalForAllEvent.OutputObject
-    >;
+    "ApprovalForAll(address,address,bool)"(
+      owner?: PromiseOrValue<string> | null,
+      operator?: PromiseOrValue<string> | null,
+      approved?: null
+    ): ApprovalForAllEventFilter;
+    ApprovalForAll(
+      owner?: PromiseOrValue<string> | null,
+      operator?: PromiseOrValue<string> | null,
+      approved?: null
+    ): ApprovalForAllEventFilter;
 
-    "NewOwner(bytes32,bytes32,address)": TypedContractEvent<
-      NewOwnerEvent.InputTuple,
-      NewOwnerEvent.OutputTuple,
-      NewOwnerEvent.OutputObject
-    >;
-    NewOwner: TypedContractEvent<
-      NewOwnerEvent.InputTuple,
-      NewOwnerEvent.OutputTuple,
-      NewOwnerEvent.OutputObject
-    >;
+    "NewOwner(bytes32,bytes32,address)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      label?: PromiseOrValue<BytesLike> | null,
+      owner?: null
+    ): NewOwnerEventFilter;
+    NewOwner(
+      node?: PromiseOrValue<BytesLike> | null,
+      label?: PromiseOrValue<BytesLike> | null,
+      owner?: null
+    ): NewOwnerEventFilter;
 
-    "NewResolver(bytes32,address)": TypedContractEvent<
-      NewResolverEvent.InputTuple,
-      NewResolverEvent.OutputTuple,
-      NewResolverEvent.OutputObject
-    >;
-    NewResolver: TypedContractEvent<
-      NewResolverEvent.InputTuple,
-      NewResolverEvent.OutputTuple,
-      NewResolverEvent.OutputObject
-    >;
+    "NewResolver(bytes32,address)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      resolver?: null
+    ): NewResolverEventFilter;
+    NewResolver(
+      node?: PromiseOrValue<BytesLike> | null,
+      resolver?: null
+    ): NewResolverEventFilter;
 
-    "NewTTL(bytes32,uint64)": TypedContractEvent<
-      NewTTLEvent.InputTuple,
-      NewTTLEvent.OutputTuple,
-      NewTTLEvent.OutputObject
-    >;
-    NewTTL: TypedContractEvent<
-      NewTTLEvent.InputTuple,
-      NewTTLEvent.OutputTuple,
-      NewTTLEvent.OutputObject
-    >;
+    "NewTTL(bytes32,uint64)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      ttl?: null
+    ): NewTTLEventFilter;
+    NewTTL(
+      node?: PromiseOrValue<BytesLike> | null,
+      ttl?: null
+    ): NewTTLEventFilter;
 
-    "Transfer(bytes32,address)": TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
-    Transfer: TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
-    >;
+    "Transfer(bytes32,address)"(
+      node?: PromiseOrValue<BytesLike> | null,
+      owner?: null
+    ): TransferEventFilter;
+    Transfer(
+      node?: PromiseOrValue<BytesLike> | null,
+      owner?: null
+    ): TransferEventFilter;
+  };
+
+  estimateGas: {
+    owner(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    recordExists(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    setOwner(
+      node: PromiseOrValue<BytesLike>,
+      set_owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setSubnodeRecord(
+      node: PromiseOrValue<BytesLike>,
+      label: PromiseOrValue<BytesLike>,
+      sub_owner: PromiseOrValue<string>,
+      sub_resolver: PromiseOrValue<string>,
+      sub_ttl: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    owner(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    recordExists(
+      node: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    setOwner(
+      node: PromiseOrValue<BytesLike>,
+      set_owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setSubnodeRecord(
+      node: PromiseOrValue<BytesLike>,
+      label: PromiseOrValue<BytesLike>,
+      sub_owner: PromiseOrValue<string>,
+      sub_resolver: PromiseOrValue<string>,
+      sub_ttl: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

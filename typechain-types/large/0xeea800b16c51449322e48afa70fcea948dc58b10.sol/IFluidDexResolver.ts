@@ -3,39 +3,42 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IFluidDexT1 {
   export type ImplementationsStruct = {
-    shift: AddressLike;
-    admin: AddressLike;
-    colOperations: AddressLike;
-    debtOperations: AddressLike;
-    perfectOperationsAndOracle: AddressLike;
+    shift: PromiseOrValue<string>;
+    admin: PromiseOrValue<string>;
+    colOperations: PromiseOrValue<string>;
+    debtOperations: PromiseOrValue<string>;
+    perfectOperationsAndOracle: PromiseOrValue<string>;
   };
 
   export type ImplementationsStructOutput = [
-    shift: string,
-    admin: string,
-    colOperations: string,
-    debtOperations: string,
-    perfectOperationsAndOracle: string
+    string,
+    string,
+    string,
+    string,
+    string
   ] & {
     shift: string;
     admin: string;
@@ -45,39 +48,39 @@ export declare namespace IFluidDexT1 {
   };
 
   export type ConstantViewsStruct = {
-    dexId: BigNumberish;
-    liquidity: AddressLike;
-    factory: AddressLike;
+    dexId: PromiseOrValue<BigNumberish>;
+    liquidity: PromiseOrValue<string>;
+    factory: PromiseOrValue<string>;
     implementations: IFluidDexT1.ImplementationsStruct;
-    deployerContract: AddressLike;
-    token0: AddressLike;
-    token1: AddressLike;
-    supplyToken0Slot: BytesLike;
-    borrowToken0Slot: BytesLike;
-    supplyToken1Slot: BytesLike;
-    borrowToken1Slot: BytesLike;
-    exchangePriceToken0Slot: BytesLike;
-    exchangePriceToken1Slot: BytesLike;
-    oracleMapping: BigNumberish;
+    deployerContract: PromiseOrValue<string>;
+    token0: PromiseOrValue<string>;
+    token1: PromiseOrValue<string>;
+    supplyToken0Slot: PromiseOrValue<BytesLike>;
+    borrowToken0Slot: PromiseOrValue<BytesLike>;
+    supplyToken1Slot: PromiseOrValue<BytesLike>;
+    borrowToken1Slot: PromiseOrValue<BytesLike>;
+    exchangePriceToken0Slot: PromiseOrValue<BytesLike>;
+    exchangePriceToken1Slot: PromiseOrValue<BytesLike>;
+    oracleMapping: PromiseOrValue<BigNumberish>;
   };
 
   export type ConstantViewsStructOutput = [
-    dexId: bigint,
-    liquidity: string,
-    factory: string,
-    implementations: IFluidDexT1.ImplementationsStructOutput,
-    deployerContract: string,
-    token0: string,
-    token1: string,
-    supplyToken0Slot: string,
-    borrowToken0Slot: string,
-    supplyToken1Slot: string,
-    borrowToken1Slot: string,
-    exchangePriceToken0Slot: string,
-    exchangePriceToken1Slot: string,
-    oracleMapping: bigint
+    BigNumber,
+    string,
+    string,
+    IFluidDexT1.ImplementationsStructOutput,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    BigNumber
   ] & {
-    dexId: bigint;
+    dexId: BigNumber;
     liquidity: string;
     factory: string;
     implementations: IFluidDexT1.ImplementationsStructOutput;
@@ -90,216 +93,220 @@ export declare namespace IFluidDexT1 {
     borrowToken1Slot: string;
     exchangePriceToken0Slot: string;
     exchangePriceToken1Slot: string;
-    oracleMapping: bigint;
+    oracleMapping: BigNumber;
   };
 
   export type ConstantViews2Struct = {
-    token0NumeratorPrecision: BigNumberish;
-    token0DenominatorPrecision: BigNumberish;
-    token1NumeratorPrecision: BigNumberish;
-    token1DenominatorPrecision: BigNumberish;
+    token0NumeratorPrecision: PromiseOrValue<BigNumberish>;
+    token0DenominatorPrecision: PromiseOrValue<BigNumberish>;
+    token1NumeratorPrecision: PromiseOrValue<BigNumberish>;
+    token1DenominatorPrecision: PromiseOrValue<BigNumberish>;
   };
 
   export type ConstantViews2StructOutput = [
-    token0NumeratorPrecision: bigint,
-    token0DenominatorPrecision: bigint,
-    token1NumeratorPrecision: bigint,
-    token1DenominatorPrecision: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    token0NumeratorPrecision: bigint;
-    token0DenominatorPrecision: bigint;
-    token1NumeratorPrecision: bigint;
-    token1DenominatorPrecision: bigint;
+    token0NumeratorPrecision: BigNumber;
+    token0DenominatorPrecision: BigNumber;
+    token1NumeratorPrecision: BigNumber;
+    token1DenominatorPrecision: BigNumber;
   };
 
   export type PricesAndExchangePriceStruct = {
-    lastStoredPrice: BigNumberish;
-    centerPrice: BigNumberish;
-    upperRange: BigNumberish;
-    lowerRange: BigNumberish;
-    geometricMean: BigNumberish;
-    supplyToken0ExchangePrice: BigNumberish;
-    borrowToken0ExchangePrice: BigNumberish;
-    supplyToken1ExchangePrice: BigNumberish;
-    borrowToken1ExchangePrice: BigNumberish;
+    lastStoredPrice: PromiseOrValue<BigNumberish>;
+    centerPrice: PromiseOrValue<BigNumberish>;
+    upperRange: PromiseOrValue<BigNumberish>;
+    lowerRange: PromiseOrValue<BigNumberish>;
+    geometricMean: PromiseOrValue<BigNumberish>;
+    supplyToken0ExchangePrice: PromiseOrValue<BigNumberish>;
+    borrowToken0ExchangePrice: PromiseOrValue<BigNumberish>;
+    supplyToken1ExchangePrice: PromiseOrValue<BigNumberish>;
+    borrowToken1ExchangePrice: PromiseOrValue<BigNumberish>;
   };
 
   export type PricesAndExchangePriceStructOutput = [
-    lastStoredPrice: bigint,
-    centerPrice: bigint,
-    upperRange: bigint,
-    lowerRange: bigint,
-    geometricMean: bigint,
-    supplyToken0ExchangePrice: bigint,
-    borrowToken0ExchangePrice: bigint,
-    supplyToken1ExchangePrice: bigint,
-    borrowToken1ExchangePrice: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    lastStoredPrice: bigint;
-    centerPrice: bigint;
-    upperRange: bigint;
-    lowerRange: bigint;
-    geometricMean: bigint;
-    supplyToken0ExchangePrice: bigint;
-    borrowToken0ExchangePrice: bigint;
-    supplyToken1ExchangePrice: bigint;
-    borrowToken1ExchangePrice: bigint;
+    lastStoredPrice: BigNumber;
+    centerPrice: BigNumber;
+    upperRange: BigNumber;
+    lowerRange: BigNumber;
+    geometricMean: BigNumber;
+    supplyToken0ExchangePrice: BigNumber;
+    borrowToken0ExchangePrice: BigNumber;
+    supplyToken1ExchangePrice: BigNumber;
+    borrowToken1ExchangePrice: BigNumber;
   };
 
   export type CollateralReservesStruct = {
-    token0RealReserves: BigNumberish;
-    token1RealReserves: BigNumberish;
-    token0ImaginaryReserves: BigNumberish;
-    token1ImaginaryReserves: BigNumberish;
+    token0RealReserves: PromiseOrValue<BigNumberish>;
+    token1RealReserves: PromiseOrValue<BigNumberish>;
+    token0ImaginaryReserves: PromiseOrValue<BigNumberish>;
+    token1ImaginaryReserves: PromiseOrValue<BigNumberish>;
   };
 
   export type CollateralReservesStructOutput = [
-    token0RealReserves: bigint,
-    token1RealReserves: bigint,
-    token0ImaginaryReserves: bigint,
-    token1ImaginaryReserves: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    token0RealReserves: bigint;
-    token1RealReserves: bigint;
-    token0ImaginaryReserves: bigint;
-    token1ImaginaryReserves: bigint;
+    token0RealReserves: BigNumber;
+    token1RealReserves: BigNumber;
+    token0ImaginaryReserves: BigNumber;
+    token1ImaginaryReserves: BigNumber;
   };
 
   export type DebtReservesStruct = {
-    token0Debt: BigNumberish;
-    token1Debt: BigNumberish;
-    token0RealReserves: BigNumberish;
-    token1RealReserves: BigNumberish;
-    token0ImaginaryReserves: BigNumberish;
-    token1ImaginaryReserves: BigNumberish;
+    token0Debt: PromiseOrValue<BigNumberish>;
+    token1Debt: PromiseOrValue<BigNumberish>;
+    token0RealReserves: PromiseOrValue<BigNumberish>;
+    token1RealReserves: PromiseOrValue<BigNumberish>;
+    token0ImaginaryReserves: PromiseOrValue<BigNumberish>;
+    token1ImaginaryReserves: PromiseOrValue<BigNumberish>;
   };
 
   export type DebtReservesStructOutput = [
-    token0Debt: bigint,
-    token1Debt: bigint,
-    token0RealReserves: bigint,
-    token1RealReserves: bigint,
-    token0ImaginaryReserves: bigint,
-    token1ImaginaryReserves: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    token0Debt: bigint;
-    token1Debt: bigint;
-    token0RealReserves: bigint;
-    token1RealReserves: bigint;
-    token0ImaginaryReserves: bigint;
-    token1ImaginaryReserves: bigint;
+    token0Debt: BigNumber;
+    token1Debt: BigNumber;
+    token0RealReserves: BigNumber;
+    token1RealReserves: BigNumber;
+    token0ImaginaryReserves: BigNumber;
+    token1ImaginaryReserves: BigNumber;
   };
 }
 
 export declare namespace IFluidDexResolver {
   export type ConfigsStruct = {
-    isSmartCollateralEnabled: boolean;
-    isSmartDebtEnabled: boolean;
-    fee: BigNumberish;
-    revenueCut: BigNumberish;
-    upperRange: BigNumberish;
-    lowerRange: BigNumberish;
-    upperShiftThreshold: BigNumberish;
-    lowerShiftThreshold: BigNumberish;
-    shiftingTime: BigNumberish;
-    centerPriceAddress: AddressLike;
-    hookAddress: AddressLike;
-    maxCenterPrice: BigNumberish;
-    minCenterPrice: BigNumberish;
-    utilizationLimitToken0: BigNumberish;
-    utilizationLimitToken1: BigNumberish;
-    maxSupplyShares: BigNumberish;
-    maxBorrowShares: BigNumberish;
+    isSmartCollateralEnabled: PromiseOrValue<boolean>;
+    isSmartDebtEnabled: PromiseOrValue<boolean>;
+    fee: PromiseOrValue<BigNumberish>;
+    revenueCut: PromiseOrValue<BigNumberish>;
+    upperRange: PromiseOrValue<BigNumberish>;
+    lowerRange: PromiseOrValue<BigNumberish>;
+    upperShiftThreshold: PromiseOrValue<BigNumberish>;
+    lowerShiftThreshold: PromiseOrValue<BigNumberish>;
+    shiftingTime: PromiseOrValue<BigNumberish>;
+    centerPriceAddress: PromiseOrValue<string>;
+    hookAddress: PromiseOrValue<string>;
+    maxCenterPrice: PromiseOrValue<BigNumberish>;
+    minCenterPrice: PromiseOrValue<BigNumberish>;
+    utilizationLimitToken0: PromiseOrValue<BigNumberish>;
+    utilizationLimitToken1: PromiseOrValue<BigNumberish>;
+    maxSupplyShares: PromiseOrValue<BigNumberish>;
+    maxBorrowShares: PromiseOrValue<BigNumberish>;
   };
 
   export type ConfigsStructOutput = [
-    isSmartCollateralEnabled: boolean,
-    isSmartDebtEnabled: boolean,
-    fee: bigint,
-    revenueCut: bigint,
-    upperRange: bigint,
-    lowerRange: bigint,
-    upperShiftThreshold: bigint,
-    lowerShiftThreshold: bigint,
-    shiftingTime: bigint,
-    centerPriceAddress: string,
-    hookAddress: string,
-    maxCenterPrice: bigint,
-    minCenterPrice: bigint,
-    utilizationLimitToken0: bigint,
-    utilizationLimitToken1: bigint,
-    maxSupplyShares: bigint,
-    maxBorrowShares: bigint
+    boolean,
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     isSmartCollateralEnabled: boolean;
     isSmartDebtEnabled: boolean;
-    fee: bigint;
-    revenueCut: bigint;
-    upperRange: bigint;
-    lowerRange: bigint;
-    upperShiftThreshold: bigint;
-    lowerShiftThreshold: bigint;
-    shiftingTime: bigint;
+    fee: BigNumber;
+    revenueCut: BigNumber;
+    upperRange: BigNumber;
+    lowerRange: BigNumber;
+    upperShiftThreshold: BigNumber;
+    lowerShiftThreshold: BigNumber;
+    shiftingTime: BigNumber;
     centerPriceAddress: string;
     hookAddress: string;
-    maxCenterPrice: bigint;
-    minCenterPrice: bigint;
-    utilizationLimitToken0: bigint;
-    utilizationLimitToken1: bigint;
-    maxSupplyShares: bigint;
-    maxBorrowShares: bigint;
+    maxCenterPrice: BigNumber;
+    minCenterPrice: BigNumber;
+    utilizationLimitToken0: BigNumber;
+    utilizationLimitToken1: BigNumber;
+    maxSupplyShares: BigNumber;
+    maxBorrowShares: BigNumber;
   };
 
   export type ShiftDataStruct = {
-    oldUpper: BigNumberish;
-    oldLower: BigNumberish;
-    duration: BigNumberish;
-    startTimestamp: BigNumberish;
-    oldTime: BigNumberish;
+    oldUpper: PromiseOrValue<BigNumberish>;
+    oldLower: PromiseOrValue<BigNumberish>;
+    duration: PromiseOrValue<BigNumberish>;
+    startTimestamp: PromiseOrValue<BigNumberish>;
+    oldTime: PromiseOrValue<BigNumberish>;
   };
 
   export type ShiftDataStructOutput = [
-    oldUpper: bigint,
-    oldLower: bigint,
-    duration: bigint,
-    startTimestamp: bigint,
-    oldTime: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    oldUpper: bigint;
-    oldLower: bigint;
-    duration: bigint;
-    startTimestamp: bigint;
-    oldTime: bigint;
+    oldUpper: BigNumber;
+    oldLower: BigNumber;
+    duration: BigNumber;
+    startTimestamp: BigNumber;
+    oldTime: BigNumber;
   };
 
   export type CenterPriceShiftStruct = {
-    shiftPercentage: BigNumberish;
-    duration: BigNumberish;
-    startTimestamp: BigNumberish;
+    shiftPercentage: PromiseOrValue<BigNumberish>;
+    duration: PromiseOrValue<BigNumberish>;
+    startTimestamp: PromiseOrValue<BigNumberish>;
   };
 
   export type CenterPriceShiftStructOutput = [
-    shiftPercentage: bigint,
-    duration: bigint,
-    startTimestamp: bigint
-  ] & { shiftPercentage: bigint; duration: bigint; startTimestamp: bigint };
+    BigNumber,
+    BigNumber,
+    BigNumber
+  ] & {
+    shiftPercentage: BigNumber;
+    duration: BigNumber;
+    startTimestamp: BigNumber;
+  };
 
   export type ShiftChangesStruct = {
-    isRangeChangeActive: boolean;
-    isThresholdChangeActive: boolean;
-    isCenterPriceShiftActive: boolean;
+    isRangeChangeActive: PromiseOrValue<boolean>;
+    isThresholdChangeActive: PromiseOrValue<boolean>;
+    isCenterPriceShiftActive: PromiseOrValue<boolean>;
     rangeShift: IFluidDexResolver.ShiftDataStruct;
     thresholdShift: IFluidDexResolver.ShiftDataStruct;
     centerPriceShift: IFluidDexResolver.CenterPriceShiftStruct;
   };
 
   export type ShiftChangesStructOutput = [
-    isRangeChangeActive: boolean,
-    isThresholdChangeActive: boolean,
-    isCenterPriceShiftActive: boolean,
-    rangeShift: IFluidDexResolver.ShiftDataStructOutput,
-    thresholdShift: IFluidDexResolver.ShiftDataStructOutput,
-    centerPriceShift: IFluidDexResolver.CenterPriceShiftStructOutput
+    boolean,
+    boolean,
+    boolean,
+    IFluidDexResolver.ShiftDataStructOutput,
+    IFluidDexResolver.ShiftDataStructOutput,
+    IFluidDexResolver.CenterPriceShiftStructOutput
   ] & {
     isRangeChangeActive: boolean;
     isThresholdChangeActive: boolean;
@@ -310,72 +317,72 @@ export declare namespace IFluidDexResolver {
   };
 
   export type DexStateStruct = {
-    lastToLastStoredPrice: BigNumberish;
-    lastStoredPrice: BigNumberish;
-    centerPrice: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    lastPricesTimeDiff: BigNumberish;
-    oracleCheckPoint: BigNumberish;
-    oracleMapping: BigNumberish;
-    totalSupplyShares: BigNumberish;
-    totalBorrowShares: BigNumberish;
-    isSwapAndArbitragePaused: boolean;
+    lastToLastStoredPrice: PromiseOrValue<BigNumberish>;
+    lastStoredPrice: PromiseOrValue<BigNumberish>;
+    centerPrice: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    lastPricesTimeDiff: PromiseOrValue<BigNumberish>;
+    oracleCheckPoint: PromiseOrValue<BigNumberish>;
+    oracleMapping: PromiseOrValue<BigNumberish>;
+    totalSupplyShares: PromiseOrValue<BigNumberish>;
+    totalBorrowShares: PromiseOrValue<BigNumberish>;
+    isSwapAndArbitragePaused: PromiseOrValue<boolean>;
     shifts: IFluidDexResolver.ShiftChangesStruct;
-    token0PerSupplyShare: BigNumberish;
-    token1PerSupplyShare: BigNumberish;
-    token0PerBorrowShare: BigNumberish;
-    token1PerBorrowShare: BigNumberish;
+    token0PerSupplyShare: PromiseOrValue<BigNumberish>;
+    token1PerSupplyShare: PromiseOrValue<BigNumberish>;
+    token0PerBorrowShare: PromiseOrValue<BigNumberish>;
+    token1PerBorrowShare: PromiseOrValue<BigNumberish>;
   };
 
   export type DexStateStructOutput = [
-    lastToLastStoredPrice: bigint,
-    lastStoredPrice: bigint,
-    centerPrice: bigint,
-    lastUpdateTimestamp: bigint,
-    lastPricesTimeDiff: bigint,
-    oracleCheckPoint: bigint,
-    oracleMapping: bigint,
-    totalSupplyShares: bigint,
-    totalBorrowShares: bigint,
-    isSwapAndArbitragePaused: boolean,
-    shifts: IFluidDexResolver.ShiftChangesStructOutput,
-    token0PerSupplyShare: bigint,
-    token1PerSupplyShare: bigint,
-    token0PerBorrowShare: bigint,
-    token1PerBorrowShare: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    boolean,
+    IFluidDexResolver.ShiftChangesStructOutput,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    lastToLastStoredPrice: bigint;
-    lastStoredPrice: bigint;
-    centerPrice: bigint;
-    lastUpdateTimestamp: bigint;
-    lastPricesTimeDiff: bigint;
-    oracleCheckPoint: bigint;
-    oracleMapping: bigint;
-    totalSupplyShares: bigint;
-    totalBorrowShares: bigint;
+    lastToLastStoredPrice: BigNumber;
+    lastStoredPrice: BigNumber;
+    centerPrice: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    lastPricesTimeDiff: BigNumber;
+    oracleCheckPoint: BigNumber;
+    oracleMapping: BigNumber;
+    totalSupplyShares: BigNumber;
+    totalBorrowShares: BigNumber;
     isSwapAndArbitragePaused: boolean;
     shifts: IFluidDexResolver.ShiftChangesStructOutput;
-    token0PerSupplyShare: bigint;
-    token1PerSupplyShare: bigint;
-    token0PerBorrowShare: bigint;
-    token1PerBorrowShare: bigint;
+    token0PerSupplyShare: BigNumber;
+    token1PerSupplyShare: BigNumber;
+    token0PerBorrowShare: BigNumber;
+    token1PerBorrowShare: BigNumber;
   };
 
   export type SwapLimitsAndAvailabilityStruct = {
-    liquiditySupplyToken0: BigNumberish;
-    liquiditySupplyToken1: BigNumberish;
-    liquidityBorrowToken0: BigNumberish;
-    liquidityBorrowToken1: BigNumberish;
-    liquidityWithdrawableToken0: BigNumberish;
-    liquidityWithdrawableToken1: BigNumberish;
-    liquidityBorrowableToken0: BigNumberish;
-    liquidityBorrowableToken1: BigNumberish;
-    utilizationLimitToken0: BigNumberish;
-    utilizationLimitToken1: BigNumberish;
-    withdrawableUntilUtilizationLimitToken0: BigNumberish;
-    withdrawableUntilUtilizationLimitToken1: BigNumberish;
-    borrowableUntilUtilizationLimitToken0: BigNumberish;
-    borrowableUntilUtilizationLimitToken1: BigNumberish;
+    liquiditySupplyToken0: PromiseOrValue<BigNumberish>;
+    liquiditySupplyToken1: PromiseOrValue<BigNumberish>;
+    liquidityBorrowToken0: PromiseOrValue<BigNumberish>;
+    liquidityBorrowToken1: PromiseOrValue<BigNumberish>;
+    liquidityWithdrawableToken0: PromiseOrValue<BigNumberish>;
+    liquidityWithdrawableToken1: PromiseOrValue<BigNumberish>;
+    liquidityBorrowableToken0: PromiseOrValue<BigNumberish>;
+    liquidityBorrowableToken1: PromiseOrValue<BigNumberish>;
+    utilizationLimitToken0: PromiseOrValue<BigNumberish>;
+    utilizationLimitToken1: PromiseOrValue<BigNumberish>;
+    withdrawableUntilUtilizationLimitToken0: PromiseOrValue<BigNumberish>;
+    withdrawableUntilUtilizationLimitToken1: PromiseOrValue<BigNumberish>;
+    borrowableUntilUtilizationLimitToken0: PromiseOrValue<BigNumberish>;
+    borrowableUntilUtilizationLimitToken1: PromiseOrValue<BigNumberish>;
     liquidityUserSupplyDataToken0: IFluidLiquidityResolverStructs.UserSupplyDataStruct;
     liquidityUserSupplyDataToken1: IFluidLiquidityResolverStructs.UserSupplyDataStruct;
     liquidityUserBorrowDataToken0: IFluidLiquidityResolverStructs.UserBorrowDataStruct;
@@ -385,41 +392,41 @@ export declare namespace IFluidDexResolver {
   };
 
   export type SwapLimitsAndAvailabilityStructOutput = [
-    liquiditySupplyToken0: bigint,
-    liquiditySupplyToken1: bigint,
-    liquidityBorrowToken0: bigint,
-    liquidityBorrowToken1: bigint,
-    liquidityWithdrawableToken0: bigint,
-    liquidityWithdrawableToken1: bigint,
-    liquidityBorrowableToken0: bigint,
-    liquidityBorrowableToken1: bigint,
-    utilizationLimitToken0: bigint,
-    utilizationLimitToken1: bigint,
-    withdrawableUntilUtilizationLimitToken0: bigint,
-    withdrawableUntilUtilizationLimitToken1: bigint,
-    borrowableUntilUtilizationLimitToken0: bigint,
-    borrowableUntilUtilizationLimitToken1: bigint,
-    liquidityUserSupplyDataToken0: IFluidLiquidityResolverStructs.UserSupplyDataStructOutput,
-    liquidityUserSupplyDataToken1: IFluidLiquidityResolverStructs.UserSupplyDataStructOutput,
-    liquidityUserBorrowDataToken0: IFluidLiquidityResolverStructs.UserBorrowDataStructOutput,
-    liquidityUserBorrowDataToken1: IFluidLiquidityResolverStructs.UserBorrowDataStructOutput,
-    liquidityTokenData0: IFluidLiquidityResolverStructs.OverallTokenDataStructOutput,
-    liquidityTokenData1: IFluidLiquidityResolverStructs.OverallTokenDataStructOutput
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    IFluidLiquidityResolverStructs.UserSupplyDataStructOutput,
+    IFluidLiquidityResolverStructs.UserSupplyDataStructOutput,
+    IFluidLiquidityResolverStructs.UserBorrowDataStructOutput,
+    IFluidLiquidityResolverStructs.UserBorrowDataStructOutput,
+    IFluidLiquidityResolverStructs.OverallTokenDataStructOutput,
+    IFluidLiquidityResolverStructs.OverallTokenDataStructOutput
   ] & {
-    liquiditySupplyToken0: bigint;
-    liquiditySupplyToken1: bigint;
-    liquidityBorrowToken0: bigint;
-    liquidityBorrowToken1: bigint;
-    liquidityWithdrawableToken0: bigint;
-    liquidityWithdrawableToken1: bigint;
-    liquidityBorrowableToken0: bigint;
-    liquidityBorrowableToken1: bigint;
-    utilizationLimitToken0: bigint;
-    utilizationLimitToken1: bigint;
-    withdrawableUntilUtilizationLimitToken0: bigint;
-    withdrawableUntilUtilizationLimitToken1: bigint;
-    borrowableUntilUtilizationLimitToken0: bigint;
-    borrowableUntilUtilizationLimitToken1: bigint;
+    liquiditySupplyToken0: BigNumber;
+    liquiditySupplyToken1: BigNumber;
+    liquidityBorrowToken0: BigNumber;
+    liquidityBorrowToken1: BigNumber;
+    liquidityWithdrawableToken0: BigNumber;
+    liquidityWithdrawableToken1: BigNumber;
+    liquidityBorrowableToken0: BigNumber;
+    liquidityBorrowableToken1: BigNumber;
+    utilizationLimitToken0: BigNumber;
+    utilizationLimitToken1: BigNumber;
+    withdrawableUntilUtilizationLimitToken0: BigNumber;
+    withdrawableUntilUtilizationLimitToken1: BigNumber;
+    borrowableUntilUtilizationLimitToken0: BigNumber;
+    borrowableUntilUtilizationLimitToken1: BigNumber;
     liquidityUserSupplyDataToken0: IFluidLiquidityResolverStructs.UserSupplyDataStructOutput;
     liquidityUserSupplyDataToken1: IFluidLiquidityResolverStructs.UserSupplyDataStructOutput;
     liquidityUserBorrowDataToken0: IFluidLiquidityResolverStructs.UserBorrowDataStructOutput;
@@ -429,7 +436,7 @@ export declare namespace IFluidDexResolver {
   };
 
   export type DexEntireDataStruct = {
-    dex: AddressLike;
+    dex: PromiseOrValue<string>;
     constantViews: IFluidDexT1.ConstantViewsStruct;
     constantViews2: IFluidDexT1.ConstantViews2Struct;
     configs: IFluidDexResolver.ConfigsStruct;
@@ -441,15 +448,15 @@ export declare namespace IFluidDexResolver {
   };
 
   export type DexEntireDataStructOutput = [
-    dex: string,
-    constantViews: IFluidDexT1.ConstantViewsStructOutput,
-    constantViews2: IFluidDexT1.ConstantViews2StructOutput,
-    configs: IFluidDexResolver.ConfigsStructOutput,
-    pex: IFluidDexT1.PricesAndExchangePriceStructOutput,
-    colReserves: IFluidDexT1.CollateralReservesStructOutput,
-    debtReserves: IFluidDexT1.DebtReservesStructOutput,
-    dexState: IFluidDexResolver.DexStateStructOutput,
-    limitsAndAvailability: IFluidDexResolver.SwapLimitsAndAvailabilityStructOutput
+    string,
+    IFluidDexT1.ConstantViewsStructOutput,
+    IFluidDexT1.ConstantViews2StructOutput,
+    IFluidDexResolver.ConfigsStructOutput,
+    IFluidDexT1.PricesAndExchangePriceStructOutput,
+    IFluidDexT1.CollateralReservesStructOutput,
+    IFluidDexT1.DebtReservesStructOutput,
+    IFluidDexResolver.DexStateStructOutput,
+    IFluidDexResolver.SwapLimitsAndAvailabilityStructOutput
   ] & {
     dex: string;
     constantViews: IFluidDexT1.ConstantViewsStructOutput;
@@ -465,207 +472,218 @@ export declare namespace IFluidDexResolver {
 
 export declare namespace IFluidLiquidityResolverStructs {
   export type UserSupplyDataStruct = {
-    modeWithInterest: boolean;
-    supply: BigNumberish;
-    withdrawalLimit: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    expandPercent: BigNumberish;
-    expandDuration: BigNumberish;
-    baseWithdrawalLimit: BigNumberish;
-    withdrawableUntilLimit: BigNumberish;
-    withdrawable: BigNumberish;
+    modeWithInterest: PromiseOrValue<boolean>;
+    supply: PromiseOrValue<BigNumberish>;
+    withdrawalLimit: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    expandPercent: PromiseOrValue<BigNumberish>;
+    expandDuration: PromiseOrValue<BigNumberish>;
+    baseWithdrawalLimit: PromiseOrValue<BigNumberish>;
+    withdrawableUntilLimit: PromiseOrValue<BigNumberish>;
+    withdrawable: PromiseOrValue<BigNumberish>;
   };
 
   export type UserSupplyDataStructOutput = [
-    modeWithInterest: boolean,
-    supply: bigint,
-    withdrawalLimit: bigint,
-    lastUpdateTimestamp: bigint,
-    expandPercent: bigint,
-    expandDuration: bigint,
-    baseWithdrawalLimit: bigint,
-    withdrawableUntilLimit: bigint,
-    withdrawable: bigint
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     modeWithInterest: boolean;
-    supply: bigint;
-    withdrawalLimit: bigint;
-    lastUpdateTimestamp: bigint;
-    expandPercent: bigint;
-    expandDuration: bigint;
-    baseWithdrawalLimit: bigint;
-    withdrawableUntilLimit: bigint;
-    withdrawable: bigint;
+    supply: BigNumber;
+    withdrawalLimit: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    expandPercent: BigNumber;
+    expandDuration: BigNumber;
+    baseWithdrawalLimit: BigNumber;
+    withdrawableUntilLimit: BigNumber;
+    withdrawable: BigNumber;
   };
 
   export type UserBorrowDataStruct = {
-    modeWithInterest: boolean;
-    borrow: BigNumberish;
-    borrowLimit: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    expandPercent: BigNumberish;
-    expandDuration: BigNumberish;
-    baseBorrowLimit: BigNumberish;
-    maxBorrowLimit: BigNumberish;
-    borrowableUntilLimit: BigNumberish;
-    borrowable: BigNumberish;
-    borrowLimitUtilization: BigNumberish;
+    modeWithInterest: PromiseOrValue<boolean>;
+    borrow: PromiseOrValue<BigNumberish>;
+    borrowLimit: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    expandPercent: PromiseOrValue<BigNumberish>;
+    expandDuration: PromiseOrValue<BigNumberish>;
+    baseBorrowLimit: PromiseOrValue<BigNumberish>;
+    maxBorrowLimit: PromiseOrValue<BigNumberish>;
+    borrowableUntilLimit: PromiseOrValue<BigNumberish>;
+    borrowable: PromiseOrValue<BigNumberish>;
+    borrowLimitUtilization: PromiseOrValue<BigNumberish>;
   };
 
   export type UserBorrowDataStructOutput = [
-    modeWithInterest: boolean,
-    borrow: bigint,
-    borrowLimit: bigint,
-    lastUpdateTimestamp: bigint,
-    expandPercent: bigint,
-    expandDuration: bigint,
-    baseBorrowLimit: bigint,
-    maxBorrowLimit: bigint,
-    borrowableUntilLimit: bigint,
-    borrowable: bigint,
-    borrowLimitUtilization: bigint
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     modeWithInterest: boolean;
-    borrow: bigint;
-    borrowLimit: bigint;
-    lastUpdateTimestamp: bigint;
-    expandPercent: bigint;
-    expandDuration: bigint;
-    baseBorrowLimit: bigint;
-    maxBorrowLimit: bigint;
-    borrowableUntilLimit: bigint;
-    borrowable: bigint;
-    borrowLimitUtilization: bigint;
+    borrow: BigNumber;
+    borrowLimit: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    expandPercent: BigNumber;
+    expandDuration: BigNumber;
+    baseBorrowLimit: BigNumber;
+    maxBorrowLimit: BigNumber;
+    borrowableUntilLimit: BigNumber;
+    borrowable: BigNumber;
+    borrowLimitUtilization: BigNumber;
   };
 
   export type RateDataV1ParamsStruct = {
-    token: AddressLike;
-    kink: BigNumberish;
-    rateAtUtilizationZero: BigNumberish;
-    rateAtUtilizationKink: BigNumberish;
-    rateAtUtilizationMax: BigNumberish;
+    token: PromiseOrValue<string>;
+    kink: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationZero: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationKink: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationMax: PromiseOrValue<BigNumberish>;
   };
 
   export type RateDataV1ParamsStructOutput = [
-    token: string,
-    kink: bigint,
-    rateAtUtilizationZero: bigint,
-    rateAtUtilizationKink: bigint,
-    rateAtUtilizationMax: bigint
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     token: string;
-    kink: bigint;
-    rateAtUtilizationZero: bigint;
-    rateAtUtilizationKink: bigint;
-    rateAtUtilizationMax: bigint;
+    kink: BigNumber;
+    rateAtUtilizationZero: BigNumber;
+    rateAtUtilizationKink: BigNumber;
+    rateAtUtilizationMax: BigNumber;
   };
 
   export type RateDataV2ParamsStruct = {
-    token: AddressLike;
-    kink1: BigNumberish;
-    kink2: BigNumberish;
-    rateAtUtilizationZero: BigNumberish;
-    rateAtUtilizationKink1: BigNumberish;
-    rateAtUtilizationKink2: BigNumberish;
-    rateAtUtilizationMax: BigNumberish;
+    token: PromiseOrValue<string>;
+    kink1: PromiseOrValue<BigNumberish>;
+    kink2: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationZero: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationKink1: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationKink2: PromiseOrValue<BigNumberish>;
+    rateAtUtilizationMax: PromiseOrValue<BigNumberish>;
   };
 
   export type RateDataV2ParamsStructOutput = [
-    token: string,
-    kink1: bigint,
-    kink2: bigint,
-    rateAtUtilizationZero: bigint,
-    rateAtUtilizationKink1: bigint,
-    rateAtUtilizationKink2: bigint,
-    rateAtUtilizationMax: bigint
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     token: string;
-    kink1: bigint;
-    kink2: bigint;
-    rateAtUtilizationZero: bigint;
-    rateAtUtilizationKink1: bigint;
-    rateAtUtilizationKink2: bigint;
-    rateAtUtilizationMax: bigint;
+    kink1: BigNumber;
+    kink2: BigNumber;
+    rateAtUtilizationZero: BigNumber;
+    rateAtUtilizationKink1: BigNumber;
+    rateAtUtilizationKink2: BigNumber;
+    rateAtUtilizationMax: BigNumber;
   };
 
   export type RateDataStruct = {
-    version: BigNumberish;
+    version: PromiseOrValue<BigNumberish>;
     rateDataV1: IFluidLiquidityResolverStructs.RateDataV1ParamsStruct;
     rateDataV2: IFluidLiquidityResolverStructs.RateDataV2ParamsStruct;
   };
 
   export type RateDataStructOutput = [
-    version: bigint,
-    rateDataV1: IFluidLiquidityResolverStructs.RateDataV1ParamsStructOutput,
-    rateDataV2: IFluidLiquidityResolverStructs.RateDataV2ParamsStructOutput
+    BigNumber,
+    IFluidLiquidityResolverStructs.RateDataV1ParamsStructOutput,
+    IFluidLiquidityResolverStructs.RateDataV2ParamsStructOutput
   ] & {
-    version: bigint;
+    version: BigNumber;
     rateDataV1: IFluidLiquidityResolverStructs.RateDataV1ParamsStructOutput;
     rateDataV2: IFluidLiquidityResolverStructs.RateDataV2ParamsStructOutput;
   };
 
   export type OverallTokenDataStruct = {
-    borrowRate: BigNumberish;
-    supplyRate: BigNumberish;
-    fee: BigNumberish;
-    lastStoredUtilization: BigNumberish;
-    storageUpdateThreshold: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    supplyExchangePrice: BigNumberish;
-    borrowExchangePrice: BigNumberish;
-    supplyRawInterest: BigNumberish;
-    supplyInterestFree: BigNumberish;
-    borrowRawInterest: BigNumberish;
-    borrowInterestFree: BigNumberish;
-    totalSupply: BigNumberish;
-    totalBorrow: BigNumberish;
-    revenue: BigNumberish;
-    maxUtilization: BigNumberish;
+    borrowRate: PromiseOrValue<BigNumberish>;
+    supplyRate: PromiseOrValue<BigNumberish>;
+    fee: PromiseOrValue<BigNumberish>;
+    lastStoredUtilization: PromiseOrValue<BigNumberish>;
+    storageUpdateThreshold: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    supplyExchangePrice: PromiseOrValue<BigNumberish>;
+    borrowExchangePrice: PromiseOrValue<BigNumberish>;
+    supplyRawInterest: PromiseOrValue<BigNumberish>;
+    supplyInterestFree: PromiseOrValue<BigNumberish>;
+    borrowRawInterest: PromiseOrValue<BigNumberish>;
+    borrowInterestFree: PromiseOrValue<BigNumberish>;
+    totalSupply: PromiseOrValue<BigNumberish>;
+    totalBorrow: PromiseOrValue<BigNumberish>;
+    revenue: PromiseOrValue<BigNumberish>;
+    maxUtilization: PromiseOrValue<BigNumberish>;
     rateData: IFluidLiquidityResolverStructs.RateDataStruct;
   };
 
   export type OverallTokenDataStructOutput = [
-    borrowRate: bigint,
-    supplyRate: bigint,
-    fee: bigint,
-    lastStoredUtilization: bigint,
-    storageUpdateThreshold: bigint,
-    lastUpdateTimestamp: bigint,
-    supplyExchangePrice: bigint,
-    borrowExchangePrice: bigint,
-    supplyRawInterest: bigint,
-    supplyInterestFree: bigint,
-    borrowRawInterest: bigint,
-    borrowInterestFree: bigint,
-    totalSupply: bigint,
-    totalBorrow: bigint,
-    revenue: bigint,
-    maxUtilization: bigint,
-    rateData: IFluidLiquidityResolverStructs.RateDataStructOutput
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    IFluidLiquidityResolverStructs.RateDataStructOutput
   ] & {
-    borrowRate: bigint;
-    supplyRate: bigint;
-    fee: bigint;
-    lastStoredUtilization: bigint;
-    storageUpdateThreshold: bigint;
-    lastUpdateTimestamp: bigint;
-    supplyExchangePrice: bigint;
-    borrowExchangePrice: bigint;
-    supplyRawInterest: bigint;
-    supplyInterestFree: bigint;
-    borrowRawInterest: bigint;
-    borrowInterestFree: bigint;
-    totalSupply: bigint;
-    totalBorrow: bigint;
-    revenue: bigint;
-    maxUtilization: bigint;
+    borrowRate: BigNumber;
+    supplyRate: BigNumber;
+    fee: BigNumber;
+    lastStoredUtilization: BigNumber;
+    storageUpdateThreshold: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    supplyExchangePrice: BigNumber;
+    borrowExchangePrice: BigNumber;
+    supplyRawInterest: BigNumber;
+    supplyInterestFree: BigNumber;
+    borrowRawInterest: BigNumber;
+    borrowInterestFree: BigNumber;
+    totalSupply: BigNumber;
+    totalBorrow: BigNumber;
+    revenue: BigNumber;
+    maxUtilization: BigNumber;
     rateData: IFluidLiquidityResolverStructs.RateDataStructOutput;
   };
 }
 
-export interface IFluidDexResolverInterface extends Interface {
+export interface IFluidDexResolverInterface extends utils.Interface {
+  functions: {
+    "estimateBorrow(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimateDeposit(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimatePayback(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimatePaybackPerfectInOneToken(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimateWithdraw(address,uint256,uint256,uint256)": FunctionFragment;
+    "estimateWithdrawPerfectInOneToken(address,uint256,uint256,uint256)": FunctionFragment;
+    "getDexEntireData(address)": FunctionFragment;
+    "getDexState(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "estimateBorrow"
       | "estimateDeposit"
       | "estimatePayback"
@@ -678,35 +696,65 @@ export interface IFluidDexResolverInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "estimateBorrow",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateDeposit",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimatePayback",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimatePaybackPerfectInOneToken",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateWithdraw",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "estimateWithdrawPerfectInOneToken",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getDexEntireData",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getDexState",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -741,219 +789,333 @@ export interface IFluidDexResolverInterface extends Interface {
     functionFragment: "getDexState",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IFluidDexResolver extends BaseContract {
-  connect(runner?: ContractRunner | null): IFluidDexResolver;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IFluidDexResolverInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    estimateBorrow(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    estimateDeposit(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateBorrow: TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    estimatePayback(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateDeposit: TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
+    estimatePaybackPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimatePayback: TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
+    estimateWithdraw(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimatePaybackPerfectInOneToken: TypedContractMethod<
-    [
-      dex_: AddressLike,
-      shares_: BigNumberish,
-      maxToken0_: BigNumberish,
-      maxToken1_: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
+    estimateWithdrawPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateWithdraw: TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    getDexEntireData(
+      dex_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  estimateWithdrawPerfectInOneToken: TypedContractMethod<
-    [
-      dex_: AddressLike,
-      shares_: BigNumberish,
-      minToken0_: BigNumberish,
-      minToken1_: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
+    getDexState(
+      dex_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  getDexEntireData: TypedContractMethod<
-    [dex_: AddressLike],
-    [IFluidDexResolver.DexEntireDataStructOutput],
-    "nonpayable"
-  >;
+  estimateBorrow(
+    dex_: PromiseOrValue<string>,
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    maxSharesAmt_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getDexState: TypedContractMethod<
-    [dex_: AddressLike],
-    [IFluidDexResolver.DexStateStructOutput],
-    "nonpayable"
-  >;
+  estimateDeposit(
+    dex_: PromiseOrValue<string>,
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    minSharesAmt_: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  estimatePayback(
+    dex_: PromiseOrValue<string>,
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    minSharesAmt_: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "estimateBorrow"
-  ): TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateDeposit"
-  ): TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "estimatePayback"
-  ): TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      minSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "estimatePaybackPerfectInOneToken"
-  ): TypedContractMethod<
-    [
-      dex_: AddressLike,
-      shares_: BigNumberish,
-      maxToken0_: BigNumberish,
-      maxToken1_: BigNumberish
-    ],
-    [bigint],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateWithdraw"
-  ): TypedContractMethod<
-    [
-      dex_: AddressLike,
-      token0Amt_: BigNumberish,
-      token1Amt_: BigNumberish,
-      maxSharesAmt_: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "estimateWithdrawPerfectInOneToken"
-  ): TypedContractMethod<
-    [
-      dex_: AddressLike,
-      shares_: BigNumberish,
-      minToken0_: BigNumberish,
-      minToken1_: BigNumberish
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getDexEntireData"
-  ): TypedContractMethod<
-    [dex_: AddressLike],
-    [IFluidDexResolver.DexEntireDataStructOutput],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getDexState"
-  ): TypedContractMethod<
-    [dex_: AddressLike],
-    [IFluidDexResolver.DexStateStructOutput],
-    "nonpayable"
-  >;
+  estimatePaybackPerfectInOneToken(
+    dex_: PromiseOrValue<string>,
+    shares_: PromiseOrValue<BigNumberish>,
+    maxToken0_: PromiseOrValue<BigNumberish>,
+    maxToken1_: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimateWithdraw(
+    dex_: PromiseOrValue<string>,
+    token0Amt_: PromiseOrValue<BigNumberish>,
+    token1Amt_: PromiseOrValue<BigNumberish>,
+    maxSharesAmt_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  estimateWithdrawPerfectInOneToken(
+    dex_: PromiseOrValue<string>,
+    shares_: PromiseOrValue<BigNumberish>,
+    minToken0_: PromiseOrValue<BigNumberish>,
+    minToken1_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getDexEntireData(
+    dex_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getDexState(
+    dex_: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    estimateBorrow(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateDeposit(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimatePayback(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimatePaybackPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateWithdraw(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    estimateWithdrawPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDexEntireData(
+      dex_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<IFluidDexResolver.DexEntireDataStructOutput>;
+
+    getDexState(
+      dex_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<IFluidDexResolver.DexStateStructOutput>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    estimateBorrow(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateDeposit(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimatePayback(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimatePaybackPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateWithdraw(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    estimateWithdrawPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getDexEntireData(
+      dex_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getDexState(
+      dex_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    estimateBorrow(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateDeposit(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimatePayback(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      minSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimatePaybackPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      maxToken0_: PromiseOrValue<BigNumberish>,
+      maxToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateWithdraw(
+      dex_: PromiseOrValue<string>,
+      token0Amt_: PromiseOrValue<BigNumberish>,
+      token1Amt_: PromiseOrValue<BigNumberish>,
+      maxSharesAmt_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    estimateWithdrawPerfectInOneToken(
+      dex_: PromiseOrValue<string>,
+      shares_: PromiseOrValue<BigNumberish>,
+      minToken0_: PromiseOrValue<BigNumberish>,
+      minToken1_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDexEntireData(
+      dex_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDexState(
+      dex_: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

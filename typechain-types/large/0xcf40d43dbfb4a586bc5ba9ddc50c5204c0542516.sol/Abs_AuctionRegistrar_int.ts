@@ -3,36 +3,48 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface Abs_AuctionRegistrar_intInterface extends Interface {
+export interface Abs_AuctionRegistrar_intInterface extends utils.Interface {
+  functions: {
+    "entries(bytes32)": FunctionFragment;
+    "startAuction_ge0(bytes32,uint256)": FunctionFragment;
+    "state_pln(bytes32)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature: "entries" | "startAuction_ge0" | "state_pln"
+    nameOrSignatureOrTopic: "entries" | "startAuction_ge0" | "state_pln"
   ): FunctionFragment;
 
-  encodeFunctionData(functionFragment: "entries", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "entries",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
   encodeFunctionData(
     functionFragment: "startAuction_ge0",
-    values: [BytesLike, BigNumberish]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "state_pln",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
 
   decodeFunctionResult(functionFragment: "entries", data: BytesLike): Result;
@@ -41,86 +53,156 @@ export interface Abs_AuctionRegistrar_intInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "state_pln", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface Abs_AuctionRegistrar_int extends BaseContract {
-  connect(runner?: ContractRunner | null): Abs_AuctionRegistrar_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: Abs_AuctionRegistrar_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    entries(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        number,
+        string,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ]
+    >;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    startAuction_ge0(
+      _hash: PromiseOrValue<BytesLike>,
+      revealP: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  entries: TypedContractMethod<
-    [_hash: BytesLike],
-    [[bigint, string, bigint, bigint, bigint, bigint, bigint, bigint]],
-    "view"
+    state_pln(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[number]>;
+  };
+
+  entries(
+    _hash: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      number,
+      string,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber
+    ]
   >;
 
-  startAuction_ge0: TypedContractMethod<
-    [_hash: BytesLike, revealP: BigNumberish],
-    [void],
-    "payable"
-  >;
+  startAuction_ge0(
+    _hash: PromiseOrValue<BytesLike>,
+    revealP: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  state_pln: TypedContractMethod<[_hash: BytesLike], [bigint], "view">;
+  state_pln(
+    _hash: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<number>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    entries(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        number,
+        string,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ]
+    >;
 
-  getFunction(
-    nameOrSignature: "entries"
-  ): TypedContractMethod<
-    [_hash: BytesLike],
-    [[bigint, string, bigint, bigint, bigint, bigint, bigint, bigint]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "startAuction_ge0"
-  ): TypedContractMethod<
-    [_hash: BytesLike, revealP: BigNumberish],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "state_pln"
-  ): TypedContractMethod<[_hash: BytesLike], [bigint], "view">;
+    startAuction_ge0(
+      _hash: PromiseOrValue<BytesLike>,
+      revealP: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    state_pln(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<number>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    entries(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    startAuction_ge0(
+      _hash: PromiseOrValue<BytesLike>,
+      revealP: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    state_pln(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    entries(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    startAuction_ge0(
+      _hash: PromiseOrValue<BytesLike>,
+      revealP: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    state_pln(
+      _hash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

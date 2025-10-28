@@ -25,7 +25,7 @@ import * as path from "path";
 // Usage: npx ts-node scripts/build-prompts.ts [scaffoldDir] [outDir] [templatePath] [--include=regex]
 const DEFAULT_SCAFFOLD_DIR = "scaffolds";
 const DEFAULT_OUT_DIR = "prompts_out";
-const DEFAULT_TEMPLATE_PATH = "prompts/templates/coverage.txt";
+const DEFAULT_TEMPLATE_PATH = "prompts/templates/only-sol-template2.txt";
 
 function read(p: string) { return fs.readFileSync(p, "utf-8"); }
 function write(p: string, s: string) {

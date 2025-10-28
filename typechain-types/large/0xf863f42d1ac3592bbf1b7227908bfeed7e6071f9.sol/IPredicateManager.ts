@@ -3,70 +3,90 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export type SignatureWithSaltAndExpiryStruct = {
-  signature: BytesLike;
-  salt: BytesLike;
-  expiry: BigNumberish;
+  signature: PromiseOrValue<BytesLike>;
+  salt: PromiseOrValue<BytesLike>;
+  expiry: PromiseOrValue<BigNumberish>;
 };
 
 export type SignatureWithSaltAndExpiryStructOutput = [
-  signature: string,
-  salt: string,
-  expiry: bigint
-] & { signature: string; salt: string; expiry: bigint };
+  string,
+  string,
+  BigNumber
+] & { signature: string; salt: string; expiry: BigNumber };
 
 export type TaskStruct = {
-  taskId: string;
-  msgSender: AddressLike;
-  target: AddressLike;
-  value: BigNumberish;
-  encodedSigAndArgs: BytesLike;
-  policyID: string;
-  quorumThresholdCount: BigNumberish;
-  expireByBlockNumber: BigNumberish;
+  taskId: PromiseOrValue<string>;
+  msgSender: PromiseOrValue<string>;
+  target: PromiseOrValue<string>;
+  value: PromiseOrValue<BigNumberish>;
+  encodedSigAndArgs: PromiseOrValue<BytesLike>;
+  policyID: PromiseOrValue<string>;
+  quorumThresholdCount: PromiseOrValue<BigNumberish>;
+  expireByBlockNumber: PromiseOrValue<BigNumberish>;
 };
 
 export type TaskStructOutput = [
-  taskId: string,
-  msgSender: string,
-  target: string,
-  value: bigint,
-  encodedSigAndArgs: string,
-  policyID: string,
-  quorumThresholdCount: bigint,
-  expireByBlockNumber: bigint
+  string,
+  string,
+  string,
+  BigNumber,
+  string,
+  string,
+  number,
+  BigNumber
 ] & {
   taskId: string;
   msgSender: string;
   target: string;
-  value: bigint;
+  value: BigNumber;
   encodedSigAndArgs: string;
   policyID: string;
-  quorumThresholdCount: bigint;
-  expireByBlockNumber: bigint;
+  quorumThresholdCount: number;
+  expireByBlockNumber: BigNumber;
 };
 
-export interface IPredicateManagerInterface extends Interface {
+export interface IPredicateManagerInterface extends utils.Interface {
+  functions: {
+    "addStrategy(address,uint8,uint256)": FunctionFragment;
+    "deployPolicy(string,string,uint256)": FunctionFragment;
+    "deploySocialGraph(string,string)": FunctionFragment;
+    "deregisterOperatorFromAVS(address)": FunctionFragment;
+    "getDeployedPolicies()": FunctionFragment;
+    "getOperatorRestakedStrategies(address)": FunctionFragment;
+    "getRestakeableStrategies()": FunctionFragment;
+    "getSocialGraphIDs()": FunctionFragment;
+    "registerOperatorToAVS(address,(bytes,bytes32,uint256))": FunctionFragment;
+    "removePolicy(string)": FunctionFragment;
+    "removeStrategy(address)": FunctionFragment;
+    "rotatePredicateSigningKey(address,address)": FunctionFragment;
+    "setMetadataURI(string)": FunctionFragment;
+    "setPolicy(string)": FunctionFragment;
+    "validateSignatures((string,address,address,uint256,bytes,string,uint32,uint256),address[],bytes[])": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "addStrategy"
       | "deployPolicy"
       | "deploySocialGraph"
@@ -86,19 +106,27 @@ export interface IPredicateManagerInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "addStrategy",
-    values: [AddressLike, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "deployPolicy",
-    values: [string, string, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "deploySocialGraph",
-    values: [string, string]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "deregisterOperatorFromAVS",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getDeployedPolicies",
@@ -106,7 +134,7 @@ export interface IPredicateManagerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getOperatorRestakedStrategies",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getRestakeableStrategies",
@@ -118,28 +146,31 @@ export interface IPredicateManagerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "registerOperatorToAVS",
-    values: [AddressLike, SignatureWithSaltAndExpiryStruct]
+    values: [PromiseOrValue<string>, SignatureWithSaltAndExpiryStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "removePolicy",
-    values: [string]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "removeStrategy",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "rotatePredicateSigningKey",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setMetadataURI",
-    values: [string]
+    values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "setPolicy", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setPolicy",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "validateSignatures",
-    values: [TaskStruct, AddressLike[], BytesLike[]]
+    values: [TaskStruct, PromiseOrValue<string>[], PromiseOrValue<BytesLike>[]]
   ): string;
 
   decodeFunctionResult(
@@ -199,208 +230,422 @@ export interface IPredicateManagerInterface extends Interface {
     functionFragment: "validateSignatures",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IPredicateManager extends BaseContract {
-  connect(runner?: ContractRunner | null): IPredicateManager;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IPredicateManagerInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    addStrategy(
+      _strategy: PromiseOrValue<string>,
+      quorumNumber: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    deployPolicy(
+      _policyID: PromiseOrValue<string>,
+      _policy: PromiseOrValue<string>,
+      _quorumThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  addStrategy: TypedContractMethod<
-    [_strategy: AddressLike, quorumNumber: BigNumberish, index: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    deploySocialGraph(
+      _socialGraphID: PromiseOrValue<string>,
+      _socialGraphConfig: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  deployPolicy: TypedContractMethod<
-    [_policyID: string, _policy: string, _quorumThreshold: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    deregisterOperatorFromAVS(
+      operator: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  deploySocialGraph: TypedContractMethod<
-    [_socialGraphID: string, _socialGraphConfig: string],
-    [void],
-    "nonpayable"
-  >;
+    getDeployedPolicies(overrides?: CallOverrides): Promise<[string[]]>;
 
-  deregisterOperatorFromAVS: TypedContractMethod<
-    [operator: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    getOperatorRestakedStrategies(
+      operator: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
 
-  getDeployedPolicies: TypedContractMethod<[], [string[]], "view">;
+    getRestakeableStrategies(overrides?: CallOverrides): Promise<[string[]]>;
 
-  getOperatorRestakedStrategies: TypedContractMethod<
-    [operator: AddressLike],
-    [string[]],
-    "view"
-  >;
+    getSocialGraphIDs(overrides?: CallOverrides): Promise<[string[]]>;
 
-  getRestakeableStrategies: TypedContractMethod<[], [string[]], "view">;
+    registerOperatorToAVS(
+      operatorSigningKey: PromiseOrValue<string>,
+      operatorSignature: SignatureWithSaltAndExpiryStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  getSocialGraphIDs: TypedContractMethod<[], [string[]], "view">;
+    removePolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  registerOperatorToAVS: TypedContractMethod<
-    [
-      operatorSigningKey: AddressLike,
-      operatorSignature: SignatureWithSaltAndExpiryStruct
-    ],
-    [void],
-    "nonpayable"
-  >;
+    removeStrategy(
+      _strategy: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  removePolicy: TypedContractMethod<[policyID: string], [void], "nonpayable">;
+    rotatePredicateSigningKey(
+      _oldSigningKey: PromiseOrValue<string>,
+      _newSigningKey: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  removeStrategy: TypedContractMethod<
-    [_strategy: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    setMetadataURI(
+      _metadataURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  rotatePredicateSigningKey: TypedContractMethod<
-    [_oldSigningKey: AddressLike, _newSigningKey: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    setPolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setMetadataURI: TypedContractMethod<
-    [_metadataURI: string],
-    [void],
-    "nonpayable"
-  >;
-
-  setPolicy: TypedContractMethod<[policyID: string], [void], "nonpayable">;
-
-  validateSignatures: TypedContractMethod<
-    [
+    validateSignatures(
       _task: TaskStruct,
-      signerAddresses: AddressLike[],
-      signatures: BytesLike[]
-    ],
-    [boolean],
-    "nonpayable"
-  >;
+      signerAddresses: PromiseOrValue<string>[],
+      signatures: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  addStrategy(
+    _strategy: PromiseOrValue<string>,
+    quorumNumber: PromiseOrValue<BigNumberish>,
+    index: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction(
-    nameOrSignature: "addStrategy"
-  ): TypedContractMethod<
-    [_strategy: AddressLike, quorumNumber: BigNumberish, index: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "deployPolicy"
-  ): TypedContractMethod<
-    [_policyID: string, _policy: string, _quorumThreshold: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "deploySocialGraph"
-  ): TypedContractMethod<
-    [_socialGraphID: string, _socialGraphConfig: string],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "deregisterOperatorFromAVS"
-  ): TypedContractMethod<[operator: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "getDeployedPolicies"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getOperatorRestakedStrategies"
-  ): TypedContractMethod<[operator: AddressLike], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getRestakeableStrategies"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getSocialGraphIDs"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "registerOperatorToAVS"
-  ): TypedContractMethod<
-    [
-      operatorSigningKey: AddressLike,
-      operatorSignature: SignatureWithSaltAndExpiryStruct
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "removePolicy"
-  ): TypedContractMethod<[policyID: string], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "removeStrategy"
-  ): TypedContractMethod<[_strategy: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "rotatePredicateSigningKey"
-  ): TypedContractMethod<
-    [_oldSigningKey: AddressLike, _newSigningKey: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setMetadataURI"
-  ): TypedContractMethod<[_metadataURI: string], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setPolicy"
-  ): TypedContractMethod<[policyID: string], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "validateSignatures"
-  ): TypedContractMethod<
-    [
+  deployPolicy(
+    _policyID: PromiseOrValue<string>,
+    _policy: PromiseOrValue<string>,
+    _quorumThreshold: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  deploySocialGraph(
+    _socialGraphID: PromiseOrValue<string>,
+    _socialGraphConfig: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  deregisterOperatorFromAVS(
+    operator: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getDeployedPolicies(overrides?: CallOverrides): Promise<string[]>;
+
+  getOperatorRestakedStrategies(
+    operator: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  getRestakeableStrategies(overrides?: CallOverrides): Promise<string[]>;
+
+  getSocialGraphIDs(overrides?: CallOverrides): Promise<string[]>;
+
+  registerOperatorToAVS(
+    operatorSigningKey: PromiseOrValue<string>,
+    operatorSignature: SignatureWithSaltAndExpiryStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  removePolicy(
+    policyID: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  removeStrategy(
+    _strategy: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  rotatePredicateSigningKey(
+    _oldSigningKey: PromiseOrValue<string>,
+    _newSigningKey: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setMetadataURI(
+    _metadataURI: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setPolicy(
+    policyID: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  validateSignatures(
+    _task: TaskStruct,
+    signerAddresses: PromiseOrValue<string>[],
+    signatures: PromiseOrValue<BytesLike>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    addStrategy(
+      _strategy: PromiseOrValue<string>,
+      quorumNumber: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    deployPolicy(
+      _policyID: PromiseOrValue<string>,
+      _policy: PromiseOrValue<string>,
+      _quorumThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    deploySocialGraph(
+      _socialGraphID: PromiseOrValue<string>,
+      _socialGraphConfig: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    deregisterOperatorFromAVS(
+      operator: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getDeployedPolicies(overrides?: CallOverrides): Promise<string[]>;
+
+    getOperatorRestakedStrategies(
+      operator: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    getRestakeableStrategies(overrides?: CallOverrides): Promise<string[]>;
+
+    getSocialGraphIDs(overrides?: CallOverrides): Promise<string[]>;
+
+    registerOperatorToAVS(
+      operatorSigningKey: PromiseOrValue<string>,
+      operatorSignature: SignatureWithSaltAndExpiryStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    removePolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    removeStrategy(
+      _strategy: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    rotatePredicateSigningKey(
+      _oldSigningKey: PromiseOrValue<string>,
+      _newSigningKey: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMetadataURI(
+      _metadataURI: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setPolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    validateSignatures(
       _task: TaskStruct,
-      signerAddresses: AddressLike[],
-      signatures: BytesLike[]
-    ],
-    [boolean],
-    "nonpayable"
-  >;
+      signerAddresses: PromiseOrValue<string>[],
+      signatures: PromiseOrValue<BytesLike>[],
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    addStrategy(
+      _strategy: PromiseOrValue<string>,
+      quorumNumber: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    deployPolicy(
+      _policyID: PromiseOrValue<string>,
+      _policy: PromiseOrValue<string>,
+      _quorumThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    deploySocialGraph(
+      _socialGraphID: PromiseOrValue<string>,
+      _socialGraphConfig: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    deregisterOperatorFromAVS(
+      operator: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getDeployedPolicies(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getOperatorRestakedStrategies(
+      operator: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRestakeableStrategies(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSocialGraphIDs(overrides?: CallOverrides): Promise<BigNumber>;
+
+    registerOperatorToAVS(
+      operatorSigningKey: PromiseOrValue<string>,
+      operatorSignature: SignatureWithSaltAndExpiryStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    removePolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    removeStrategy(
+      _strategy: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    rotatePredicateSigningKey(
+      _oldSigningKey: PromiseOrValue<string>,
+      _newSigningKey: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setMetadataURI(
+      _metadataURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setPolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    validateSignatures(
+      _task: TaskStruct,
+      signerAddresses: PromiseOrValue<string>[],
+      signatures: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    addStrategy(
+      _strategy: PromiseOrValue<string>,
+      quorumNumber: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deployPolicy(
+      _policyID: PromiseOrValue<string>,
+      _policy: PromiseOrValue<string>,
+      _quorumThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deploySocialGraph(
+      _socialGraphID: PromiseOrValue<string>,
+      _socialGraphConfig: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deregisterOperatorFromAVS(
+      operator: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDeployedPolicies(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getOperatorRestakedStrategies(
+      operator: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRestakeableStrategies(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getSocialGraphIDs(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    registerOperatorToAVS(
+      operatorSigningKey: PromiseOrValue<string>,
+      operatorSignature: SignatureWithSaltAndExpiryStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removePolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeStrategy(
+      _strategy: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    rotatePredicateSigningKey(
+      _oldSigningKey: PromiseOrValue<string>,
+      _newSigningKey: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMetadataURI(
+      _metadataURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPolicy(
+      policyID: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    validateSignatures(
+      _task: TaskStruct,
+      signerAddresses: PromiseOrValue<string>[],
+      signatures: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

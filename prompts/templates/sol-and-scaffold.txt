@@ -1,0 +1,69 @@
+You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
+
+### Goal:
+Generate a complete TypeScript test suite for the provided Solidity smart contract.
+
+### SCAFFOLD:
+{SCAFFOLD}
+
+### Contract:
+{CONTRACT}
+
+
+### Instructions:
+- Use **ethers.js v5** and **Chai** for testing.
+- Import ethers from "ethers".
+- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
+- Ensure to include tests for:
+  - **Deployment**: Verify correct initialization and constructor state.
+  - **Happy paths**: Normal usage for every public or external function.
+  - **Reverts**: Test invalid inputs, unauthorized access, and failure conditions.
+  - **Events**: Verify that events are emitted with correct parameters using `.to.emit()`.
+  - **Edge cases**: Test cases like zero values, address(0), max integers, empty strings, etc.
+- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
+- **Do not** explain or comment in natural language — output only TypeScript test code.
+- Tests must be **runnable in Hardhat** directly and use **ethers.js v5** API (`ethers.utils`, `ethers.constants`, etc).
+- **Do not use `loadFixture` or any module not included in ethers.js v5 or Hardhat v2.**
+
+### Output:
+Your output should include **only valid, executable TypeScript test code** (`.spec.ts` format). The code should be complete and ready to execute with Hardhat.
+
+### Test Requirements:
+- Use **ethers.js v5** (specifically `ethers.utils` and `ethers.constants`).
+- Ensure all test functions are structured clearly:
+  - **State-modifying functions**: Test changes to contract state.
+  - **Getter and setter functions**: Ensure getters return the correct value and setters correctly modify state.
+  - **Pure and view functions**: Ensure that state is not modified and the correct values are returned.
+  - **Access control functions**: Verify that only authorized accounts (e.g., owner, specific roles) can call functions with appropriate access control.
+  - **Event emission**: Verify the correct emission of events with proper arguments, using `.to.emit()`.
+  - **Error handling**: Ensure functions revert with appropriate error messages on invalid inputs.
+  - **Edge cases**: Handle boundary conditions, such as `address(0)`, maximum integers, and empty strings.
+
+---
+
+### Example Test:
+
+```typescript
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+describe("ContractName", function () {
+  it("should return the correct owner", async function () {
+    const [owner, addr1] = await ethers.getSigners();
+    const Contract = await ethers.getContractFactory("ContractName");
+    const contract = await Contract.deploy();
+    await contract.deployed();
+    
+    expect(await contract.owner()).to.equal(owner.address);
+  });
+
+  it("should revert on invalid address", async function () {
+    const Contract = await ethers.getContractFactory("ContractName");
+    const contract = await Contract.deploy();
+    await contract.deployed();
+
+    await expect(
+      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
+    ).to.be.revertedWith("Invalid address");
+  });
+});

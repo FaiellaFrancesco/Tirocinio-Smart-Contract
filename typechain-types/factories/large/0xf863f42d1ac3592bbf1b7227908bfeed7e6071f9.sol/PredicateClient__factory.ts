@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   PredicateClient,
   PredicateClientInterface,
@@ -61,17 +62,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class PredicateClient__factory {
   static readonly abi = _abi;
   static createInterface(): PredicateClientInterface {
-    return new Interface(_abi) as PredicateClientInterface;
+    return new utils.Interface(_abi) as PredicateClientInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): PredicateClient {
-    return new Contract(address, _abi, runner) as unknown as PredicateClient;
+    return new Contract(address, _abi, signerOrProvider) as PredicateClient;
   }
 }

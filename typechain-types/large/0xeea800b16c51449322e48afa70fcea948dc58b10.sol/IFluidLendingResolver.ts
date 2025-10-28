@@ -3,128 +3,128 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IFluidLendingResolver {
   export type UserSupplyDataStruct = {
-    modeWithInterest: boolean;
-    supply: BigNumberish;
-    withdrawalLimit: BigNumberish;
-    lastUpdateTimestamp: BigNumberish;
-    expandPercent: BigNumberish;
-    expandDuration: BigNumberish;
-    baseWithdrawalLimit: BigNumberish;
-    withdrawableUntilLimit: BigNumberish;
-    withdrawable: BigNumberish;
+    modeWithInterest: PromiseOrValue<boolean>;
+    supply: PromiseOrValue<BigNumberish>;
+    withdrawalLimit: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    expandPercent: PromiseOrValue<BigNumberish>;
+    expandDuration: PromiseOrValue<BigNumberish>;
+    baseWithdrawalLimit: PromiseOrValue<BigNumberish>;
+    withdrawableUntilLimit: PromiseOrValue<BigNumberish>;
+    withdrawable: PromiseOrValue<BigNumberish>;
   };
 
   export type UserSupplyDataStructOutput = [
-    modeWithInterest: boolean,
-    supply: bigint,
-    withdrawalLimit: bigint,
-    lastUpdateTimestamp: bigint,
-    expandPercent: bigint,
-    expandDuration: bigint,
-    baseWithdrawalLimit: bigint,
-    withdrawableUntilLimit: bigint,
-    withdrawable: bigint
+    boolean,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
     modeWithInterest: boolean;
-    supply: bigint;
-    withdrawalLimit: bigint;
-    lastUpdateTimestamp: bigint;
-    expandPercent: bigint;
-    expandDuration: bigint;
-    baseWithdrawalLimit: bigint;
-    withdrawableUntilLimit: bigint;
-    withdrawable: bigint;
+    supply: BigNumber;
+    withdrawalLimit: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    expandPercent: BigNumber;
+    expandDuration: BigNumber;
+    baseWithdrawalLimit: BigNumber;
+    withdrawableUntilLimit: BigNumber;
+    withdrawable: BigNumber;
   };
 
   export type FTokenDetailsStruct = {
-    tokenAddress: AddressLike;
-    eip2612Deposits: boolean;
-    isNativeUnderlying: boolean;
-    name: string;
-    symbol: string;
-    decimals: BigNumberish;
-    asset: AddressLike;
-    totalAssets: BigNumberish;
-    totalSupply: BigNumberish;
-    convertToShares: BigNumberish;
-    convertToAssets: BigNumberish;
-    rewardsRate: BigNumberish;
-    supplyRate: BigNumberish;
-    rebalanceDifference: BigNumberish;
+    tokenAddress: PromiseOrValue<string>;
+    eip2612Deposits: PromiseOrValue<boolean>;
+    isNativeUnderlying: PromiseOrValue<boolean>;
+    name: PromiseOrValue<string>;
+    symbol: PromiseOrValue<string>;
+    decimals: PromiseOrValue<BigNumberish>;
+    asset: PromiseOrValue<string>;
+    totalAssets: PromiseOrValue<BigNumberish>;
+    totalSupply: PromiseOrValue<BigNumberish>;
+    convertToShares: PromiseOrValue<BigNumberish>;
+    convertToAssets: PromiseOrValue<BigNumberish>;
+    rewardsRate: PromiseOrValue<BigNumberish>;
+    supplyRate: PromiseOrValue<BigNumberish>;
+    rebalanceDifference: PromiseOrValue<BigNumberish>;
     liquidityUserSupplyData: IFluidLendingResolver.UserSupplyDataStruct;
   };
 
   export type FTokenDetailsStructOutput = [
-    tokenAddress: string,
-    eip2612Deposits: boolean,
-    isNativeUnderlying: boolean,
-    name: string,
-    symbol: string,
-    decimals: bigint,
-    asset: string,
-    totalAssets: bigint,
-    totalSupply: bigint,
-    convertToShares: bigint,
-    convertToAssets: bigint,
-    rewardsRate: bigint,
-    supplyRate: bigint,
-    rebalanceDifference: bigint,
-    liquidityUserSupplyData: IFluidLendingResolver.UserSupplyDataStructOutput
+    string,
+    boolean,
+    boolean,
+    string,
+    string,
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    IFluidLendingResolver.UserSupplyDataStructOutput
   ] & {
     tokenAddress: string;
     eip2612Deposits: boolean;
     isNativeUnderlying: boolean;
     name: string;
     symbol: string;
-    decimals: bigint;
+    decimals: BigNumber;
     asset: string;
-    totalAssets: bigint;
-    totalSupply: bigint;
-    convertToShares: bigint;
-    convertToAssets: bigint;
-    rewardsRate: bigint;
-    supplyRate: bigint;
-    rebalanceDifference: bigint;
+    totalAssets: BigNumber;
+    totalSupply: BigNumber;
+    convertToShares: BigNumber;
+    convertToAssets: BigNumber;
+    rewardsRate: BigNumber;
+    supplyRate: BigNumber;
+    rebalanceDifference: BigNumber;
     liquidityUserSupplyData: IFluidLendingResolver.UserSupplyDataStructOutput;
   };
 
   export type UserPositionStruct = {
-    fTokenShares: BigNumberish;
-    underlyingAssets: BigNumberish;
-    underlyingBalance: BigNumberish;
-    allowance: BigNumberish;
+    fTokenShares: PromiseOrValue<BigNumberish>;
+    underlyingAssets: PromiseOrValue<BigNumberish>;
+    underlyingBalance: PromiseOrValue<BigNumberish>;
+    allowance: PromiseOrValue<BigNumberish>;
   };
 
   export type UserPositionStructOutput = [
-    fTokenShares: bigint,
-    underlyingAssets: bigint,
-    underlyingBalance: bigint,
-    allowance: bigint
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
   ] & {
-    fTokenShares: bigint;
-    underlyingAssets: bigint;
-    underlyingBalance: bigint;
-    allowance: bigint;
+    fTokenShares: BigNumber;
+    underlyingAssets: BigNumber;
+    underlyingBalance: BigNumber;
+    allowance: BigNumber;
   };
 
   export type FTokenDetailsUserPositionStruct = {
@@ -133,17 +133,35 @@ export declare namespace IFluidLendingResolver {
   };
 
   export type FTokenDetailsUserPositionStructOutput = [
-    fTokenDetails: IFluidLendingResolver.FTokenDetailsStructOutput,
-    userPosition: IFluidLendingResolver.UserPositionStructOutput
+    IFluidLendingResolver.FTokenDetailsStructOutput,
+    IFluidLendingResolver.UserPositionStructOutput
   ] & {
     fTokenDetails: IFluidLendingResolver.FTokenDetailsStructOutput;
     userPosition: IFluidLendingResolver.UserPositionStructOutput;
   };
 }
 
-export interface IFluidLendingResolverInterface extends Interface {
+export interface IFluidLendingResolverInterface extends utils.Interface {
+  functions: {
+    "LENDING_FACTORY()": FunctionFragment;
+    "LIQUIDITY_RESOLVER()": FunctionFragment;
+    "computeFToken(address,string)": FunctionFragment;
+    "getAllFTokenTypes()": FunctionFragment;
+    "getAllFTokens()": FunctionFragment;
+    "getFTokenDetails(address)": FunctionFragment;
+    "getFTokenInternalData(address)": FunctionFragment;
+    "getFTokenRewards(address)": FunctionFragment;
+    "getFTokenRewardsRateModelConfig(address)": FunctionFragment;
+    "getFTokensEntireData()": FunctionFragment;
+    "getPreviews(address,uint256,uint256)": FunctionFragment;
+    "getUserPosition(address,address)": FunctionFragment;
+    "getUserPositions(address)": FunctionFragment;
+    "isLendingFactoryAuth(address)": FunctionFragment;
+    "isLendingFactoryDeployer(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "LENDING_FACTORY"
       | "LIQUIDITY_RESOLVER"
       | "computeFToken"
@@ -171,7 +189,7 @@ export interface IFluidLendingResolverInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "computeFToken",
-    values: [AddressLike, string]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getAllFTokenTypes",
@@ -183,19 +201,19 @@ export interface IFluidLendingResolverInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getFTokenDetails",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getFTokenInternalData",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getFTokenRewards",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getFTokenRewardsRateModelConfig",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getFTokensEntireData",
@@ -203,23 +221,27 @@ export interface IFluidLendingResolverInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPreviews",
-    values: [AddressLike, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserPosition",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserPositions",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isLendingFactoryAuth",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isLendingFactoryDeployer",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -282,74 +304,64 @@ export interface IFluidLendingResolverInterface extends Interface {
     functionFragment: "isLendingFactoryDeployer",
     data: BytesLike
   ): Result;
+
+  events: {};
 }
 
 export interface IFluidLendingResolver extends BaseContract {
-  connect(runner?: ContractRunner | null): IFluidLendingResolver;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IFluidLendingResolverInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    LENDING_FACTORY(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    LIQUIDITY_RESOLVER(overrides?: CallOverrides): Promise<[string]>;
 
-  LENDING_FACTORY: TypedContractMethod<[], [string], "view">;
+    computeFToken(
+      asset_: PromiseOrValue<string>,
+      fTokenType_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  LIQUIDITY_RESOLVER: TypedContractMethod<[], [string], "view">;
+    getAllFTokenTypes(overrides?: CallOverrides): Promise<[string[]]>;
 
-  computeFToken: TypedContractMethod<
-    [asset_: AddressLike, fTokenType_: string],
-    [string],
-    "view"
-  >;
+    getAllFTokens(overrides?: CallOverrides): Promise<[string[]]>;
 
-  getAllFTokenTypes: TypedContractMethod<[], [string[]], "view">;
+    getFTokenDetails(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidLendingResolver.FTokenDetailsStructOutput] & {
+        fTokenDetails_: IFluidLendingResolver.FTokenDetailsStructOutput;
+      }
+    >;
 
-  getAllFTokens: TypedContractMethod<[], [string[]], "view">;
-
-  getFTokenDetails: TypedContractMethod<
-    [fToken_: AddressLike],
-    [IFluidLendingResolver.FTokenDetailsStructOutput],
-    "view"
-  >;
-
-  getFTokenInternalData: TypedContractMethod<
-    [fToken_: AddressLike],
-    [
+    getFTokenInternalData(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         string,
         string,
@@ -357,9 +369,9 @@ export interface IFluidLendingResolver extends BaseContract {
         string,
         string,
         boolean,
-        bigint,
-        bigint,
-        bigint
+        BigNumber,
+        BigNumber,
+        BigNumber
       ] & {
         liquidity_: string;
         lendingFactory_: string;
@@ -367,114 +379,228 @@ export interface IFluidLendingResolver extends BaseContract {
         permit2_: string;
         rebalancer_: string;
         rewardsActive_: boolean;
-        liquidityBalance_: bigint;
-        liquidityExchangePrice_: bigint;
-        tokenExchangePrice_: bigint;
+        liquidityBalance_: BigNumber;
+        liquidityExchangePrice_: BigNumber;
+        tokenExchangePrice_: BigNumber;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  getFTokenRewards: TypedContractMethod<
-    [fToken_: AddressLike],
-    [[string, bigint] & { rewardsRateModel_: string; rewardsRate_: bigint }],
-    "view"
-  >;
+    getFTokenRewards(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & {
+        rewardsRateModel_: string;
+        rewardsRate_: BigNumber;
+      }
+    >;
 
-  getFTokenRewardsRateModelConfig: TypedContractMethod<
-    [fToken_: AddressLike],
-    [
-      [bigint, bigint, bigint, bigint, bigint, bigint, string] & {
-        duration_: bigint;
-        startTime_: bigint;
-        endTime_: bigint;
-        startTvl_: bigint;
-        maxRate_: bigint;
-        rewardAmount_: bigint;
+    getFTokenRewardsRateModelConfig(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string
+      ] & {
+        duration_: BigNumber;
+        startTime_: BigNumber;
+        endTime_: BigNumber;
+        startTvl_: BigNumber;
+        maxRate_: BigNumber;
+        rewardAmount_: BigNumber;
         initiator_: string;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  getFTokensEntireData: TypedContractMethod<
-    [],
-    [IFluidLendingResolver.FTokenDetailsStructOutput[]],
-    "view"
-  >;
+    getFTokensEntireData(
+      overrides?: CallOverrides
+    ): Promise<[IFluidLendingResolver.FTokenDetailsStructOutput[]]>;
 
-  getPreviews: TypedContractMethod<
-    [fToken_: AddressLike, assets_: BigNumberish, shares_: BigNumberish],
-    [
-      [bigint, bigint, bigint, bigint] & {
-        previewDeposit_: bigint;
-        previewMint_: bigint;
-        previewWithdraw_: bigint;
-        previewRedeem_: bigint;
+    getPreviews(
+      fToken_: PromiseOrValue<string>,
+      assets_: PromiseOrValue<BigNumberish>,
+      shares_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        previewDeposit_: BigNumber;
+        previewMint_: BigNumber;
+        previewWithdraw_: BigNumber;
+        previewRedeem_: BigNumber;
       }
-    ],
-    "view"
-  >;
+    >;
 
-  getUserPosition: TypedContractMethod<
-    [fToken_: AddressLike, user_: AddressLike],
-    [IFluidLendingResolver.UserPositionStructOutput],
-    "view"
-  >;
+    getUserPosition(
+      fToken_: PromiseOrValue<string>,
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [IFluidLendingResolver.UserPositionStructOutput] & {
+        userPosition: IFluidLendingResolver.UserPositionStructOutput;
+      }
+    >;
 
-  getUserPositions: TypedContractMethod<
-    [user_: AddressLike],
-    [IFluidLendingResolver.FTokenDetailsUserPositionStructOutput[]],
-    "view"
-  >;
+    getUserPositions(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[IFluidLendingResolver.FTokenDetailsUserPositionStructOutput[]]>;
 
-  isLendingFactoryAuth: TypedContractMethod<
-    [auth_: AddressLike],
-    [boolean],
-    "view"
-  >;
+    isLendingFactoryAuth(
+      auth_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  isLendingFactoryDeployer: TypedContractMethod<
-    [deployer_: AddressLike],
-    [boolean],
-    "view"
-  >;
+    isLendingFactoryDeployer(
+      deployer_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+  };
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  LENDING_FACTORY(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "LENDING_FACTORY"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "LIQUIDITY_RESOLVER"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "computeFToken"
-  ): TypedContractMethod<
-    [asset_: AddressLike, fTokenType_: string],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getAllFTokenTypes"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getAllFTokens"
-  ): TypedContractMethod<[], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getFTokenDetails"
-  ): TypedContractMethod<
-    [fToken_: AddressLike],
-    [IFluidLendingResolver.FTokenDetailsStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getFTokenInternalData"
-  ): TypedContractMethod<
-    [fToken_: AddressLike],
+  LIQUIDITY_RESOLVER(overrides?: CallOverrides): Promise<string>;
+
+  computeFToken(
+    asset_: PromiseOrValue<string>,
+    fTokenType_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getAllFTokenTypes(overrides?: CallOverrides): Promise<string[]>;
+
+  getAllFTokens(overrides?: CallOverrides): Promise<string[]>;
+
+  getFTokenDetails(
+    fToken_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<IFluidLendingResolver.FTokenDetailsStructOutput>;
+
+  getFTokenInternalData(
+    fToken_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
     [
+      string,
+      string,
+      string,
+      string,
+      string,
+      boolean,
+      BigNumber,
+      BigNumber,
+      BigNumber
+    ] & {
+      liquidity_: string;
+      lendingFactory_: string;
+      lendingRewardsRateModel_: string;
+      permit2_: string;
+      rebalancer_: string;
+      rewardsActive_: boolean;
+      liquidityBalance_: BigNumber;
+      liquidityExchangePrice_: BigNumber;
+      tokenExchangePrice_: BigNumber;
+    }
+  >;
+
+  getFTokenRewards(
+    fToken_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber] & { rewardsRateModel_: string; rewardsRate_: BigNumber }
+  >;
+
+  getFTokenRewardsRateModelConfig(
+    fToken_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      string
+    ] & {
+      duration_: BigNumber;
+      startTime_: BigNumber;
+      endTime_: BigNumber;
+      startTvl_: BigNumber;
+      maxRate_: BigNumber;
+      rewardAmount_: BigNumber;
+      initiator_: string;
+    }
+  >;
+
+  getFTokensEntireData(
+    overrides?: CallOverrides
+  ): Promise<IFluidLendingResolver.FTokenDetailsStructOutput[]>;
+
+  getPreviews(
+    fToken_: PromiseOrValue<string>,
+    assets_: PromiseOrValue<BigNumberish>,
+    shares_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      previewDeposit_: BigNumber;
+      previewMint_: BigNumber;
+      previewWithdraw_: BigNumber;
+      previewRedeem_: BigNumber;
+    }
+  >;
+
+  getUserPosition(
+    fToken_: PromiseOrValue<string>,
+    user_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<IFluidLendingResolver.UserPositionStructOutput>;
+
+  getUserPositions(
+    user_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<IFluidLendingResolver.FTokenDetailsUserPositionStructOutput[]>;
+
+  isLendingFactoryAuth(
+    auth_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isLendingFactoryDeployer(
+    deployer_: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  callStatic: {
+    LENDING_FACTORY(overrides?: CallOverrides): Promise<string>;
+
+    LIQUIDITY_RESOLVER(overrides?: CallOverrides): Promise<string>;
+
+    computeFToken(
+      asset_: PromiseOrValue<string>,
+      fTokenType_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getAllFTokenTypes(overrides?: CallOverrides): Promise<string[]>;
+
+    getAllFTokens(overrides?: CallOverrides): Promise<string[]>;
+
+    getFTokenDetails(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<IFluidLendingResolver.FTokenDetailsStructOutput>;
+
+    getFTokenInternalData(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
       [
         string,
         string,
@@ -482,9 +608,9 @@ export interface IFluidLendingResolver extends BaseContract {
         string,
         string,
         boolean,
-        bigint,
-        bigint,
-        bigint
+        BigNumber,
+        BigNumber,
+        BigNumber
       ] & {
         liquidity_: string;
         lendingFactory_: string;
@@ -492,78 +618,220 @@ export interface IFluidLendingResolver extends BaseContract {
         permit2_: string;
         rebalancer_: string;
         rewardsActive_: boolean;
-        liquidityBalance_: bigint;
-        liquidityExchangePrice_: bigint;
-        tokenExchangePrice_: bigint;
+        liquidityBalance_: BigNumber;
+        liquidityExchangePrice_: BigNumber;
+        tokenExchangePrice_: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getFTokenRewards"
-  ): TypedContractMethod<
-    [fToken_: AddressLike],
-    [[string, bigint] & { rewardsRateModel_: string; rewardsRate_: bigint }],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getFTokenRewardsRateModelConfig"
-  ): TypedContractMethod<
-    [fToken_: AddressLike],
-    [
-      [bigint, bigint, bigint, bigint, bigint, bigint, string] & {
-        duration_: bigint;
-        startTime_: bigint;
-        endTime_: bigint;
-        startTvl_: bigint;
-        maxRate_: bigint;
-        rewardAmount_: bigint;
+    >;
+
+    getFTokenRewards(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & {
+        rewardsRateModel_: string;
+        rewardsRate_: BigNumber;
+      }
+    >;
+
+    getFTokenRewardsRateModelConfig(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string
+      ] & {
+        duration_: BigNumber;
+        startTime_: BigNumber;
+        endTime_: BigNumber;
+        startTvl_: BigNumber;
+        maxRate_: BigNumber;
+        rewardAmount_: BigNumber;
         initiator_: string;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getFTokensEntireData"
-  ): TypedContractMethod<
-    [],
-    [IFluidLendingResolver.FTokenDetailsStructOutput[]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getPreviews"
-  ): TypedContractMethod<
-    [fToken_: AddressLike, assets_: BigNumberish, shares_: BigNumberish],
-    [
-      [bigint, bigint, bigint, bigint] & {
-        previewDeposit_: bigint;
-        previewMint_: bigint;
-        previewWithdraw_: bigint;
-        previewRedeem_: bigint;
+    >;
+
+    getFTokensEntireData(
+      overrides?: CallOverrides
+    ): Promise<IFluidLendingResolver.FTokenDetailsStructOutput[]>;
+
+    getPreviews(
+      fToken_: PromiseOrValue<string>,
+      assets_: PromiseOrValue<BigNumberish>,
+      shares_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        previewDeposit_: BigNumber;
+        previewMint_: BigNumber;
+        previewWithdraw_: BigNumber;
+        previewRedeem_: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getUserPosition"
-  ): TypedContractMethod<
-    [fToken_: AddressLike, user_: AddressLike],
-    [IFluidLendingResolver.UserPositionStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getUserPositions"
-  ): TypedContractMethod<
-    [user_: AddressLike],
-    [IFluidLendingResolver.FTokenDetailsUserPositionStructOutput[]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "isLendingFactoryAuth"
-  ): TypedContractMethod<[auth_: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "isLendingFactoryDeployer"
-  ): TypedContractMethod<[deployer_: AddressLike], [boolean], "view">;
+    >;
+
+    getUserPosition(
+      fToken_: PromiseOrValue<string>,
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<IFluidLendingResolver.UserPositionStructOutput>;
+
+    getUserPositions(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<IFluidLendingResolver.FTokenDetailsUserPositionStructOutput[]>;
+
+    isLendingFactoryAuth(
+      auth_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isLendingFactoryDeployer(
+      deployer_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    LENDING_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LIQUIDITY_RESOLVER(overrides?: CallOverrides): Promise<BigNumber>;
+
+    computeFToken(
+      asset_: PromiseOrValue<string>,
+      fTokenType_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAllFTokenTypes(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getAllFTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getFTokenDetails(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFTokenInternalData(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFTokenRewards(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFTokenRewardsRateModelConfig(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFTokensEntireData(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPreviews(
+      fToken_: PromiseOrValue<string>,
+      assets_: PromiseOrValue<BigNumberish>,
+      shares_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserPosition(
+      fToken_: PromiseOrValue<string>,
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserPositions(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isLendingFactoryAuth(
+      auth_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isLendingFactoryDeployer(
+      deployer_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    LENDING_FACTORY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LIQUIDITY_RESOLVER(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    computeFToken(
+      asset_: PromiseOrValue<string>,
+      fTokenType_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAllFTokenTypes(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getAllFTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getFTokenDetails(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFTokenInternalData(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFTokenRewards(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFTokenRewardsRateModelConfig(
+      fToken_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFTokensEntireData(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPreviews(
+      fToken_: PromiseOrValue<string>,
+      assets_: PromiseOrValue<BigNumberish>,
+      shares_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserPosition(
+      fToken_: PromiseOrValue<string>,
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserPositions(
+      user_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isLendingFactoryAuth(
+      auth_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isLendingFactoryDeployer(
+      deployer_: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   RXSFinance,
   RXSFinanceInterface,
@@ -231,14 +232,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class RXSFinance__factory {
   static readonly abi = _abi;
   static createInterface(): RXSFinanceInterface {
-    return new Interface(_abi) as RXSFinanceInterface;
+    return new utils.Interface(_abi) as RXSFinanceInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): RXSFinance {
-    return new Contract(address, _abi, runner) as unknown as RXSFinance;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): RXSFinance {
+    return new Contract(address, _abi, signerOrProvider) as RXSFinance;
   }
 }

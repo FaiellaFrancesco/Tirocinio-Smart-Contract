@@ -3,29 +3,45 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface I2Interface extends Interface {
+export interface I2Interface extends utils.Interface {
+  functions: {
+    "A1(address,address)": FunctionFragment;
+    "B1(address)": FunctionFragment;
+    "D1()": FunctionFragment;
+    "N1()": FunctionFragment;
+    "S1()": FunctionFragment;
+    "T1()": FunctionFragment;
+    "T2(address,uint256)": FunctionFragment;
+    "T3(address,uint256)": FunctionFragment;
+    "T4(address,address,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "A1"
       | "B1"
       | "D1"
@@ -37,28 +53,33 @@ export interface I2Interface extends Interface {
       | "T4"
   ): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: "E1" | "E2"): EventFragment;
-
   encodeFunctionData(
     functionFragment: "A1",
-    values: [AddressLike, AddressLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "B1", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "B1",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(functionFragment: "D1", values?: undefined): string;
   encodeFunctionData(functionFragment: "N1", values?: undefined): string;
   encodeFunctionData(functionFragment: "S1", values?: undefined): string;
   encodeFunctionData(functionFragment: "T1", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "T2",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "T3",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "T4",
-    values: [AddressLike, AddressLike, BigNumberish]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
 
   decodeFunctionResult(functionFragment: "A1", data: BytesLike): Result;
@@ -70,181 +91,276 @@ export interface I2Interface extends Interface {
   decodeFunctionResult(functionFragment: "T2", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "T3", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "T4", data: BytesLike): Result;
+
+  events: {
+    "E1(address,address,uint256)": EventFragment;
+    "E2(address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "E1"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "E2"): EventFragment;
 }
 
-export namespace E1Event {
-  export type InputTuple = [A: AddressLike, B: AddressLike, C: BigNumberish];
-  export type OutputTuple = [A: string, B: string, C: bigint];
-  export interface OutputObject {
-    A: string;
-    B: string;
-    C: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface E1EventObject {
+  A: string;
+  B: string;
+  C: BigNumber;
 }
+export type E1Event = TypedEvent<[string, string, BigNumber], E1EventObject>;
 
-export namespace E2Event {
-  export type InputTuple = [D: AddressLike, E: AddressLike, F: BigNumberish];
-  export type OutputTuple = [D: string, E: string, F: bigint];
-  export interface OutputObject {
-    D: string;
-    E: string;
-    F: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type E1EventFilter = TypedEventFilter<E1Event>;
+
+export interface E2EventObject {
+  D: string;
+  E: string;
+  F: BigNumber;
 }
+export type E2Event = TypedEvent<[string, string, BigNumber], E2EventObject>;
+
+export type E2EventFilter = TypedEventFilter<E2Event>;
 
 export interface I2 extends BaseContract {
-  connect(runner?: ContractRunner | null): I2;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: I2Interface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    A1(
+      J: PromiseOrValue<string>,
+      K: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    B1(
+      G: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  A1: TypedContractMethod<[J: AddressLike, K: AddressLike], [bigint], "view">;
+    D1(overrides?: CallOverrides): Promise<[number]>;
 
-  B1: TypedContractMethod<[G: AddressLike], [bigint], "view">;
+    N1(overrides?: CallOverrides): Promise<[string]>;
 
-  D1: TypedContractMethod<[], [bigint], "view">;
+    S1(overrides?: CallOverrides): Promise<[string]>;
 
-  N1: TypedContractMethod<[], [string], "view">;
+    T1(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  S1: TypedContractMethod<[], [string], "view">;
+    T2(
+      H: PromiseOrValue<string>,
+      I: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  T1: TypedContractMethod<[], [bigint], "view">;
+    T3(
+      L: PromiseOrValue<string>,
+      M: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  T2: TypedContractMethod<
-    [H: AddressLike, I: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+    T4(
+      N: PromiseOrValue<string>,
+      O: PromiseOrValue<string>,
+      P: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  T3: TypedContractMethod<
-    [L: AddressLike, M: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  A1(
+    J: PromiseOrValue<string>,
+    K: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  T4: TypedContractMethod<
-    [N: AddressLike, O: AddressLike, P: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  B1(G: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  D1(overrides?: CallOverrides): Promise<number>;
 
-  getFunction(
-    nameOrSignature: "A1"
-  ): TypedContractMethod<[J: AddressLike, K: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "B1"
-  ): TypedContractMethod<[G: AddressLike], [bigint], "view">;
-  getFunction(nameOrSignature: "D1"): TypedContractMethod<[], [bigint], "view">;
-  getFunction(nameOrSignature: "N1"): TypedContractMethod<[], [string], "view">;
-  getFunction(nameOrSignature: "S1"): TypedContractMethod<[], [string], "view">;
-  getFunction(nameOrSignature: "T1"): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "T2"
-  ): TypedContractMethod<
-    [H: AddressLike, I: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "T3"
-  ): TypedContractMethod<
-    [L: AddressLike, M: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "T4"
-  ): TypedContractMethod<
-    [N: AddressLike, O: AddressLike, P: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
+  N1(overrides?: CallOverrides): Promise<string>;
 
-  getEvent(
-    key: "E1"
-  ): TypedContractEvent<
-    E1Event.InputTuple,
-    E1Event.OutputTuple,
-    E1Event.OutputObject
-  >;
-  getEvent(
-    key: "E2"
-  ): TypedContractEvent<
-    E2Event.InputTuple,
-    E2Event.OutputTuple,
-    E2Event.OutputObject
-  >;
+  S1(overrides?: CallOverrides): Promise<string>;
+
+  T1(overrides?: CallOverrides): Promise<BigNumber>;
+
+  T2(
+    H: PromiseOrValue<string>,
+    I: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  T3(
+    L: PromiseOrValue<string>,
+    M: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  T4(
+    N: PromiseOrValue<string>,
+    O: PromiseOrValue<string>,
+    P: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    A1(
+      J: PromiseOrValue<string>,
+      K: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    B1(
+      G: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    D1(overrides?: CallOverrides): Promise<number>;
+
+    N1(overrides?: CallOverrides): Promise<string>;
+
+    S1(overrides?: CallOverrides): Promise<string>;
+
+    T1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    T2(
+      H: PromiseOrValue<string>,
+      I: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    T3(
+      L: PromiseOrValue<string>,
+      M: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    T4(
+      N: PromiseOrValue<string>,
+      O: PromiseOrValue<string>,
+      P: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {
-    "E1(address,address,uint256)": TypedContractEvent<
-      E1Event.InputTuple,
-      E1Event.OutputTuple,
-      E1Event.OutputObject
-    >;
-    E1: TypedContractEvent<
-      E1Event.InputTuple,
-      E1Event.OutputTuple,
-      E1Event.OutputObject
-    >;
+    "E1(address,address,uint256)"(
+      A?: PromiseOrValue<string> | null,
+      B?: PromiseOrValue<string> | null,
+      C?: null
+    ): E1EventFilter;
+    E1(
+      A?: PromiseOrValue<string> | null,
+      B?: PromiseOrValue<string> | null,
+      C?: null
+    ): E1EventFilter;
 
-    "E2(address,address,uint256)": TypedContractEvent<
-      E2Event.InputTuple,
-      E2Event.OutputTuple,
-      E2Event.OutputObject
-    >;
-    E2: TypedContractEvent<
-      E2Event.InputTuple,
-      E2Event.OutputTuple,
-      E2Event.OutputObject
-    >;
+    "E2(address,address,uint256)"(
+      D?: PromiseOrValue<string> | null,
+      E?: PromiseOrValue<string> | null,
+      F?: null
+    ): E2EventFilter;
+    E2(
+      D?: PromiseOrValue<string> | null,
+      E?: PromiseOrValue<string> | null,
+      F?: null
+    ): E2EventFilter;
+  };
+
+  estimateGas: {
+    A1(
+      J: PromiseOrValue<string>,
+      K: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    B1(
+      G: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    D1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    N1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    S1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    T1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    T2(
+      H: PromiseOrValue<string>,
+      I: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    T3(
+      L: PromiseOrValue<string>,
+      M: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    T4(
+      N: PromiseOrValue<string>,
+      O: PromiseOrValue<string>,
+      P: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    A1(
+      J: PromiseOrValue<string>,
+      K: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    B1(
+      G: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    D1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    N1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    S1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    T1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    T2(
+      H: PromiseOrValue<string>,
+      I: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    T3(
+      L: PromiseOrValue<string>,
+      M: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    T4(
+      N: PromiseOrValue<string>,
+      O: PromiseOrValue<string>,
+      P: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

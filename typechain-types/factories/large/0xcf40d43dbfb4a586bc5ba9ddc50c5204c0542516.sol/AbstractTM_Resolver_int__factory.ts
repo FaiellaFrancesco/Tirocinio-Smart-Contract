@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   AbstractTM_Resolver_int,
   AbstractTM_Resolver_intInterface,
@@ -398,21 +399,21 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class AbstractTM_Resolver_int__factory {
   static readonly abi = _abi;
   static createInterface(): AbstractTM_Resolver_intInterface {
-    return new Interface(_abi) as AbstractTM_Resolver_intInterface;
+    return new utils.Interface(_abi) as AbstractTM_Resolver_intInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): AbstractTM_Resolver_int {
     return new Contract(
       address,
       _abi,
-      runner
-    ) as unknown as AbstractTM_Resolver_int;
+      signerOrProvider
+    ) as AbstractTM_Resolver_int;
   }
 }

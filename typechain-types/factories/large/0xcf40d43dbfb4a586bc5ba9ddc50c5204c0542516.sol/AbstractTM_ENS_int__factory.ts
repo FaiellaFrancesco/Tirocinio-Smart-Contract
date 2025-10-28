@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   AbstractTM_ENS_int,
   AbstractTM_ENS_intInterface,
@@ -205,17 +206,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-] as const;
+];
 
 export class AbstractTM_ENS_int__factory {
   static readonly abi = _abi;
   static createInterface(): AbstractTM_ENS_intInterface {
-    return new Interface(_abi) as AbstractTM_ENS_intInterface;
+    return new utils.Interface(_abi) as AbstractTM_ENS_intInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): AbstractTM_ENS_int {
-    return new Contract(address, _abi, runner) as unknown as AbstractTM_ENS_int;
+    return new Contract(address, _abi, signerOrProvider) as AbstractTM_ENS_int;
   }
 }

@@ -3,29 +3,46 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AmeranywSOLStaking3Interface extends Interface {
+export interface AmeranywSOLStaking3Interface extends utils.Interface {
+  functions: {
+    "ERC(address)": FunctionFragment;
+    "ERC20(address)": FunctionFragment;
+    "ERC202()": FunctionFragment;
+    "calculateInterest(address,uint256)": FunctionFragment;
+    "claimInterestForDeposit(uint256)": FunctionFragment;
+    "deposit(uint256,uint256,address)": FunctionFragment;
+    "getDepositInfo(address)": FunctionFragment;
+    "getReferral(address)": FunctionFragment;
+    "isBlacklisted(address)": FunctionFragment;
+    "withdraw(uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "ERC"
       | "ERC20"
       | "ERC202"
@@ -38,45 +55,46 @@ export interface AmeranywSOLStaking3Interface extends Interface {
       | "withdraw"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "Blacklisted"
-      | "Deposit"
-      | "InterestClaimed"
-      | "Unblacklisted"
-      | "Withdraw"
-  ): EventFragment;
-
-  encodeFunctionData(functionFragment: "ERC", values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: "ERC20", values: [AddressLike]): string;
+  encodeFunctionData(
+    functionFragment: "ERC",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "ERC20",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(functionFragment: "ERC202", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "calculateInterest",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "claimInterestForDeposit",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish, BigNumberish, AddressLike]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getDepositInfo",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getReferral",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isBlacklisted",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(functionFragment: "ERC", data: BytesLike): Result;
@@ -104,314 +122,420 @@ export interface AmeranywSOLStaking3Interface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+
+  events: {
+    "Blacklisted(address)": EventFragment;
+    "Deposit(address,uint256,uint256)": EventFragment;
+    "InterestClaimed(address,uint256)": EventFragment;
+    "Unblacklisted(address)": EventFragment;
+    "Withdraw(address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Blacklisted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "InterestClaimed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unblacklisted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
-export namespace BlacklistedEvent {
-  export type InputTuple = [user: AddressLike];
-  export type OutputTuple = [user: string];
-  export interface OutputObject {
-    user: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface BlacklistedEventObject {
+  user: string;
 }
+export type BlacklistedEvent = TypedEvent<[string], BlacklistedEventObject>;
 
-export namespace DepositEvent {
-  export type InputTuple = [
-    user: AddressLike,
-    amount: BigNumberish,
-    lockupPeriod: BigNumberish
-  ];
-  export type OutputTuple = [
-    user: string,
-    amount: bigint,
-    lockupPeriod: bigint
-  ];
-  export interface OutputObject {
-    user: string;
-    amount: bigint;
-    lockupPeriod: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type BlacklistedEventFilter = TypedEventFilter<BlacklistedEvent>;
 
-export namespace InterestClaimedEvent {
-  export type InputTuple = [user: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [user: string, amount: bigint];
-  export interface OutputObject {
-    user: string;
-    amount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface DepositEventObject {
+  user: string;
+  amount: BigNumber;
+  lockupPeriod: BigNumber;
 }
+export type DepositEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  DepositEventObject
+>;
 
-export namespace UnblacklistedEvent {
-  export type InputTuple = [user: AddressLike];
-  export type OutputTuple = [user: string];
-  export interface OutputObject {
-    user: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type DepositEventFilter = TypedEventFilter<DepositEvent>;
 
-export namespace WithdrawEvent {
-  export type InputTuple = [user: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [user: string, amount: bigint];
-  export interface OutputObject {
-    user: string;
-    amount: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface InterestClaimedEventObject {
+  user: string;
+  amount: BigNumber;
 }
+export type InterestClaimedEvent = TypedEvent<
+  [string, BigNumber],
+  InterestClaimedEventObject
+>;
+
+export type InterestClaimedEventFilter = TypedEventFilter<InterestClaimedEvent>;
+
+export interface UnblacklistedEventObject {
+  user: string;
+}
+export type UnblacklistedEvent = TypedEvent<[string], UnblacklistedEventObject>;
+
+export type UnblacklistedEventFilter = TypedEventFilter<UnblacklistedEvent>;
+
+export interface WithdrawEventObject {
+  user: string;
+  amount: BigNumber;
+}
+export type WithdrawEvent = TypedEvent<
+  [string, BigNumber],
+  WithdrawEventObject
+>;
+
+export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
 export interface AmeranywSOLStaking3 extends BaseContract {
-  connect(runner?: ContractRunner | null): AmeranywSOLStaking3;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AmeranywSOLStaking3Interface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    ERC(
+      user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    ERC20(
+      user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ERC: TypedContractMethod<[user: AddressLike], [void], "nonpayable">;
+    ERC202(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  ERC20: TypedContractMethod<[user: AddressLike], [void], "nonpayable">;
+    calculateInterest(
+      user: PromiseOrValue<string>,
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  ERC202: TypedContractMethod<[], [void], "nonpayable">;
+    claimInterestForDeposit(
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  calculateInterest: TypedContractMethod<
-    [user: AddressLike, depositIndex: BigNumberish],
-    [bigint],
-    "view"
-  >;
+    deposit(
+      amount: PromiseOrValue<BigNumberish>,
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      referral: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  claimInterestForDeposit: TypedContractMethod<
-    [lockupPeriod: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  deposit: TypedContractMethod<
-    [amount: BigNumberish, lockupPeriod: BigNumberish, referral: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  getDepositInfo: TypedContractMethod<
-    [user: AddressLike],
-    [
-      [bigint[], bigint[], bigint[], bigint[]] & {
-        depositIndices: bigint[];
-        unlockTimes: bigint[];
-        stakedAmounts: bigint[];
-        lockupPeriods: bigint[];
+    getDepositInfo(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber[], BigNumber[], BigNumber[], BigNumber[]] & {
+        depositIndices: BigNumber[];
+        unlockTimes: BigNumber[];
+        stakedAmounts: BigNumber[];
+        lockupPeriods: BigNumber[];
       }
-    ],
-    "view"
+    >;
+
+    getReferral(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    isBlacklisted(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    withdraw(
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  ERC(
+    user: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  ERC20(
+    user: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  ERC202(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  calculateInterest(
+    user: PromiseOrValue<string>,
+    depositIndex: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  claimInterestForDeposit(
+    lockupPeriod: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  deposit(
+    amount: PromiseOrValue<BigNumberish>,
+    lockupPeriod: PromiseOrValue<BigNumberish>,
+    referral: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getDepositInfo(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber[], BigNumber[], BigNumber[], BigNumber[]] & {
+      depositIndices: BigNumber[];
+      unlockTimes: BigNumber[];
+      stakedAmounts: BigNumber[];
+      lockupPeriods: BigNumber[];
+    }
   >;
 
-  getReferral: TypedContractMethod<[user: AddressLike], [string], "view">;
+  getReferral(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  isBlacklisted: TypedContractMethod<[user: AddressLike], [boolean], "view">;
+  isBlacklisted(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  withdraw: TypedContractMethod<
-    [depositIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  withdraw(
+    depositIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    ERC(user: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
-  getFunction(
-    nameOrSignature: "ERC"
-  ): TypedContractMethod<[user: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "ERC20"
-  ): TypedContractMethod<[user: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "ERC202"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "calculateInterest"
-  ): TypedContractMethod<
-    [user: AddressLike, depositIndex: BigNumberish],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "claimInterestForDeposit"
-  ): TypedContractMethod<[lockupPeriod: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "deposit"
-  ): TypedContractMethod<
-    [amount: BigNumberish, lockupPeriod: BigNumberish, referral: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getDepositInfo"
-  ): TypedContractMethod<
-    [user: AddressLike],
-    [
-      [bigint[], bigint[], bigint[], bigint[]] & {
-        depositIndices: bigint[];
-        unlockTimes: bigint[];
-        stakedAmounts: bigint[];
-        lockupPeriods: bigint[];
+    ERC20(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    ERC202(overrides?: CallOverrides): Promise<void>;
+
+    calculateInterest(
+      user: PromiseOrValue<string>,
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimInterestForDeposit(
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    deposit(
+      amount: PromiseOrValue<BigNumberish>,
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      referral: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getDepositInfo(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber[], BigNumber[], BigNumber[], BigNumber[]] & {
+        depositIndices: BigNumber[];
+        unlockTimes: BigNumber[];
+        stakedAmounts: BigNumber[];
+        lockupPeriods: BigNumber[];
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getReferral"
-  ): TypedContractMethod<[user: AddressLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "isBlacklisted"
-  ): TypedContractMethod<[user: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "withdraw"
-  ): TypedContractMethod<[depositIndex: BigNumberish], [void], "nonpayable">;
+    >;
 
-  getEvent(
-    key: "Blacklisted"
-  ): TypedContractEvent<
-    BlacklistedEvent.InputTuple,
-    BlacklistedEvent.OutputTuple,
-    BlacklistedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Deposit"
-  ): TypedContractEvent<
-    DepositEvent.InputTuple,
-    DepositEvent.OutputTuple,
-    DepositEvent.OutputObject
-  >;
-  getEvent(
-    key: "InterestClaimed"
-  ): TypedContractEvent<
-    InterestClaimedEvent.InputTuple,
-    InterestClaimedEvent.OutputTuple,
-    InterestClaimedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Unblacklisted"
-  ): TypedContractEvent<
-    UnblacklistedEvent.InputTuple,
-    UnblacklistedEvent.OutputTuple,
-    UnblacklistedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Withdraw"
-  ): TypedContractEvent<
-    WithdrawEvent.InputTuple,
-    WithdrawEvent.OutputTuple,
-    WithdrawEvent.OutputObject
-  >;
+    getReferral(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    isBlacklisted(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    withdraw(
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
   filters: {
-    "Blacklisted(address)": TypedContractEvent<
-      BlacklistedEvent.InputTuple,
-      BlacklistedEvent.OutputTuple,
-      BlacklistedEvent.OutputObject
-    >;
-    Blacklisted: TypedContractEvent<
-      BlacklistedEvent.InputTuple,
-      BlacklistedEvent.OutputTuple,
-      BlacklistedEvent.OutputObject
-    >;
+    "Blacklisted(address)"(
+      user?: PromiseOrValue<string> | null
+    ): BlacklistedEventFilter;
+    Blacklisted(user?: PromiseOrValue<string> | null): BlacklistedEventFilter;
 
-    "Deposit(address,uint256,uint256)": TypedContractEvent<
-      DepositEvent.InputTuple,
-      DepositEvent.OutputTuple,
-      DepositEvent.OutputObject
-    >;
-    Deposit: TypedContractEvent<
-      DepositEvent.InputTuple,
-      DepositEvent.OutputTuple,
-      DepositEvent.OutputObject
-    >;
+    "Deposit(address,uint256,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      amount?: null,
+      lockupPeriod?: null
+    ): DepositEventFilter;
+    Deposit(
+      user?: PromiseOrValue<string> | null,
+      amount?: null,
+      lockupPeriod?: null
+    ): DepositEventFilter;
 
-    "InterestClaimed(address,uint256)": TypedContractEvent<
-      InterestClaimedEvent.InputTuple,
-      InterestClaimedEvent.OutputTuple,
-      InterestClaimedEvent.OutputObject
-    >;
-    InterestClaimed: TypedContractEvent<
-      InterestClaimedEvent.InputTuple,
-      InterestClaimedEvent.OutputTuple,
-      InterestClaimedEvent.OutputObject
-    >;
+    "InterestClaimed(address,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      amount?: null
+    ): InterestClaimedEventFilter;
+    InterestClaimed(
+      user?: PromiseOrValue<string> | null,
+      amount?: null
+    ): InterestClaimedEventFilter;
 
-    "Unblacklisted(address)": TypedContractEvent<
-      UnblacklistedEvent.InputTuple,
-      UnblacklistedEvent.OutputTuple,
-      UnblacklistedEvent.OutputObject
-    >;
-    Unblacklisted: TypedContractEvent<
-      UnblacklistedEvent.InputTuple,
-      UnblacklistedEvent.OutputTuple,
-      UnblacklistedEvent.OutputObject
-    >;
+    "Unblacklisted(address)"(
+      user?: PromiseOrValue<string> | null
+    ): UnblacklistedEventFilter;
+    Unblacklisted(
+      user?: PromiseOrValue<string> | null
+    ): UnblacklistedEventFilter;
 
-    "Withdraw(address,uint256)": TypedContractEvent<
-      WithdrawEvent.InputTuple,
-      WithdrawEvent.OutputTuple,
-      WithdrawEvent.OutputObject
-    >;
-    Withdraw: TypedContractEvent<
-      WithdrawEvent.InputTuple,
-      WithdrawEvent.OutputTuple,
-      WithdrawEvent.OutputObject
-    >;
+    "Withdraw(address,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      amount?: null
+    ): WithdrawEventFilter;
+    Withdraw(
+      user?: PromiseOrValue<string> | null,
+      amount?: null
+    ): WithdrawEventFilter;
+  };
+
+  estimateGas: {
+    ERC(
+      user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ERC20(
+      user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ERC202(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    calculateInterest(
+      user: PromiseOrValue<string>,
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimInterestForDeposit(
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    deposit(
+      amount: PromiseOrValue<BigNumberish>,
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      referral: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getDepositInfo(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getReferral(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isBlacklisted(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    withdraw(
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    ERC(
+      user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ERC20(
+      user: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ERC202(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    calculateInterest(
+      user: PromiseOrValue<string>,
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    claimInterestForDeposit(
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deposit(
+      amount: PromiseOrValue<BigNumberish>,
+      lockupPeriod: PromiseOrValue<BigNumberish>,
+      referral: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDepositInfo(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReferral(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isBlacklisted(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      depositIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

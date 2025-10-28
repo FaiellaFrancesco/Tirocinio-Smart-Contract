@@ -3,194 +3,159 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface AbstractBaseR_intInterface extends Interface {
-  getFunction(nameOrSignature: "baseNode"): FunctionFragment;
+export interface AbstractBaseR_intInterface extends utils.Interface {
+  functions: {
+    "baseNode()": FunctionFragment;
+  };
 
-  getEvent(
-    nameOrSignatureOrTopic: "NameMigrated" | "NameRegistered" | "NameRenewed"
-  ): EventFragment;
+  getFunction(nameOrSignatureOrTopic: "baseNode"): FunctionFragment;
 
   encodeFunctionData(functionFragment: "baseNode", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "baseNode", data: BytesLike): Result;
+
+  events: {
+    "NameMigrated(uint256,address,uint256)": EventFragment;
+    "NameRegistered(uint256,address,uint256)": EventFragment;
+    "NameRenewed(uint256,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "NameMigrated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NameRegistered"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NameRenewed"): EventFragment;
 }
 
-export namespace NameMigratedEvent {
-  export type InputTuple = [
-    id: BigNumberish,
-    owner: AddressLike,
-    expires: BigNumberish
-  ];
-  export type OutputTuple = [id: bigint, owner: string, expires: bigint];
-  export interface OutputObject {
-    id: bigint;
-    owner: string;
-    expires: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface NameMigratedEventObject {
+  id: BigNumber;
+  owner: string;
+  expires: BigNumber;
 }
+export type NameMigratedEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  NameMigratedEventObject
+>;
 
-export namespace NameRegisteredEvent {
-  export type InputTuple = [
-    id: BigNumberish,
-    owner: AddressLike,
-    expires: BigNumberish
-  ];
-  export type OutputTuple = [id: bigint, owner: string, expires: bigint];
-  export interface OutputObject {
-    id: bigint;
-    owner: string;
-    expires: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type NameMigratedEventFilter = TypedEventFilter<NameMigratedEvent>;
 
-export namespace NameRenewedEvent {
-  export type InputTuple = [id: BigNumberish, expires: BigNumberish];
-  export type OutputTuple = [id: bigint, expires: bigint];
-  export interface OutputObject {
-    id: bigint;
-    expires: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface NameRegisteredEventObject {
+  id: BigNumber;
+  owner: string;
+  expires: BigNumber;
 }
+export type NameRegisteredEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  NameRegisteredEventObject
+>;
+
+export type NameRegisteredEventFilter = TypedEventFilter<NameRegisteredEvent>;
+
+export interface NameRenewedEventObject {
+  id: BigNumber;
+  expires: BigNumber;
+}
+export type NameRenewedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  NameRenewedEventObject
+>;
+
+export type NameRenewedEventFilter = TypedEventFilter<NameRenewedEvent>;
 
 export interface AbstractBaseR_int extends BaseContract {
-  connect(runner?: ContractRunner | null): AbstractBaseR_int;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: AbstractBaseR_intInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    baseNode(overrides?: CallOverrides): Promise<[string]>;
+  };
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  baseNode(overrides?: CallOverrides): Promise<string>;
 
-  baseNode: TypedContractMethod<[], [string], "view">;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "baseNode"
-  ): TypedContractMethod<[], [string], "view">;
-
-  getEvent(
-    key: "NameMigrated"
-  ): TypedContractEvent<
-    NameMigratedEvent.InputTuple,
-    NameMigratedEvent.OutputTuple,
-    NameMigratedEvent.OutputObject
-  >;
-  getEvent(
-    key: "NameRegistered"
-  ): TypedContractEvent<
-    NameRegisteredEvent.InputTuple,
-    NameRegisteredEvent.OutputTuple,
-    NameRegisteredEvent.OutputObject
-  >;
-  getEvent(
-    key: "NameRenewed"
-  ): TypedContractEvent<
-    NameRenewedEvent.InputTuple,
-    NameRenewedEvent.OutputTuple,
-    NameRenewedEvent.OutputObject
-  >;
+  callStatic: {
+    baseNode(overrides?: CallOverrides): Promise<string>;
+  };
 
   filters: {
-    "NameMigrated(uint256,address,uint256)": TypedContractEvent<
-      NameMigratedEvent.InputTuple,
-      NameMigratedEvent.OutputTuple,
-      NameMigratedEvent.OutputObject
-    >;
-    NameMigrated: TypedContractEvent<
-      NameMigratedEvent.InputTuple,
-      NameMigratedEvent.OutputTuple,
-      NameMigratedEvent.OutputObject
-    >;
+    "NameMigrated(uint256,address,uint256)"(
+      id?: PromiseOrValue<BigNumberish> | null,
+      owner?: PromiseOrValue<string> | null,
+      expires?: null
+    ): NameMigratedEventFilter;
+    NameMigrated(
+      id?: PromiseOrValue<BigNumberish> | null,
+      owner?: PromiseOrValue<string> | null,
+      expires?: null
+    ): NameMigratedEventFilter;
 
-    "NameRegistered(uint256,address,uint256)": TypedContractEvent<
-      NameRegisteredEvent.InputTuple,
-      NameRegisteredEvent.OutputTuple,
-      NameRegisteredEvent.OutputObject
-    >;
-    NameRegistered: TypedContractEvent<
-      NameRegisteredEvent.InputTuple,
-      NameRegisteredEvent.OutputTuple,
-      NameRegisteredEvent.OutputObject
-    >;
+    "NameRegistered(uint256,address,uint256)"(
+      id?: PromiseOrValue<BigNumberish> | null,
+      owner?: PromiseOrValue<string> | null,
+      expires?: null
+    ): NameRegisteredEventFilter;
+    NameRegistered(
+      id?: PromiseOrValue<BigNumberish> | null,
+      owner?: PromiseOrValue<string> | null,
+      expires?: null
+    ): NameRegisteredEventFilter;
 
-    "NameRenewed(uint256,uint256)": TypedContractEvent<
-      NameRenewedEvent.InputTuple,
-      NameRenewedEvent.OutputTuple,
-      NameRenewedEvent.OutputObject
-    >;
-    NameRenewed: TypedContractEvent<
-      NameRenewedEvent.InputTuple,
-      NameRenewedEvent.OutputTuple,
-      NameRenewedEvent.OutputObject
-    >;
+    "NameRenewed(uint256,uint256)"(
+      id?: PromiseOrValue<BigNumberish> | null,
+      expires?: null
+    ): NameRenewedEventFilter;
+    NameRenewed(
+      id?: PromiseOrValue<BigNumberish> | null,
+      expires?: null
+    ): NameRenewedEventFilter;
+  };
+
+  estimateGas: {
+    baseNode(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    baseNode(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -3,119 +3,109 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface IUniswapV2PairInterface extends Interface {
-  getFunction(nameOrSignature: "sync"): FunctionFragment;
+export interface IUniswapV2PairInterface extends utils.Interface {
+  functions: {
+    "sync()": FunctionFragment;
+  };
 
-  getEvent(nameOrSignatureOrTopic: "Sync"): EventFragment;
+  getFunction(nameOrSignatureOrTopic: "sync"): FunctionFragment;
 
   encodeFunctionData(functionFragment: "sync", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "sync", data: BytesLike): Result;
+
+  events: {
+    "Sync(uint112,uint112)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Sync"): EventFragment;
 }
 
-export namespace SyncEvent {
-  export type InputTuple = [reserve0: BigNumberish, reserve1: BigNumberish];
-  export type OutputTuple = [reserve0: bigint, reserve1: bigint];
-  export interface OutputObject {
-    reserve0: bigint;
-    reserve1: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface SyncEventObject {
+  reserve0: BigNumber;
+  reserve1: BigNumber;
 }
+export type SyncEvent = TypedEvent<[BigNumber, BigNumber], SyncEventObject>;
+
+export type SyncEventFilter = TypedEventFilter<SyncEvent>;
 
 export interface IUniswapV2Pair extends BaseContract {
-  connect(runner?: ContractRunner | null): IUniswapV2Pair;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IUniswapV2PairInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    sync(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  sync(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  sync: TypedContractMethod<[], [void], "nonpayable">;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "sync"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-
-  getEvent(
-    key: "Sync"
-  ): TypedContractEvent<
-    SyncEvent.InputTuple,
-    SyncEvent.OutputTuple,
-    SyncEvent.OutputObject
-  >;
+  callStatic: {
+    sync(overrides?: CallOverrides): Promise<void>;
+  };
 
   filters: {
-    "Sync(uint112,uint112)": TypedContractEvent<
-      SyncEvent.InputTuple,
-      SyncEvent.OutputTuple,
-      SyncEvent.OutputObject
-    >;
-    Sync: TypedContractEvent<
-      SyncEvent.InputTuple,
-      SyncEvent.OutputTuple,
-      SyncEvent.OutputObject
-    >;
+    "Sync(uint112,uint112)"(reserve0?: null, reserve1?: null): SyncEventFilter;
+    Sync(reserve0?: null, reserve1?: null): SyncEventFilter;
+  };
+
+  estimateGas: {
+    sync(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    sync(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

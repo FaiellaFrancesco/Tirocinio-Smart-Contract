@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IWETH,
   IWETHInterface,
@@ -16,14 +17,14 @@ const _abi = [
     stateMutability: "payable",
     type: "function",
   },
-] as const;
+];
 
 export class IWETH__factory {
   static readonly abi = _abi;
   static createInterface(): IWETHInterface {
-    return new Interface(_abi) as IWETHInterface;
+    return new utils.Interface(_abi) as IWETHInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): IWETH {
-    return new Contract(address, _abi, runner) as unknown as IWETH;
+  static connect(address: string, signerOrProvider: Signer | Provider): IWETH {
+    return new Contract(address, _abi, signerOrProvider) as IWETH;
   }
 }

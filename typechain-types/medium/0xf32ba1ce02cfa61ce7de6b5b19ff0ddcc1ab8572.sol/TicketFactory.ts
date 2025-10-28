@@ -3,29 +3,49 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface TicketFactoryInterface extends Interface {
+export interface TicketFactoryInterface extends utils.Interface {
+  functions: {
+    "create()": FunctionFragment;
+    "executeCall(address,uint256,bytes)": FunctionFragment;
+    "getTicketBytecode()": FunctionFragment;
+    "getTicketIdentifier(uint256)": FunctionFragment;
+    "getUserData(address)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "ticketsIndex(uint256)": FunctionFragment;
+    "totalTickets()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "userNonce(address)": FunctionFragment;
+    "userTickets(address,uint256)": FunctionFragment;
+    "viewCreateTicketContract(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "create"
       | "executeCall"
       | "getTicketBytecode"
@@ -40,14 +60,14 @@ export interface TicketFactoryInterface extends Interface {
       | "viewCreateTicketContract"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "OwnershipTransferred" | "TicketCreated"
-  ): EventFragment;
-
   encodeFunctionData(functionFragment: "create", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "executeCall",
-    values: [AddressLike, BigNumberish, BytesLike]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getTicketBytecode",
@@ -55,16 +75,16 @@ export interface TicketFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getTicketIdentifier",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserData",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ticketsIndex",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "totalTickets",
@@ -72,19 +92,19 @@ export interface TicketFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "userNonce",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "userTickets",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "viewCreateTicketContract",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "create", data: BytesLike): Result;
@@ -126,246 +146,379 @@ export interface TicketFactoryInterface extends Interface {
     functionFragment: "viewCreateTicketContract",
     data: BytesLike
   ): Result;
+
+  events: {
+    "OwnershipTransferred(address,address)": EventFragment;
+    "TicketCreated(address,address,uint256,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TicketCreated"): EventFragment;
 }
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
 
-export namespace TicketCreatedEvent {
-  export type InputTuple = [
-    user: AddressLike,
-    ticket: AddressLike,
-    nonce: BigNumberish,
-    timestamp: BigNumberish
-  ];
-  export type OutputTuple = [
-    user: string,
-    ticket: string,
-    nonce: bigint,
-    timestamp: bigint
-  ];
-  export interface OutputObject {
-    user: string;
-    ticket: string;
-    nonce: bigint;
-    timestamp: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
+
+export interface TicketCreatedEventObject {
+  user: string;
+  ticket: string;
+  nonce: BigNumber;
+  timestamp: BigNumber;
 }
+export type TicketCreatedEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  TicketCreatedEventObject
+>;
+
+export type TicketCreatedEventFilter = TypedEventFilter<TicketCreatedEvent>;
 
 export interface TicketFactory extends BaseContract {
-  connect(runner?: ContractRunner | null): TicketFactory;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: TicketFactoryInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    create(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    executeCall(
+      target: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  create: TypedContractMethod<[], [string], "nonpayable">;
+    getTicketBytecode(
+      overrides?: CallOverrides
+    ): Promise<[string] & { bytecode: string }>;
 
-  executeCall: TypedContractMethod<
-    [target: AddressLike, value: BigNumberish, data: BytesLike],
-    [string],
-    "payable"
-  >;
+    getTicketIdentifier(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { ticketIdentifier: BigNumber }>;
 
-  getTicketBytecode: TypedContractMethod<[], [string], "view">;
+    getUserData(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, string[]] & { nonce: BigNumber; tickets: string[] }>;
 
-  getTicketIdentifier: TypedContractMethod<
-    [index: BigNumberish],
-    [bigint],
-    "view"
-  >;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  getUserData: TypedContractMethod<
-    [user: AddressLike],
-    [[bigint, string[]] & { nonce: bigint; tickets: string[] }],
-    "view"
-  >;
-
-  owner: TypedContractMethod<[], [string], "view">;
-
-  ticketsIndex: TypedContractMethod<
-    [arg0: BigNumberish],
-    [
-      [string, string, bigint] & {
+    ticketsIndex(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, BigNumber] & {
         user: string;
         ticketAddress: string;
-        userTicketCount: bigint;
+        userTicketCount: BigNumber;
       }
-    ],
-    "view"
+    >;
+
+    totalTickets(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    userNonce(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    userTickets(
+      arg0: PromiseOrValue<string>,
+      arg1: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    viewCreateTicketContract(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { predicted: string }>;
+  };
+
+  create(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  executeCall(
+    target: PromiseOrValue<string>,
+    value: PromiseOrValue<BigNumberish>,
+    data: PromiseOrValue<BytesLike>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getTicketBytecode(overrides?: CallOverrides): Promise<string>;
+
+  getTicketIdentifier(
+    index: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getUserData(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, string[]] & { nonce: BigNumber; tickets: string[] }>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  ticketsIndex(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, BigNumber] & {
+      user: string;
+      ticketAddress: string;
+      userTicketCount: BigNumber;
+    }
   >;
 
-  totalTickets: TypedContractMethod<[], [bigint], "view">;
+  totalTickets(overrides?: CallOverrides): Promise<BigNumber>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-  userNonce: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  userNonce(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  userTickets: TypedContractMethod<
-    [arg0: AddressLike, arg1: BigNumberish],
-    [string],
-    "view"
-  >;
+  userTickets(
+    arg0: PromiseOrValue<string>,
+    arg1: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  viewCreateTicketContract: TypedContractMethod<
-    [user: AddressLike],
-    [string],
-    "view"
-  >;
+  viewCreateTicketContract(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  callStatic: {
+    create(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "create"
-  ): TypedContractMethod<[], [string], "nonpayable">;
-  getFunction(
-    nameOrSignature: "executeCall"
-  ): TypedContractMethod<
-    [target: AddressLike, value: BigNumberish, data: BytesLike],
-    [string],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "getTicketBytecode"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getTicketIdentifier"
-  ): TypedContractMethod<[index: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getUserData"
-  ): TypedContractMethod<
-    [user: AddressLike],
-    [[bigint, string[]] & { nonce: bigint; tickets: string[] }],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "ticketsIndex"
-  ): TypedContractMethod<
-    [arg0: BigNumberish],
-    [
-      [string, string, bigint] & {
+    executeCall(
+      target: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getTicketBytecode(overrides?: CallOverrides): Promise<string>;
+
+    getTicketIdentifier(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserData(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, string[]] & { nonce: BigNumber; tickets: string[] }>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    ticketsIndex(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, BigNumber] & {
         user: string;
         ticketAddress: string;
-        userTicketCount: bigint;
+        userTicketCount: BigNumber;
       }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "totalTickets"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "userNonce"
-  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "userTickets"
-  ): TypedContractMethod<
-    [arg0: AddressLike, arg1: BigNumberish],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "viewCreateTicketContract"
-  ): TypedContractMethod<[user: AddressLike], [string], "view">;
+    >;
 
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "TicketCreated"
-  ): TypedContractEvent<
-    TicketCreatedEvent.InputTuple,
-    TicketCreatedEvent.OutputTuple,
-    TicketCreatedEvent.OutputObject
-  >;
+    totalTickets(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    userNonce(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    userTickets(
+      arg0: PromiseOrValue<string>,
+      arg1: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    viewCreateTicketContract(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+  };
 
   filters: {
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "TicketCreated(address,address,uint256,uint256)": TypedContractEvent<
-      TicketCreatedEvent.InputTuple,
-      TicketCreatedEvent.OutputTuple,
-      TicketCreatedEvent.OutputObject
-    >;
-    TicketCreated: TypedContractEvent<
-      TicketCreatedEvent.InputTuple,
-      TicketCreatedEvent.OutputTuple,
-      TicketCreatedEvent.OutputObject
-    >;
+    "TicketCreated(address,address,uint256,uint256)"(
+      user?: PromiseOrValue<string> | null,
+      ticket?: PromiseOrValue<string> | null,
+      nonce?: PromiseOrValue<BigNumberish> | null,
+      timestamp?: null
+    ): TicketCreatedEventFilter;
+    TicketCreated(
+      user?: PromiseOrValue<string> | null,
+      ticket?: PromiseOrValue<string> | null,
+      nonce?: PromiseOrValue<BigNumberish> | null,
+      timestamp?: null
+    ): TicketCreatedEventFilter;
+  };
+
+  estimateGas: {
+    create(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    executeCall(
+      target: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getTicketBytecode(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTicketIdentifier(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserData(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ticketsIndex(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalTickets(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    userNonce(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    userTickets(
+      arg0: PromiseOrValue<string>,
+      arg1: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    viewCreateTicketContract(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    create(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    executeCall(
+      target: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getTicketBytecode(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getTicketIdentifier(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserData(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ticketsIndex(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    totalTickets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    userNonce(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    userTickets(
+      arg0: PromiseOrValue<string>,
+      arg1: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    viewCreateTicketContract(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

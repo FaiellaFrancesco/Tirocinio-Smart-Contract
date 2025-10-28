@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   AbstractETHRegController_int,
   AbstractETHRegController_intInterface,
@@ -110,21 +111,21 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-] as const;
+];
 
 export class AbstractETHRegController_int__factory {
   static readonly abi = _abi;
   static createInterface(): AbstractETHRegController_intInterface {
-    return new Interface(_abi) as AbstractETHRegController_intInterface;
+    return new utils.Interface(_abi) as AbstractETHRegController_intInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): AbstractETHRegController_int {
     return new Contract(
       address,
       _abi,
-      runner
-    ) as unknown as AbstractETHRegController_int;
+      signerOrProvider
+    ) as AbstractETHRegController_int;
   }
 }
