@@ -396,7 +396,8 @@ contract AmericanGrok is Context, IERC20, Ownable {
 }
 
 ### Requirements:
-- Use **ethers.js** and **Chai** for testing.
+- Use **ethers.js v5** and **Chai** for testing.
+- Import ethers from "ethers".
 - Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
 - Include tests for:
   - **Deployment**: verify correct initialization and constructor state.
@@ -406,7 +407,7 @@ contract AmericanGrok is Context, IERC20, Ownable {
   - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
 - Include at least one `beforeEach` block to deploy the contract cleanly for each test.
 - Do **not** explain or comment in natural language — output only TypeScript test code.
-- Tests must be runnable in **Hardhat** directly.
+- Tests must be runnable in **Hardhat** directly and use ethers v5 API (`ethers.utils`, `ethers.constants`, etc).
 
 ### Output:
 Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.

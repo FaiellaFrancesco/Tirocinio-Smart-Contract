@@ -26,13 +26,13 @@ const config = {
 
 function normalizeSpec(content: string): string {
   return content
-    // Import must come from hardhat
-    .replace(/^import\s+\{\s*ethers\s*\}\s+from\s+['"]ethers['"];?/m, 'import { ethers } from "hardhat";')
-    // ethers v5 -> v6
-    .replace(/ethers\.utils\.parseUnits/g, 'ethers.parseUnits')
-    .replace(/ethers\.utils\.parseEther/g, 'ethers.parseEther')
-    .replace(/ethers\.constants\.AddressZero/g, 'ethers.ZeroAddress')
-    .replace(/ethers\.constants\.MaxUint256/g, 'ethers.MaxUint256')
+    // Import must come from ethers v5
+    .replace(/^import\s+\{\s*ethers\s*\}\s+from\s+["']hardhat["'];?/m, 'import { ethers } from "ethers";')
+    // ethers v6 -> v5
+    .replace(/ethers\.parseUnits/g, 'ethers.utils.parseUnits')
+    .replace(/ethers\.parseEther/g, 'ethers.utils.parseEther')
+    .replace(/ethers\.ZeroAddress/g, 'ethers.constants.AddressZero')
+    .replace(/ethers\.MaxUint256/g, 'ethers.constants.MaxUint256')
     // chai matcher fix
     .replace(/\.to\.properAddress/g, '.to.be.properAddress');
 }
