@@ -1,0 +1,26 @@
+Resoconto modifiche settimana dal 21 al 28 ottobre 2025
+=========================================================
+
+1. Aggiornamento pipeline test e prompt
+   - Migrazione di tutti gli script e template per compatibilità con ethers.js v5.
+   - Aggiornamento di hardhat.config.ts per typechain target ethers-v5.
+   - Patch della normalizzazione test in run-all.ts per conversione API ethers v6 → v5.
+   - Aggiornamento template prompt (only-sol.template.txt) per generare test compatibili ethers v5.
+
+2. Automazione e personalizzazione
+   - Script main.ts ora gestisce tutte le fasi: suddivisione contratti, scaffolds, generazione prompt, test LLM, esecuzione test.
+   - Possibilità di scegliere la cartella template, la cartella dei prompt e la cartella dei test generati tramite opzioni CLI.
+   - Script build-prompts.ts e run-all.ts documentati con commenti esplicativi e opzioni personalizzabili.
+   - Script test-all-generated.ts aggiornato per mostrare resoconto finale (test passati/falliti) e accettare la cartella di test.
+
+3. Debug e validazione
+   - Test automatici su cartelle di output vecchie e nuove per validare la pipeline.
+   - Identificazione e risoluzione errori di compatibilità ethers (es. getAddress non trovato).
+   - Consigli su ulteriori personalizzazioni: log dettagliati, filtro test, output JSON, timeout, riepilogo per contratto.
+
+4. Best practice e manutenzione
+   - Tutti gli script ora sono commentati e facilmente estendibili.
+   - Gestione centralizzata delle opzioni CLI per massima flessibilità.
+   - Documentazione delle funzionalità e dei comandi di utilizzo.
+
+Questa settimana abbiamo reso la pipeline di generazione e test dei contratti Solidity completamente automatica, flessibile e pronta per future estensioni.

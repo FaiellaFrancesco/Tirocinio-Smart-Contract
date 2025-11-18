@@ -25,7 +25,7 @@ import * as path from "path";
 // Usage: npx ts-node scripts/build-prompts.ts [scaffoldDir] [outDir] [templatePath] [--include=regex]
 const DEFAULT_SCAFFOLD_DIR = "scaffolds";
 const DEFAULT_OUT_DIR = "prompts_out";
-const DEFAULT_TEMPLATE_PATH = "prompts/templates/only-sol-template2.txt";
+const DEFAULT_TEMPLATE_PATH = "prompts/templates/only-sol.template.txt";
 
 
 interface AbiItem {
@@ -70,6 +70,24 @@ function formatConstructorParams(abi: AbiItem[]): string {
   }
   const params = ctor.inputs.map(i => `${i.name || 'arg'}: ${i.type}`).join(', ');
   return params;
+}
+function extractConstructorParamsFromSource(src: string): string {
+  if(!src) return "None.";
+  const m = src.match(/constructor\s*\(([^)]*)\)/m);
+  if(!m) return "None.";
+  const inside = m[1].trim();
+  if(!inside) return "None.";
+  const parts = inside.split(',').map(p=>p.trim()).filter(Boolean);
+  const params = parts.map((p, idx) => {
+    // try to split 'type name' or 'name type'
+    const tokens = p.split(/\s+/);
+    if(tokens.length===1) return `arg${idx}: ${tokens[0]}`;
+    // if first token is type (e.g., uint256 amount) or (address indexed to) -> take last token as name
+    const type = tokens[0];
+    const name = tokens[tokens.length-1].replace(/[,;]$/,'');
+    return `${name || 'arg'+idx}: ${type}`;
+  });
+  return params.join(', ');
 }
 function baseName(f: string) { return path.basename(f).replace(/\.scaffold\.spec\.ts$/i, ""); }
 
@@ -133,13 +151,19 @@ function main() {
     const solVersion= extractSolidityVersion(contractSource);
     const contractNameMatch = contractSource.match(/contract\s+([A-Za-z0-9_]+)/);
     const contractName = contractNameMatch ? contractNameMatch[1] : null;
-    let constructorParamsDesc = "Contract or constructor not found.";
+    const constructorParamsDesc = extractConstructorParamsFromSource(contractSource) || "None.";
 
-    // Replace {CONTRACT} and {SCAFFOLD} in template
-    let promptText = template.replace(/{CONTRACT}/g, contractSource)
-    .replace(/{SCAFFOLD}/g, scaffold)
-    .replace(/{SOLIDITY_VERSION}/g, solVersion || "unknown")
-    .replace(/{ETHERS_VERSION}/g, EHTER_VERSIONS);
+    // Replace placeholders in template (support multiple placeholder variants)
+    let promptText = template
+      .replace(/{CONTRACT}/g, contractSource)
+      .replace(/{SCAFFOLD}/g, scaffold)
+      .replace(/{SOLIDITY_VERSION}/g, solVersion || "unknown")
+      .replace(/{SOL_VERSION}/g, solVersion || "unknown")
+      .replace(/{ETHERS_VERSION}/g, EHTER_VERSIONS)
+      .replace(/{ETH_VERSION}/g, EHTER_VERSIONS)
+      .replace(/{CTOR_PARAMS}/g, constructorParamsDesc)
+      .replace(/{CONSTRUCTOR_PARAMS}/g, constructorParamsDesc)
+      .replace(/{CTOR}/g, constructorParamsDesc);
 
     const outPath = path.join(outDir, size, `${name}.prompt.txt`);
     write(outPath, promptText);
