@@ -9,15 +9,15 @@ import { expect } from "chai";
   import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
   /**
-   * Scaffold automatically generated for contracts/medium/DonationRegistry.sol:DonationRegistry.
+   * Scaffold automatically generated for contracts/small/0x60ea82ab1a4a3644b4f38f3b0cec65d370f1c7d7.sol:AIblessed.
    * Blocks marked // TODO_AI must be completed by the LLM.
    */
 
-  describe("contracts/medium/DonationRegistry.sol:DonationRegistry — LLM Scaffold", function () {
+  describe("contracts/small/0x60ea82ab1a4a3644b4f38f3b0cec65d370f1c7d7.sol:AIblessed — LLM Scaffold", function () {
     async function deployFixture() {
       const { ethers } = (await import("hardhat")).default;
       const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("DonationRegistry");
+      const Factory = await ethers.getContractFactory("AIblessed");
       // TODO_AI: complete constructor parameters if present
       const contract = await Factory.deploy();
       await contract.waitForDeployment();
@@ -29,83 +29,116 @@ import { expect } from "chai";
       expect(await contract.getAddress()).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
 
-    // Events in ABI: DonationReceived, FundsWithdrawn
+    // Events in ABI: Transfer
 
     
-  describe("donate()", function () {
+  describe("balanceOf(address)", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.balanceOf(addr1.address /* TODO_AI */);
+      // TODO_AI: expect(await contract.balanceOf(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
+    });
+
+    
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("decimals()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.decimals();
+      // TODO_AI: expect(await contract.decimals()).to.equal(/* atteso */);
+    });
+
+    
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("name()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.name();
+      // TODO_AI: expect(await contract.name()).to.equal(/* atteso */);
+    });
+
+    
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("symbol()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.symbol();
+      // TODO_AI: expect(await contract.symbol()).to.equal(/* atteso */);
+    });
+
+    
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("totalSupply()", function () {
+    it("happy path", async function () {
+      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      // read-only call
+      const result = await contract.totalSupply();
+      // TODO_AI: expect(await contract.totalSupply()).to.equal(/* atteso */);
+    });
+
+    
+
+    it("boundary cases", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      // TODO_AI: 0, max, address(0), role limits, etc.
+    });
+
+    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
+  });
+
+
+  describe("transfer(address,uint256)", function () {
     it("happy path", async function () {
       const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
       // state-changing transaction
-      const result = await contract.donate({ value: 1n /* TODO_AI in wei */ });
+      const result = await contract.transfer(addr1.address /* TODO_AI */, 1n /* TODO_AI */);
       // TODO_AI: verifica stato/eventi dopo la tx
     });
 
     it("reverts on invalid input/role", async function () {
       const { contract } = await loadFixture(deployFixture);
       await expect(
-        contract.donate()
-      ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("getDonationTotal(address)", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.getDonationTotal(addr1.address /* TODO_AI */);
-      // TODO_AI: expect(await contract.getDonationTotal(addr1.address /* TODO_AI */)).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("owner()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // read-only call
-      const result = await contract.owner();
-      // TODO_AI: expect(await contract.owner()).to.equal(/* atteso */);
-    });
-
-    
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-
-
-  describe("withdraw()", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      // state-changing transaction
-      const result = await contract.withdraw();
-      // TODO_AI: verifica stato/eventi dopo la tx
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.withdraw()
+        contract.transfer("0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */, 0n /* TODO_AI: make invalid/edge */)
       ).to.be.revertedWith(/* TODO_AI: inserire messaggio */);
     });
 
@@ -121,80 +154,43 @@ import { expect } from "chai";
 
 
 ### Contract:
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-/**
- * @title DonationRegistry
- * @notice This contract allows users to donate Ether and keeps track of the total amount donated by each address.
- * Only the owner can withdraw the collected funds.
- */
-contract DonationRegistry {
-    address public owner;
-    mapping(address => uint256) private donations;
-
-    event DonationReceived(address indexed donor, uint256 amount);
-    event FundsWithdrawn(address indexed to, uint256 amount);
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this");
-        _;
-    }
-
-    constructor() {
-        owner = msg.sender;
-    }
-
-    /**
-     * @notice Donate Ether to the contract. The amount is added to the sender's total donations.
-     */
-    function donate() external payable {
-        require(msg.value > 0, "Donation must be greater than 0");
-        donations[msg.sender] += msg.value;
-        emit DonationReceived(msg.sender, msg.value);
-    }
-
-    /**
-     * @notice Returns the total amount donated by a specific address.
-     * @param donor The address to query.
-     */
-    function getDonationTotal(address donor) external view returns (uint256) {
-        return donations[donor];
-    }
-
-    /**
-     * @notice Withdraw all collected funds to the owner's address.
-     */
-    function withdraw() external onlyOwner {
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No funds to withdraw");
-        payable(owner).transfer(balance);
-        emit FundsWithdrawn(owner, balance);
-    }
-
-    // Allow contract to receive Ether directly
-    receive() external payable {
-        require(msg.value > 0, "Donation must be greater than 0");
-        donations[msg.sender] += msg.value;
-        emit DonationReceived(msg.sender, msg.value);
-    }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract AIblessed {
+    string public name = "AIblessed";
+    string public symbol = "AIB";
+    uint8 public decimals = 18;
+    uint256 public totalSupply = 1_000_000 * 10**uint256(decimals);
+
+    mapping(address => uint256) public balanceOf;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    constructor() {
+        balanceOf[msg.sender] = totalSupply;
+    }
+
+    function transfer(address to, uint256 value) public returns (bool success) {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
 }
 
 
-### Instructions:
+-### Instructions:
 - Use **ethers.js v5** and **Chai** for testing.
 - Import ethers from "ethers".
-- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
-- Ensure to include tests for:
+
   - **Deployment**: Verify correct initialization and constructor state.
   - **Happy paths**: Normal usage for every public or external function.
   - **Reverts**: Test invalid inputs, unauthorized access, and failure conditions.
   - **Events**: Verify that events are emitted with correct parameters using `.to.emit()`.
   - **Edge cases**: Test cases like zero values, address(0), max integers, empty strings, etc.
-- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
-- **Do not** explain or comment in natural language — output only TypeScript test code.
-- Tests must be **runnable in Hardhat** directly and use **ethers.js v5** API (`ethers.utils`, `ethers.constants`, etc).
-- **Do not use `loadFixture` or any module not included in ethers.js v5 or Hardhat v2.**
+
 
 ### Output:
 Your output should include **only valid, executable TypeScript test code** (`.spec.ts` format). The code should be complete and ready to execute with Hardhat.

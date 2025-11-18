@@ -516,20 +516,16 @@ contract WBAI is Context, IERC20, Ownable {
 
 
 
-### Instructions:
+-### Instructions:
 - Use **ethers.js v5** and **Chai** for testing.
 - Import ethers from "ethers".
-- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
-- Ensure to include tests for:
+
   - **Deployment**: Verify correct initialization and constructor state.
   - **Happy paths**: Normal usage for every public or external function.
   - **Reverts**: Test invalid inputs, unauthorized access, and failure conditions.
   - **Events**: Verify that events are emitted with correct parameters using `.to.emit()`.
   - **Edge cases**: Test cases like zero values, address(0), max integers, empty strings, etc.
-- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
-- **Do not** explain or comment in natural language — output only TypeScript test code.
-- Tests must be **runnable in Hardhat** directly and use **ethers.js v5** API (`ethers.utils`, `ethers.constants`, etc).
-- **Do not use `loadFixture` or any module not included in ethers.js v5 or Hardhat v2.**
+
 
 ### Output:
 Your output should include **only valid, executable TypeScript test code** (`.spec.ts` format). The code should be complete and ready to execute with Hardhat.

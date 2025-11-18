@@ -27,6 +27,17 @@ const DEFAULT_SCAFFOLD_DIR = "scaffolds";
 const DEFAULT_OUT_DIR = "prompts_out";
 const DEFAULT_TEMPLATE_PATH = "prompts/templates/only-sol-template2.txt";
 
+
+interface AbiItem {
+  type: string;
+  name?: string;
+  inputs?: Array<{ name: string; type: string }>;
+ 
+}
+interface ArtifactJson {
+  abi: AbiItem[];
+  sourceName?: string;
+}
 function read(p: string) { return fs.readFileSync(p, "utf-8"); }
 function write(p: string, s: string) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
@@ -39,6 +50,27 @@ function* walk(dir: string): Generator<string> {
     else if (e.isFile()) yield f;
   }
 }
+function findArtifactJson(sourceName: string, contractName: string): ArtifactJson | null {
+const artifactPath = path.join("artifacts", sourceName, `${contractName}.json`);
+try{
+  if(fs.existsSync(artifactPath)){
+    const rawData = fs.readFileSync(artifactPath, "utf-8");
+    return JSON.parse(rawData) as ArtifactJson;
+  }
+
+}catch(err){
+  console.log(`[findArtifactJson] Error reading artifact at ${artifactPath}: ${err}`);
+}
+  return null;
+}
+function formatConstructorParams(abi: AbiItem[]): string {
+  const ctor=abi.find(a=>a.type==="constructor");
+  if(!ctor || !ctor.inputs || ctor.inputs.length===0) {
+    return "None.";
+  }
+  const params = ctor.inputs.map(i => `${i.name || 'arg'}: ${i.type}`).join(', ');
+  return params;
+}
 function baseName(f: string) { return path.basename(f).replace(/\.scaffold\.spec\.ts$/i, ""); }
 
 function getSizeFromPath(p: string): string {
@@ -47,7 +79,13 @@ function getSizeFromPath(p: string): string {
   const idx = parts.findIndex(part => ["small", "medium", "large", "empty"].includes(part));
   return idx !== -1 ? parts[idx] : "other";
 }
-
+function extractSolidityVersion(contractContent: string): string | null {
+  const match = contractContent.match(/pragma\s+solidity\s*([^;]+)/);
+  if(match){
+    return match[1].trim();
+  }
+  return null;
+}
 function findContractSource(name: string, size: string): string | null {
   // Cerca il file .sol con hash nel nome (pattern: ...__size__<hash>)
   const contractsDir = path.join("contracts", size);
@@ -77,6 +115,7 @@ function main() {
   const templatePath = path.resolve(args[2] || DEFAULT_TEMPLATE_PATH);
   const includeArg = args.find(a => a.startsWith("--include="));
   const includeRe = includeArg ? new RegExp(includeArg.split("=")[1]) : null;
+  const EHTER_VERSIONS= "v5"
 
   // Load the template
   const template = read(templatePath);
@@ -86,13 +125,21 @@ function main() {
     if (!f.endsWith(".scaffold.spec.ts")) continue;
     const name = baseName(f);
     if (includeRe && !includeRe.test(name)) continue;
-
+    
+    
     const scaffold = read(f);
     const size = getSizeFromPath(f);
     const contractSource = findContractSource(name, size) || "// Contract source not found";
+    const solVersion= extractSolidityVersion(contractSource);
+    const contractNameMatch = contractSource.match(/contract\s+([A-Za-z0-9_]+)/);
+    const contractName = contractNameMatch ? contractNameMatch[1] : null;
+    let constructorParamsDesc = "Contract or constructor not found.";
 
     // Replace {CONTRACT} and {SCAFFOLD} in template
-    let promptText = template.replace(/{CONTRACT}/g, contractSource).replace(/{SCAFFOLD}/g, scaffold);
+    let promptText = template.replace(/{CONTRACT}/g, contractSource)
+    .replace(/{SCAFFOLD}/g, scaffold)
+    .replace(/{SOLIDITY_VERSION}/g, solVersion || "unknown")
+    .replace(/{ETHERS_VERSION}/g, EHTER_VERSIONS);
 
     const outPath = path.join(outDir, size, `${name}.prompt.txt`);
     write(outPath, promptText);

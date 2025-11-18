@@ -1,24 +1,29 @@
-You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
+You are an expert blockchain developer specialized in writing professional, reliable, and highly robust test suites for Solidity smart contracts using the Hardhat environment. Your goal is to produce a test suite that is immediately executable and logically sound.
 
-### Goal:
-Write a complete TypeScript test suite for the following Solidity smart contract.
+### Technical Context & Constraints:
+- **Solidity Version:** {SOL_VERSION}
+- **Testing Framework:** Hardhat (Standard Configuration), Mocha, Chai, loadFixture (network-helpers).
+- **Ethers API:** {ETHERS_VERSION} (Utilizza la sintassi moderna e non le API deprecate. Utilizza BigInt per i valori numerici grandi).
+- **Constructor Parameters:** {CTOR_PARAMS} (Analizza i tipi e i nomi per determinare i valori di deployment necessari. Se 'None.', usa `Factory.deploy()`).
 
-### Contract:
+### Output Goal:
+Generate a complete and fully functional **TypeScript** test suite (file extension .spec.ts) for the provided Solidity smart contract.
+
+### Core Instructions for Functional Test Suite:
+1.  **Deployment (Fixture):** Create a function named `deployFixture` using `loadFixture` to handle the contract deployment. The deployment MUST correctly handle the {CTOR_PARAMS} by using appropriate, valid placeholder values (non-zero/non-empty when possible).
+2.  **Signers:** Use `ethers.getSigners()` to retrieve at least three accounts (`owner`, `addr1`, `addr2`).
+3.  **Structure:** Create logical `describe` blocks for the contract and its main functions. Use clear `it` blocks for individual behaviors.
+4.  **Sintassi & Coerenza:** The output code must be immediately **compilable and executable** in Hardhat. Do not use deprecated Ethers v5 APIs (e.g., avoid `ethers.utils`).
+5.  **Functional Coverage:** Generate test cases for every `public` or `external` function, ensuring:
+    * **Happy Path:** Test di funzionamento normale con input validi.
+    * **State Verification:** After every state-changing transaction, **explicitly and strongly assert** the resulting contract state (e.g., new balances, owner, mapping values) using `.to.equal()`.
+
+6.  **Error Handling (Reverts):**
+    * For every `require()` or logical error condition present in the source code, generate a dedicated test that causes the function to fail (`revert`).
+    * **The revert assertion MUST include the exact error message** (e.g., `revertedWith("Error Message")`) specified in the contract source.
+
+### Contract Code:
 {CONTRACT}
 
-### Requirements:
-- Use **ethers.js v5** and **Chai** for testing.
-- Import ethers from "ethers".
-- Each `describe` and `it` block must be clear, modular, and focused on a single behavior.
-- Include tests for:
-  - **Deployment**: verify correct initialization and constructor state.
-  - **Happy paths**: normal usage for every public or external function.
-  - **Reverts**: test invalid inputs, unauthorized access, and failure conditions.
-  - **Events**: verify that events are emitted with correct parameters using `.to.emit()`.
-  - **Edge cases**: zero values, address(0), max integers, empty strings, etc.
-- Include at least one `beforeEach` block to deploy the contract cleanly for each test.
-- Do **not** explain or comment in natural language — output only TypeScript test code.
-- Tests must be runnable in **Hardhat** directly and use ethers v5 API (`ethers.utils`, `ethers.constants`, etc).
-
 ### Output:
-Output only valid, executable TypeScript test code (`.spec.ts` format), without any Markdown formatting or explanations.
+Your final output must include **only valid, executable TypeScript test code**. Do not include any natural language comments, explanations, markdown headers, or placeholders—just the complete, runnable code.
