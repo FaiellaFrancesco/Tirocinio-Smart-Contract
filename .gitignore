@@ -1,14 +1,33 @@
+
+# Node/npm
 node_modules/
-cache/
-coverage/
+
+# Hardhat / build artifacts
 artifacts/
-test/ai/
-sumo-output/
-*.raw.md
-.DS_Store
-TODO
+cache/
+typechain-types/
+
+# Test / temp outputs
+test/temp*
+test/**/*.temp*
+
+# LLM and prompt outputs (large generated files)
+prompts_out/
+prompts_out-old/
+llm-out/
 llm-out-old/
-Resoconti/
+
+# Misc
+.DS_Store
+.vscode/
+.env
+*.log
+*.tmp
+
+# Sumologic / other tool outputs
+sumo-output/
+
+# keep Resoconti tracked (do not ignore)
 
 
 
