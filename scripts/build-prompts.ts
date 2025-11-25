@@ -3,9 +3,10 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const DEFAULT_SCAFFOLD_DIR = "scaffolds";
-const DEFAULT_OUT_DIR = "prompts_out";
-const DEFAULT_TEMPLATE_PATH = "prompts/templates/only-sol.template.txt";
+const DATASET_DIR = "dataset";
+const SCAFFOLDS_DIR = "scaffolds";
+const OUTPUT_DIR = "prompts_out_scaffold";
+const TEMPLATE_PATH = "prompts/templates/sol-and-scaffold.txt";
 
 function read(p: string) {
   return fs.readFileSync(p, "utf-8");
@@ -24,8 +25,8 @@ function* walk(dir: string): Generator<string> {
   }
 }
 
-function extractContractNameFromFilename(filename: string): string | null {
-  const m = filename.match(/^([A-Z][A-Za-z0-9_]*)\.scaffold/);
+function extractContractName(src: string): string | null {
+  const m = src.match(/contract\s+([A-Za-z0-9_]+)/);
   return m ? m[1] : null;
 }
 
@@ -34,107 +35,75 @@ function extractSolidityVersion(src: string): string {
   return m ? m[1].trim() : "unknown";
 }
 
-function extractConstructorParams(src: string): string {
+function extractCtorParams(src: string): string {
   const m = src.match(/constructor\s*\(([^)]*)\)/);
   if (!m) return "None.";
-  const inner = m[1].trim();
-  return inner.length > 0 ? inner : "None.";
+  const inside = m[1].trim();
+  return inside.length > 0 ? inside : "None.";
 }
 
-function findContractSourceByName(name: string): string | null {
-  const CONTRACTS_DIR = "contracts";
+function detectSizeFromPath(p: string): string {
+  const parts = p.split(path.sep).map((x) => x.toLowerCase());
+  if (parts.includes("small")) return "small";
+  if (parts.includes("medium")) return "medium";
+  if (parts.includes("large")) return "large";
+  return "other";
+}
 
-  for (const f of walk(CONTRACTS_DIR)) {
+function findScaffold(size: string, name: string): string {
+  const p = path.join(SCAFFOLDS_DIR, size, `${name}.scaffold.ts`);
+  return fs.existsSync(p) ? read(p) : "";
+}
+
+async function main() {
+  const template = read(TEMPLATE_PATH);
+
+  let generated = 0;
+  let skipInvalid = 0;
+
+  for (const f of walk(DATASET_DIR)) {
     if (!f.endsWith(".sol")) continue;
-    const content = read(f);
-    if (new RegExp(`contract\\s+${name}\\b`).test(content)) {
-      return content;
-    }
-  }
-  return null;
-}
 
-function main() {
-  const args = process.argv.slice(2);
+    const size = detectSizeFromPath(f);
+    if (size === "other") continue;
 
-  // -------------------------------------------------
-  // ARGOMENTI SCRIPT: 
-  //  arg[0] = output directory (anche se non esiste)
-  //  arg[1] = template path (opzionale)
-  // -------------------------------------------------
-
-  const outDir = args[0] ? args[0] : DEFAULT_OUT_DIR;
-  let templatePath = args[1] && fs.existsSync(args[1])
-    ? args[1]
-    : DEFAULT_TEMPLATE_PATH;
-
-  templatePath = path.resolve(templatePath);
-
-  // Crea output dir se non esiste
-  fs.mkdirSync(outDir, { recursive: true });
-
-  const scaffoldDir = DEFAULT_SCAFFOLD_DIR;
-
-  // Carica template
-  const template = read(templatePath);
-
-  let count = 0;
-  let skipName = 0;
-  let skipNotFound = 0;
-  let found = 0;
-
-  console.log("Scanning scaffolds…");
-
-  for (const f of walk(scaffoldDir)) {
-    if (!/\.scaffold(\.spec)?\.ts$/i.test(f)) continue;
-
-    const fileName = path.basename(f);
-    const scaffold = read(f);
-
-    const contractName = extractContractNameFromFilename(fileName);
+    const contractSource = read(f);
+    const contractName = extractContractName(contractSource);
     if (!contractName) {
-      console.log(`⚠ Skip: nome non valido → ${fileName}`);
-      skipName++;
+      skipInvalid++;
       continue;
     }
 
-    const solSource = findContractSourceByName(contractName);
-    if (!solSource) {
-      console.log(`⚠ Contratto non trovato per ${contractName}`);
-      skipNotFound++;
-      continue;
-    }
+    const solVersion = extractSolidityVersion(contractSource);
+    const ctorParams = extractCtorParams(contractSource);
 
-    found++;
-
-    const solVersion = extractSolidityVersion(solSource);
-    const ctorParams = extractConstructorParams(solSource);
+    const scaffold = findScaffold(size, contractName);
 
     const finalPrompt = template
-      .replace(/{ETHERS_VERSION}/g, "v5")
-      .replace(/{CONTRACT}/g, solSource)
+      .replace(/{CONTRACT}/g, contractSource)
       .replace(/{SCAFFOLD}/g, scaffold)
       .replace(/{SOL_VERSION}/g, solVersion)
       .replace(/{SOLIDITY_VERSION}/g, solVersion)
       .replace(/{CTOR_PARAMS}/g, ctorParams)
-      .replace(/{CONSTRUCTOR_PARAMS}/g, ctorParams);
+      .replace(/{CONSTRUCTOR_PARAMS}/g, ctorParams)
+      .replace(/{ETHERS_VERSION}/g, "v5");
 
-    const outPath = path.join(outDir, contractName, `${contractName}.prompt.txt`);
+    const outPath = path.join(
+      OUTPUT_DIR,
+      size,
+      `${contractName}.prompt.txt`
+    );
+
     write(outPath, finalPrompt);
-
     console.log("→", outPath);
-    count++;
+    generated++;
   }
 
   console.log(`
 ──────── SUMMARY ────────
-Prompt generati: ${count}
-Scaffold invalidi: ${skipName}
-Contratti trovati: ${found}
-Contratti non trovati: ${skipNotFound}
-Template usato: ${templatePath}
-Output dir: ${outDir}
-  `);
+Prompt generati: ${generated}
+Contratti invalidi: ${skipInvalid}
+`);
 }
 
 main();

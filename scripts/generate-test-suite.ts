@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env ts-node
 /**
  * generate-test-suite.ts
  *
