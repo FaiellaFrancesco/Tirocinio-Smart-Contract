@@ -23,7 +23,7 @@ function runStep(cmd: string, descrizione: string) {
 function parseArgs() {
 	const args = process.argv.slice(2);
 	const defaults = {
-		small: 70,
+		small: 80,
 		medium: 200,
 		large: 1000,
 		directory: "contracts",
