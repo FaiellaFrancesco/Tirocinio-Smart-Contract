@@ -10,6 +10,7 @@ typechain-types/
 # Test / temp outputs
 test/temp*
 test/**/*.temp*
+oldstuff/
 
 # LLM and prompt outputs (large generated files)
 prompts_out/
@@ -17,6 +18,7 @@ prompts_out-old/
 llm-out/
 llm-out-old/
 dataset/
+scaffolds/
 
 # Misc
 .DS_Store

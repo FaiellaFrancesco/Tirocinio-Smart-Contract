@@ -33,7 +33,7 @@
     "contracts/**/*",
     "**/*.sol",
     "dist/**/*",
-    "scaffolds/**/*",
+    "oldstuff/scaffolds/**/*",
     "tests/llm/**/*",
     "old-scaffolds/**/*",
     "prompts/**/*",
