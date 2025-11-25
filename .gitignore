@@ -19,6 +19,7 @@ llm-out/
 llm-out-old/
 dataset/
 scaffolds/
+prompts_out_scaffolds/
 
 # Misc
 .DS_Store

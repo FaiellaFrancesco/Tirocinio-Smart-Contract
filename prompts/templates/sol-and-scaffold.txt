@@ -1,65 +1,35 @@
-You are an expert blockchain developer specialized in writing professional and reliable test suites for Solidity smart contracts using Hardhat, Mocha, and Chai.
+You are an expert blockchain developer specialized in writing professional, reliable, and highly robust test suites for Solidity smart contracts in the Hardhat environment.
 
-### Goal:
-Generate a complete TypeScript test suite for the provided Solidity smart contract.
+### Technical Context & Constraints:
+- Solidity Version: {SOL_VERSION}
+- Ethers API Version: {ETHERS_VERSION}
+- Constructor Parameters: {CTOR_PARAMS}
+- Testing Framework: Hardhat, Mocha, Chai, loadFixture.
+- The test suite MUST be fully functional TypeScript (.spec.ts) code.
 
-### SCAFFOLD:
-{SCAFFOLD}
+### Important:
+Below is the original Solidity smart contract that must be tested:
 
-### Contract:
+--- CONTRACT ---
 {CONTRACT}
+--- END CONTRACT ---
 
+Below is an automatically generated scaffold that outlines the functions and structure of the contract:
 
--### Instructions:
-- Use **ethers.js v5** and **Chai** for testing.
-- Import ethers from "ethers".
+--- SCAFFOLD ---
+{SCAFFOLD}
+--- END SCAFFOLD ---
 
-  - **Deployment**: Verify correct initialization and constructor state.
-  - **Happy paths**: Normal usage for every public or external function.
-  - **Reverts**: Test invalid inputs, unauthorized access, and failure conditions.
-  - **Events**: Verify that events are emitted with correct parameters using `.to.emit()`.
-  - **Edge cases**: Test cases like zero values, address(0), max integers, empty strings, etc.
-
+### Your Objective:
+Generate a complete, correct, production-ready test suite that:
+1. Uses loadFixture for deployment.
+2. Uses ethers.getSigners() to retrieve owner, addr1, addr2.
+3. Implements tests for *all* public/external functions.
+4. Contains at least:
+   - Happy path test
+   - State-changing validation
+   - Revert tests with exact error messages
+5. Never outputs explanations — only valid TypeScript test code.
 
 ### Output:
-Your output should include **only valid, executable TypeScript test code** (`.spec.ts` format). The code should be complete and ready to execute with Hardhat.
-
-### Test Requirements:
-- Use **ethers.js v5** (specifically `ethers.utils` and `ethers.constants`).
-- Ensure all test functions are structured clearly:
-  - **State-modifying functions**: Test changes to contract state.
-  - **Getter and setter functions**: Ensure getters return the correct value and setters correctly modify state.
-  - **Pure and view functions**: Ensure that state is not modified and the correct values are returned.
-  - **Access control functions**: Verify that only authorized accounts (e.g., owner, specific roles) can call functions with appropriate access control.
-  - **Event emission**: Verify the correct emission of events with proper arguments, using `.to.emit()`.
-  - **Error handling**: Ensure functions revert with appropriate error messages on invalid inputs.
-  - **Edge cases**: Handle boundary conditions, such as `address(0)`, maximum integers, and empty strings.
-
----
-
-### Example Test:
-
-```typescript
-import { expect } from "chai";
-import { ethers } from "hardhat";
-
-describe("ContractName", function () {
-  it("should return the correct owner", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    
-    expect(await contract.owner()).to.equal(owner.address);
-  });
-
-  it("should revert on invalid address", async function () {
-    const Contract = await ethers.getContractFactory("ContractName");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-
-    await expect(
-      contract.airdrop("0x0000000000000000000000000000000000000000", 1)
-    ).to.be.revertedWith("Invalid address");
-  });
-});
+Your final answer must ONLY contain the complete .spec.ts code.

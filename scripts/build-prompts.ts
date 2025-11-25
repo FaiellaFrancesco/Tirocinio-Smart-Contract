@@ -1,48 +1,21 @@
 #!/usr/bin/env ts-node
-/**
- * build-prompts.ts
- *
- * Questo script genera i file di prompt per LLM a partire dai contratti Solidity e dagli scaffold di test.
- * Per ogni scaffold trovato nella cartella indicata, cerca il relativo contratto Solidity, carica il template scelto
- * e sostituisce i placeholder {CONTRACT} e {SCAFFOLD} con il codice del contratto e dello scaffold.
- *
- * I prompt generati vengono salvati nella cartella di output, suddivisi per dimensione (small, medium, large, ...).
- *
- * Uso:
- *   npx ts-node scripts/build-prompts.ts [scaffoldDir] [outDir] [templatePath] [--include=regex]
- *   - scaffoldDir: cartella degli scaffold di test (default: scaffolds)
- *   - outDir: cartella di output per i prompt generati (default: prompts_out)
- *   - templatePath: percorso del template da usare (default: prompts/templates/coverage.txt)
- *   - --include=regex: (opzionale) genera solo i prompt che corrispondono al regex
- *
- * Esempio:
- *   npx ts-node scripts/build-prompts.ts scaffolds prompts_out prompts/templates/only-sol.template.txt
- */
+
 import * as fs from "fs";
 import * as path from "path";
 
-
-// Usage: npx ts-node scripts/build-prompts.ts [scaffoldDir] [outDir] [templatePath] [--include=regex]
 const DEFAULT_SCAFFOLD_DIR = "scaffolds";
 const DEFAULT_OUT_DIR = "prompts_out";
 const DEFAULT_TEMPLATE_PATH = "prompts/templates/only-sol.template.txt";
 
+function read(p: string) {
+  return fs.readFileSync(p, "utf-8");
+}
 
-interface AbiItem {
-  type: string;
-  name?: string;
-  inputs?: Array<{ name: string; type: string }>;
- 
-}
-interface ArtifactJson {
-  abi: AbiItem[];
-  sourceName?: string;
-}
-function read(p: string) { return fs.readFileSync(p, "utf-8"); }
 function write(p: string, s: string) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, s, "utf-8");
 }
+
 function* walk(dir: string): Generator<string> {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const f = path.join(dir, e.name);
@@ -50,126 +23,118 @@ function* walk(dir: string): Generator<string> {
     else if (e.isFile()) yield f;
   }
 }
-function findArtifactJson(sourceName: string, contractName: string): ArtifactJson | null {
-const artifactPath = path.join("artifacts", sourceName, `${contractName}.json`);
-try{
-  if(fs.existsSync(artifactPath)){
-    const rawData = fs.readFileSync(artifactPath, "utf-8");
-    return JSON.parse(rawData) as ArtifactJson;
-  }
 
-}catch(err){
-  console.log(`[findArtifactJson] Error reading artifact at ${artifactPath}: ${err}`);
+function extractContractNameFromFilename(filename: string): string | null {
+  const m = filename.match(/^([A-Z][A-Za-z0-9_]*)\.scaffold/);
+  return m ? m[1] : null;
 }
-  return null;
-}
-function formatConstructorParams(abi: AbiItem[]): string {
-  const ctor=abi.find(a=>a.type==="constructor");
-  if(!ctor || !ctor.inputs || ctor.inputs.length===0) {
-    return "None.";
-  }
-  const params = ctor.inputs.map(i => `${i.name || 'arg'}: ${i.type}`).join(', ');
-  return params;
-}
-function extractConstructorParamsFromSource(src: string): string {
-  if(!src) return "None.";
-  const m = src.match(/constructor\s*\(([^)]*)\)/m);
-  if(!m) return "None.";
-  const inside = m[1].trim();
-  if(!inside) return "None.";
-  const parts = inside.split(',').map(p=>p.trim()).filter(Boolean);
-  const params = parts.map((p, idx) => {
-    // try to split 'type name' or 'name type'
-    const tokens = p.split(/\s+/);
-    if(tokens.length===1) return `arg${idx}: ${tokens[0]}`;
-    // if first token is type (e.g., uint256 amount) or (address indexed to) -> take last token as name
-    const type = tokens[0];
-    const name = tokens[tokens.length-1].replace(/[,;]$/,'');
-    return `${name || 'arg'+idx}: ${type}`;
-  });
-  return params.join(', ');
-}
-function baseName(f: string) { return path.basename(f).replace(/\.scaffold\.spec\.ts$/i, ""); }
 
-function getSizeFromPath(p: string): string {
-  // expects path like scaffolds/{size}/...
-  const parts = p.split(path.sep);
-  const idx = parts.findIndex(part => ["small", "medium", "large", "empty"].includes(part));
-  return idx !== -1 ? parts[idx] : "other";
+function extractSolidityVersion(src: string): string {
+  const m = src.match(/pragma\s+solidity\s+([^;]+)/);
+  return m ? m[1].trim() : "unknown";
 }
-function extractSolidityVersion(contractContent: string): string | null {
-  const match = contractContent.match(/pragma\s+solidity\s*([^;]+)/);
-  if(match){
-    return match[1].trim();
-  }
-  return null;
+
+function extractConstructorParams(src: string): string {
+  const m = src.match(/constructor\s*\(([^)]*)\)/);
+  if (!m) return "None.";
+  const inner = m[1].trim();
+  return inner.length > 0 ? inner : "None.";
 }
-function findContractSource(name: string, size: string): string | null {
-  // Cerca il file .sol con hash nel nome (pattern: ...__size__<hash>)
-  const contractsDir = path.join("contracts", size);
-  if (!fs.existsSync(contractsDir)) return null;
-  // Estrai hash dal nome (es: OwnbitMultiSigProxy__small__0xb65a6bcfce2d2ad60712cee5ef53b93e83f48a37)
-  const hashMatch = name.match(/__([a-z]+)__([0-9a-fA-Fx]+)/);
-  if (!hashMatch) return null;
-  const hash = hashMatch[2];
-  const files = fs.readdirSync(contractsDir);
-  for (const file of files) {
-    if (!file.endsWith(".sol")) continue;
-    if (file.includes(hash)) {
-      const filePath = path.join(contractsDir, file);
-      const content = read(filePath);
-      console.log(`[findContractSource] Found contract for hash '${hash}' in: ${file}`);
+
+function findContractSourceByName(name: string): string | null {
+  const CONTRACTS_DIR = "contracts";
+
+  for (const f of walk(CONTRACTS_DIR)) {
+    if (!f.endsWith(".sol")) continue;
+    const content = read(f);
+    if (new RegExp(`contract\\s+${name}\\b`).test(content)) {
       return content;
     }
   }
-  console.log(`[findContractSource] No contract for hash '${hash}' found in ${contractsDir}`);
   return null;
 }
 
 function main() {
   const args = process.argv.slice(2);
-  const scaffoldDir = args[0] || DEFAULT_SCAFFOLD_DIR;
-  const outDir = args[1] || DEFAULT_OUT_DIR;
-  const templatePath = path.resolve(args[2] || DEFAULT_TEMPLATE_PATH);
-  const includeArg = args.find(a => a.startsWith("--include="));
-  const includeRe = includeArg ? new RegExp(includeArg.split("=")[1]) : null;
-  const EHTER_VERSIONS= "v5"
 
-  // Load the template
+  // -------------------------------------------------
+  // ARGOMENTI SCRIPT: 
+  //  arg[0] = output directory (anche se non esiste)
+  //  arg[1] = template path (opzionale)
+  // -------------------------------------------------
+
+  const outDir = args[0] ? args[0] : DEFAULT_OUT_DIR;
+  let templatePath = args[1] && fs.existsSync(args[1])
+    ? args[1]
+    : DEFAULT_TEMPLATE_PATH;
+
+  templatePath = path.resolve(templatePath);
+
+  // Crea output dir se non esiste
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const scaffoldDir = DEFAULT_SCAFFOLD_DIR;
+
+  // Carica template
   const template = read(templatePath);
 
-  let made = 0;
+  let count = 0;
+  let skipName = 0;
+  let skipNotFound = 0;
+  let found = 0;
+
+  console.log("Scanning scaffolds…");
+
   for (const f of walk(scaffoldDir)) {
-    if (!f.endsWith(".scaffold.spec.ts")) continue;
-    const name = baseName(f);
-    if (includeRe && !includeRe.test(name)) continue;
-    
-    
+    if (!/\.scaffold(\.spec)?\.ts$/i.test(f)) continue;
+
+    const fileName = path.basename(f);
     const scaffold = read(f);
-    const size = getSizeFromPath(f);
-    const contractSource = findContractSource(name, size) || "// Contract source not found";
-    const solVersion= extractSolidityVersion(contractSource);
-    const contractNameMatch = contractSource.match(/contract\s+([A-Za-z0-9_]+)/);
-    const contractName = contractNameMatch ? contractNameMatch[1] : null;
-    const constructorParamsDesc = extractConstructorParamsFromSource(contractSource) || "None.";
 
-    // Replace placeholders in template (support multiple placeholder variants)
-    let promptText = template
-      .replace(/{CONTRACT}/g, contractSource)
+    const contractName = extractContractNameFromFilename(fileName);
+    if (!contractName) {
+      console.log(`⚠ Skip: nome non valido → ${fileName}`);
+      skipName++;
+      continue;
+    }
+
+    const solSource = findContractSourceByName(contractName);
+    if (!solSource) {
+      console.log(`⚠ Contratto non trovato per ${contractName}`);
+      skipNotFound++;
+      continue;
+    }
+
+    found++;
+
+    const solVersion = extractSolidityVersion(solSource);
+    const ctorParams = extractConstructorParams(solSource);
+
+    const finalPrompt = template
+      .replace(/{ETHERS_VERSION}/g, "v5")
+      .replace(/{CONTRACT}/g, solSource)
       .replace(/{SCAFFOLD}/g, scaffold)
-      .replace(/{SOLIDITY_VERSION}/g, solVersion || "unknown")
-      .replace(/{SOL_VERSION}/g, solVersion || "unknown")
-      .replace(/{ETHERS_VERSION}/g, EHTER_VERSIONS)
-      .replace(/{ETH_VERSION}/g, EHTER_VERSIONS)
-      .replace(/{CTOR_PARAMS}/g, constructorParamsDesc)
-      .replace(/{CONSTRUCTOR_PARAMS}/g, constructorParamsDesc)
-      .replace(/{CTOR}/g, constructorParamsDesc);
+      .replace(/{SOL_VERSION}/g, solVersion)
+      .replace(/{SOLIDITY_VERSION}/g, solVersion)
+      .replace(/{CTOR_PARAMS}/g, ctorParams)
+      .replace(/{CONSTRUCTOR_PARAMS}/g, ctorParams);
 
-    const outPath = path.join(outDir, size, `${name}.prompt.txt`);
-    write(outPath, promptText);
+    const outPath = path.join(outDir, contractName, `${contractName}.prompt.txt`);
+    write(outPath, finalPrompt);
+
     console.log("→", outPath);
-    made++;
+    count++;
   }
-  console.log(`\nCreated ${made} prompts in ${outDir}/[size] using template ${templatePath}`);
+
+  console.log(`
+──────── SUMMARY ────────
+Prompt generati: ${count}
+Scaffold invalidi: ${skipName}
+Contratti trovati: ${found}
+Contratti non trovati: ${skipNotFound}
+Template usato: ${templatePath}
+Output dir: ${outDir}
+  `);
 }
+
 main();
