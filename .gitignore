@@ -16,6 +16,7 @@ prompts_out/
 prompts_out-old/
 llm-out/
 llm-out-old/
+dataset/
 
 # Misc
 .DS_Store
@@ -27,7 +28,7 @@ llm-out-old/
 # Sumologic / other tool outputs
 sumo-output/
 
-# keep Resoconti tracked (do not ignore)
+# 
 
 
 

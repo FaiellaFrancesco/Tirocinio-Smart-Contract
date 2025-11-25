@@ -15,11 +15,10 @@
 import fs from "fs";
 import path from "path";
 
-// Default values (possono essere sovrascritti da CLI)
+// Default values (sovrascrivibili da CLI)
 let SMALL_MAX = 80;
 let MEDIUM_MAX = 200;
 
-// Parse CLI overrides small=XX medium=YY
 for (const arg of process.argv.slice(2)) {
   const [key, value] = arg.split("=");
   if (key === "small" && !isNaN(Number(value))) SMALL_MAX = Number(value);
@@ -41,6 +40,13 @@ ensureDir(path.join(OUTPUT_DIR, "large"));
 
 const report: Record<string, any> = {};
 
+const counters = {
+  empty: 0,
+  small: 0,
+  medium: 0,
+  large: 0
+};
+
 const files = fs.readdirSync(CONTRACTS_DIR).filter(f => f.endsWith(".sol"));
 
 for (const file of files) {
@@ -56,11 +62,13 @@ for (const file of files) {
     imports.push(match[1]);
   }
 
-  let category: string;
+  let category: keyof typeof counters;
   if (lines === 0) category = "empty";
   else if (lines <= SMALL_MAX) category = "small";
   else if (lines <= MEDIUM_MAX) category = "medium";
   else category = "large";
+
+  counters[category]++;
 
   const destDir = path.join(OUTPUT_DIR, category);
   const destPath = path.join(destDir, file);
@@ -78,3 +86,13 @@ fs.writeFileSync(
   path.join(OUTPUT_DIR, "report.json"),
   JSON.stringify(report, null, 2)
 );
+
+// Output finale
+const total = counters.empty + counters.small + counters.medium + counters.large;
+console.log(`\n=== RISULTATO DIVISIONE CONTRATTI ===`);
+console.log(`Empty:  ${counters.empty}`);
+console.log(`Small:  ${counters.small}`);
+console.log(`Medium: ${counters.medium}`);
+console.log(`Large:  ${counters.large}`);
+console.log(`--------------------------------`);
+console.log(`Totale: ${total}\n`);
