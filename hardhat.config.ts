@@ -31,7 +31,8 @@ const config: HardhatUserConfig = {
     localhost: { url: "http://127.0.0.1:8545" }
   },
   paths: {
-    sources: "./contracts",
+    //sources: "./contracts",
+    sources: "./dataset",
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"

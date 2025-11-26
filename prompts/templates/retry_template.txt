@@ -1,0 +1,87 @@
+You are an expert Smart Contract Tester and Blockchain Developer.
+You are tasked with fixing a broken test suite for a Solidity smart contract.
+
+The previous attempt to generate a test suite failed execution or validation.
+Your goal is to analyze the error, review the contract logic, and REWRITE the full TypeScript test suite to fix the issues.
+
+============================================================
+1. REFERENCE: ORIGINAL CONTRACT SOURCE CODE
+============================================================
+Use this code as the absolute truth for function names, logic, and events.
+{CONTRACT_CONTENT}
+
+============================================================
+2. CRITICAL CONFIGURATION RULES
+============================================================
+* **Framework:** Hardhat + Mocha + Chai (Ethers v5 syntax).
+* **ARTIFACT RESOLUTION (CRITICAL):**
+  To avoid "Multiple Artifacts" errors (HH700/HH701), you MUST use this exact Fully Qualified Name (FQN) whenever you call `getContractFactory`:
+  `"{FQN_LABEL}"`
+
+============================================================
+3. SMART FIXES FOR COMMON ERRORS (READ CAREFULLY)
+============================================================
+**A. TYPE MISMATCH (BigNumber vs BigInt in .equal):**
+   - **Rule:** When using `.to.equal()`, convert BOTH values to **String**.
+     *GOOD:* `expect((await c.val()).toString()).to.equal("1000");`
+
+**B. NUMERIC MATCHERS (.closeTo / .above / .below):**
+   - **Rule:** Explicitly cast to `Number()` for small values.
+     *FIX:* `expect(Number(await c.val())).to.be.closeTo(expected, 5);`
+
+**C. FORBIDDEN MATCHERS (STRICT):**
+   - Do **NOT** use `.emit(...)` or `.revertedWith(...)`.
+   - **FOR REVERTS:** Use `try/catch` blocks.
+     ```typescript
+     try {
+       await contract.connect(addr1).method();
+       expect.fail("Expected transaction to revert");
+     } catch (error) {
+       expect(error.message).to.include("Revert Reason"); // Or just check it reverted
+     }
+     ```
+
+**D. SCIENTIFIC NOTATION ERROR ('1e+24'):**
+   - **FIX:** Use TypeScript **BigInt literals** (suffix `n`). `1000000n * 10n**18n`.
+
+**E. DEPLOYMENT TRANSACTION (.wait error):**
+   - **Error:** `(intermediate value).wait is not a function`
+   - **FIX:** Access `.deployTransaction` to get the receipt in Ethers v5.
+     *GOOD:* `const receipt = await contract.deployTransaction.wait();`
+
+**G. SECURITY FALSE POSITIVES (Stubborn Auditor Problem):**
+   - **Error:** `AssertionError: expected 'Expected transaction to be reverted' ...`
+   - **Meaning:** The transaction SUCCEEDED, but you expected it to fail.
+   - **Cause:** You assumed `onlyOwner` existed, but the function is `public` in the source code.
+   - **FIX:** **STOP trying to make it fail.** Change the test to verify that `addr1` CAN successfully call the function (Happy Path), or delete the test case entirely. Trust the source code, not your assumptions.
+
+**H. TOTAL SUPPLY / BALANCE MISMATCH (The "Zero Counting" Fix):**
+   - **Error:** `expected '3100...00' to equal '31...00'` (Actual has more/less zeros than Expected).
+   - **Cause:** You miscounted the zeros when hardcoding the expected value.
+   - **FIX (Dynamic Strategy):** Do NOT hardcode the number for balance checks.
+     Instead, compare against the contract's `totalSupply()`.
+     *BAD:* `expect(await token.balanceOf(owner)).to.equal("31000000000000000000");`
+     *GOOD:* `expect(await token.balanceOf(owner)).to.equal(await token.totalSupply());`
+   - **FIX (Static Strategy):** If you MUST check the exact `totalSupply`, copy the multiplication logic from Solidity using BigInts.
+     *Solidity:* `31000 * 10**18` -> *TS:* `31000n * 10n**18n`.
+
+============================================================
+4. THE FAILED TEST CODE
+============================================================
+Here is the TypeScript code generated in the previous attempt that caused the failure:
+{{FAILED_CODE_PLACEHOLDER}}
+
+============================================================
+5. THE ERROR LOG
+============================================================
+Here is the output from the Hardhat test runner. Use this to pinpoint the exact failure:
+{{ERROR_LOG_PLACEHOLDER}}
+
+============================================================
+INSTRUCTIONS FOR CORRECTION
+============================================================
+1. Analyze the Error Log carefully.
+2. Apply the "SMART FIXES" listed above.
+3. Rewrite the COMPLETE test file (`.spec.ts`) from scratch.
+4. Ensure the critical FQN `"{FQN_LABEL}"` is used.
+5. Output ONLY the raw TypeScript code block.

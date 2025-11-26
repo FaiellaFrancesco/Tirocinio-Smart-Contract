@@ -2,292 +2,284 @@
 /**
  * generate-test-suite.ts
  *
- * Script pulito e robusto per l'esecuzione in batch dei prompt LLM (Qwen2.5-Coder:32B)
- * focalizzato sulla generazione di test Ethers v5 funzionanti e sulla validazione di runtime.
+ * Script ESECUTORE con Logica di Retry Intelligente (Dual Prompt).
+ *
+ * Correzioni apportate:
+ * - Fix TypeScript error: definita esplicitamente la variabile `files` come `string[]`.
+ * - Logica Init/Retry confermata.
  */
+
 import { promises as fs } from 'fs';
-import { existsSync, writeFileSync } from 'fs'; // Funzioni fs sincrone
-import * as path from 'path'; // Funzioni path (percorsi)
+import { existsSync, writeFileSync } from 'fs';
+import * as path from 'path';
 import { spawn } from 'child_process';
 import fetch from 'node-fetch';
 
-// --- CONFIGURAZIONE GLOBALE ---
-const DEFAULT_MODEL = 'qwen2.5-coder:32b';
-const config = {
-  promptsDir: './prompts_out/small', // Default folder to process
+// --- CONFIGURAZIONE ---
+const CONFIG = {
+  promptsDir: './prompts_out/small',
   outputDir: './llm-out/temp',
   validOutputDir: './llm-out/valid',
   invalidOutputDir: './llm-out/invalid',
-  model: DEFAULT_MODEL,
+  // Modello di default (può essere sovrascritto da --model)
+  model: 'qwen2.5-coder:32b', 
   timeoutSeconds: 900, // 15 minuti per Ollama
-  tempTestFile: './test/temp_llm_test.spec.ts' // File temporaneo per l'esecuzione
+  tempTestFile: './test/temp_llm_test.spec.ts',
+  // Deve coincidere con quello usato in build-prompts.ts
+  separator: '==========RETRY_TEMPLATE_SPLIT==========' 
 };
 
-// --- UTILITY PER L'ESECUZIONE DEI COMANDI ---
+// --- UTILITY ---
 
 async function runCommand(command: string, args: string[], cwd: string = process.cwd()): Promise<{ success: boolean; output: string }> {
   return new Promise((resolve) => {
     const proc = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'], cwd });
-
     let output = '';
     let error = '';
-
+    
     proc.stdout?.on('data', (data) => { output += data.toString(); });
     proc.stderr?.on('data', (data) => { error += data.toString(); });
-
+    
+    // Timeout di sicurezza
     const killer = setTimeout(() => {
       proc.kill();
       resolve({ success: false, output: 'TIMEOUT: Process killed after timeout' });
-    }, config.timeoutSeconds * 1000 + 30000); // Buffer di 30s
+    }, CONFIG.timeoutSeconds * 1000 + 30000);
 
     proc.on('close', (code) => {
       clearTimeout(killer);
-      resolve({ success: code === 0, output: output + (error ? `\nERROR: ${error}` : '') });
+      // Hardhat ritorna 0 solo se tutti i test passano
+      resolve({ success: code === 0, output: output + (error ? `\nSTDERR: ${error}` : '') });
     });
   });
 }
 
-// --- LOGICA OLLAMA/NGROK ---
-
 async function callRemoteOllama(model: string, prompt: string): Promise<{ success: boolean; output: string }> {
-  let endpoint = process.env.OLLAMA_URL || '';
-  if (!endpoint) return { success: false, output: '❌ Missing OLLAMA_URL (set this environment variable).' };
+  let endpoint = process.env.OLLAMA_URL || "http://localhost:11434";
   endpoint = endpoint.replace(/\/+$/, '');
-
+  
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), config.timeoutSeconds * 1000);
+  const id = setTimeout(() => controller.abort(), CONFIG.timeoutSeconds * 1000);
 
   try {
-    const url = `${endpoint}/api/generate`;
-    console.log(`🔍 Invio prompt al modello ${model} (${prompt.length} caratteri)`);
-
-    const res = await fetch(url, {
+    console.log(`🔍 Invio prompt a ${model} (${prompt.length} chars)...`);
+    const res = await fetch(`${endpoint}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model,
         prompt,
-        // Parametri per output lungo e deterministico
-        options: { temperature: 0.1, top_k: 10, top_p: 0.8, num_predict: 4096, num_ctx: 8192 }
+        // Parametri ottimizzati per codice
+        options: { temperature: 0.1, top_k: 10, top_p: 0.8, num_predict: 8192, num_ctx: 10000 },
+        stream: false
       }),
       signal: controller.signal
     });
 
-    const status = res.status;
-    const text = await res.text();
-
-    if (status < 200 || status >= 300) {
-      clearTimeout(id);
-      return { success: false, output: `HTTP ${status}: ${text.slice(0, 300)}` };
+    if (res.status !== 200) {
+      throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     }
 
-    // Try parsing as NDJSON (multiple JSON objects per line)
-    const lines = text.split(/\r?\n/).filter(Boolean);
-    let assembled = '';
-    let found = false;
-    for (const line of lines) {
-      try {
-        const obj = JSON.parse(line);
-        // Ollama newer responses might include 'response' or 'content' fields
-        if (typeof obj.response === 'string') { assembled += obj.response; found = true; }
-        else if (typeof obj.content === 'string') { assembled += obj.content; found = true; }
-      } catch { /* skip non-json lines */ }
-    }
-
-    // Fallback: try to parse full body as single JSON
-    if (!found) {
-      try {
-        const obj = JSON.parse(text);
-        if (typeof obj.response === 'string') { assembled = obj.response; found = true; }
-        else if (typeof obj.output === 'string') { assembled = obj.output; found = true; }
-        else if (typeof obj.content === 'string') { assembled = obj.content; found = true; }
-      } catch { /* not JSON */ }
-    }
-
+    const data = await res.json() as any;
     clearTimeout(id);
-    return { success: true, output: assembled || text }; // Return assembled response or raw text
+    
+    // Supporto per diverse versioni API Ollama
+    const content = data.response || data.content || '';
+    return { success: true, output: content };
+
   } catch (err: any) {
     clearTimeout(id);
-    if (err?.name === 'AbortError') return { success: false, output: 'TIMEOUT: Remote Ollama request aborted' };
-    return { success: false, output: `Error calling remote Ollama: ${err?.message || String(err)}` };
+    return { success: false, output: err.message || String(err) };
   }
 }
 
-// --- POST-PROCESSING E VALIDAZIONE ---
-
-/* Extracts pure TypeScript code from LLM output (removes markdown blocks and text) */
 function extractTypeScriptBlock(content: string): string {
+  // Cerca blocchi ```ts o ```typescript
   const matches = [...content.matchAll(/```(?:ts|typescript)?[\s\r\n]*([\s\S]*?)```/gi)];
-  if (matches.length > 0) return matches.map(m => m[1].replace(/\r\n/g, "\n").trim()).join("\n\n");
+  if (matches.length > 0) return matches.map(m => m[1].trim()).join("\n\n");
+  // Se non trova blocchi code, ritorna tutto (fallback)
   return content.trim();
 }
 
-/** Esegue Hardhat test sul file temporaneo. */
-async function validateRuntime(testContent: string): Promise<{ valid: boolean; errors: string; normalized?: string }> {
-  // 1. Prepare normalized content and temp paths
-  let normalizedContent = '';
-  let tempPath = '';
-  try {
-    // Ethers v5 usa spesso import da "ethers" invece che da "hardhat" nei file .ts
-    // Assicuriamo che l'import sia corretto per l'esecuzione in Hardhat.
-    normalizedContent = testContent
-      // import { ethers } from "ethers";
-      .replace(/import\s+\{\s*ethers\s*\}\s+from\s+["']ethers["'];?/g, 'import { ethers } from "hardhat";')
-      // import ethers from "ethers";
-      .replace(/import\s+ethers\s+from\s+["']ethers["'];?/g, 'import { ethers } from "hardhat";')
-      // import "ethers";
-      .replace(/import\s+["']ethers["'];?/g, 'import { ethers } from "hardhat";');
+/** Salva il codice in un file temp, esegue hardhat, ritorna esito e log */
+async function validateRuntime(testContent: string): Promise<{ valid: boolean; errors: string; normalized: string }> {
+  // 1. Normalizza gli import per Hardhat
+  const normalizedContent = testContent
+    .replace(/import\s+\{\s*ethers\s*\}\s+from\s+["']ethers["'];?/g, 'import { ethers } from "hardhat";')
+    .replace(/import\s+ethers\s+from\s+["']ethers["'];?/g, 'import { ethers } from "hardhat";')
+    .replace(/import\s+["']ethers["'];?/g, 'import { ethers } from "hardhat";');
 
-    // Create a unique tempfile per invocation to avoid collisions and to aid debugging
-    const uniq = `temp_llm_test_${Date.now()}_${Math.floor(Math.random() * 100000)}.spec.ts`;
-    tempPath = path.join(path.dirname(config.tempTestFile), uniq);
-    try { await fs.mkdir(path.dirname(tempPath), { recursive: true }); } catch (e) { /* ignore */ }
-    writeFileSync(tempPath, normalizedContent, 'utf-8');
-  } catch (e) {
-    return { valid: false, errors: `Errore scrittura file temporaneo: ${e}` };
+  // 2. Crea file temporaneo univoco
+  const uniqueId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const tempPath = path.join(path.dirname(CONFIG.tempTestFile), `temp_test_${uniqueId}.spec.ts`);
+  
+  try {
+    await fs.mkdir(path.dirname(tempPath), { recursive: true });
+    await fs.writeFile(tempPath, normalizedContent, 'utf-8');
+  } catch (e: any) {
+    return { valid: false, errors: `FS Error: ${e.message}`, normalized: normalizedContent };
   }
 
-  // 2. Esegue il comando Hardhat
-  // Passiamo il file come argomento per eseguire solo quello.
+  // 3. Esegui Hardhat
   const result = await runCommand('npx', ['hardhat', 'test', tempPath]);
 
-  // 3. Pulisce (opzionale: rimuove il file temporaneo)
-  try {
-    // Non rimuoviamo il file temporaneo per debug
-  } catch {}
+  // 4. Pulizia
+  try { await fs.unlink(tempPath); } catch {}
 
-  if (!result.success) {
-    return { valid: false, errors: `Hardhat Test Fallito:\n${result.output}`, normalized: normalizedContent };
-  }
-
-  // Parse output for passing/failing tests: look for lines like "N passing" and "M failing"
-  const passingMatch = result.output.match(/(\d+)\s+passing/);
-  const failingMatch = result.output.match(/(\d+)\s+failing/);
-  const passed = passingMatch ? parseInt(passingMatch[1], 10) : 0;
-  const failed = failingMatch ? parseInt(failingMatch[1], 10) : 0;
-
-  if (passed === 0) {
-    return { valid: false, errors: `Hardhat Test Eseguito, ma nessun test passato (output):\n${result.output}`, normalized: normalizedContent };
+  // 5. Analisi risultato
+  // Check: deve avere exit code 0 E trovare stringa "passing" nell'output
+  const hasPassing = result.output.match(/(\d+)\s+passing/);
+  const passedCount = hasPassing ? parseInt(hasPassing[1]) : 0;
+  
+  if (!result.success || passedCount === 0) {
+    return { valid: false, errors: result.output, normalized: normalizedContent };
   }
 
   return { valid: true, errors: '', normalized: normalizedContent };
 }
 
-// --- CICLO DI GENERAZIONE ---
+// --- LOGICA CORE: GESTIONE SINGOLO PROMPT ---
 
-async function generateAndValidate(promptFile: string): Promise<{ success: boolean; message: string }> {
-  const promptName = path.basename(promptFile).replace('.prompt.txt', '');
-  const finalValidFile = path.join(config.validOutputDir, `${promptName}.spec.ts`);
-  const finalInvalidFile = path.join(config.invalidOutputDir, `${promptName}.spec.ts`);
-  const errorLog = path.join(config.invalidOutputDir, `${promptName}.error.log`);
+async function processPromptFile(promptPath: string): Promise<boolean> {
+  const promptName = path.basename(promptPath).replace('.prompt.txt', '');
+  const finalValidFile = path.join(CONFIG.validOutputDir, `${promptName}.spec.ts`);
+  const finalInvalidFile = path.join(CONFIG.invalidOutputDir, `${promptName}.spec.ts`);
+  const errorLogFile = path.join(CONFIG.invalidOutputDir, `${promptName}.error.log`);
 
   if (existsSync(finalValidFile)) {
-    console.log(`⏭️  Saltato: ${promptName} (già validato)`);
-    return { success: true, message: `Test già esistente e validato: ${finalValidFile}` };
-  }
-  console.log(`\n🤖 Genero e valido test per: ${promptName}`);
-
-  // 1. Chiamata LLM
-  const promptContent = await fs.readFile(promptFile, 'utf8');
-  let generationResult = { success: false, output: '' };
-  const maxAttempts = 3;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    generationResult = await callRemoteOllama(config.model, promptContent);
-    if (generationResult.success) break;
-    console.log(`⚠️  Tentativo ${attempt} fallito per LLM. Output: ${generationResult.output.split('\n')[0]}`);
-    // small backoff
-    await new Promise(r => setTimeout(r, 1000 * attempt));
+    console.log(`⏭️  Saltato: ${promptName} (già valido)`);
+    return true;
   }
 
-  if (!generationResult.success) {
-    writeFileSync(errorLog, `LLM Generation Error:\n${generationResult.output}`, 'utf-8');
-    console.log(`❌ Errore LLM: ${generationResult.output.split('\n')[0]}`);
-    return { success: false, message: `Errore LLM: ${generationResult.output}` };
-  }
+  console.log(`\n🤖 Processing: ${promptName}`);
 
-  const testContent = extractTypeScriptBlock(generationResult.output);
-  if (!testContent || testContent.length < 50) {
-    writeFileSync(errorLog, `LLM Output Incompleto o Vuoto: ${testContent}`, 'utf-8');
-    console.log(`❌ Output Incompleto: L'LLM non ha generato codice valido.`);
-    return { success: false, message: `Output Incompleto` };
-  }
+  // 1. Leggi e Dividi il Prompt
+  const rawContent = await fs.readFile(promptPath, 'utf8');
+  const parts = rawContent.split(CONFIG.separator);
   
-  // 2. Validazione Runtime
-  console.log('🧪 Avvio validazione runtime Hardhat...');
-  const validationResult = await validateRuntime(testContent);
+  const initialPrompt = parts[0].trim();
+  const retryTemplate = parts.length > 1 ? parts[1].trim() : null;
 
-  // 3. Routing dei file
-  await fs.mkdir(validationResult.valid ? config.validOutputDir : config.invalidOutputDir, { recursive: true });
-  
-  if (validationResult.valid) {
-    // Save the normalized content that was actually executed
-    writeFileSync(finalValidFile, validationResult.normalized || testContent, 'utf-8');
-    console.log(`✅ VALIDATO: Test eseguito con successo e passato: ${finalValidFile}`);
-  } else {
-    // Scrive il codice generato non funzionante
-    writeFileSync(finalInvalidFile, validationResult.normalized || testContent, 'utf-8'); 
-    // Scrive il log di errore (compilazione o runtime)
-    writeFileSync(errorLog, `Hardhat Validation Error:\n${validationResult.errors}`, 'utf-8');
-    console.log(`❌ NON FUNZIONANTE: Errore di compilazione/runtime. Log in ${errorLog}`);
+  if (!retryTemplate) {
+    console.warn(`⚠️  Nessun template di retry trovato per ${promptName}. Eseguirò solo 1 tentativo.`);
   }
 
-  return { success: validationResult.valid, message: validationResult.errors };
+  // Imposta max tentativi: 3 se c'è il template, 1 altrimenti
+  const MAX_ATTEMPTS = retryTemplate ? 3 : 1;
+
+  let currentPrompt = initialPrompt;
+  let lastCode = '';
+  let lastErrors = '';
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    console.log(`   🔄 Tentativo ${attempt}/${MAX_ATTEMPTS}...`);
+
+    // A. Chiamata LLM
+    const llmRes = await callRemoteOllama(CONFIG.model, currentPrompt);
+    if (!llmRes.success) {
+      console.error(`   ❌ Errore API LLM: ${llmRes.output}`);
+      // Se fallisce la rete, aspettiamo un po' e riproviamo lo stesso prompt
+      await new Promise(r => setTimeout(r, 5000));
+      continue;
+    }
+
+    const code = extractTypeScriptBlock(llmRes.output);
+    lastCode = code;
+
+    if (code.length < 50) {
+      console.warn(`   ⚠️  Output LLM troppo breve o vuoto.`);
+      lastErrors = "Output LLM vuoto/invalido.";
+      continue; 
+    }
+
+    // B. Validazione Hardhat
+    const valRes = await validateRuntime(code);
+
+    if (valRes.valid) {
+      console.log(`   ✅ Successo! Test valido.`);
+      await fs.writeFile(finalValidFile, valRes.normalized, 'utf-8');
+      return true; // Stop, successo
+    }
+
+    // C. Fallimento -> Preparazione Retry
+    console.log(`   ❌ Validazione fallita.`);
+    lastErrors = valRes.errors;
+
+    // Se abbiamo ancora tentativi e un template di retry, prepariamo il prossimo prompt
+    if (attempt < MAX_ATTEMPTS && retryTemplate) {
+      console.log(`   🔧 Preparazione Prompt di Correzione...`);
+      currentPrompt = retryTemplate
+        .replace('{{FAILED_CODE_PLACEHOLDER}}', lastCode)
+        .replace('{{ERROR_LOG_PLACEHOLDER}}', lastErrors);
+    }
+  }
+
+  // Se arriviamo qui, tutti i tentativi sono falliti
+  console.log(`   🏁 Fallimento definitivo per ${promptName}.`);
+  await fs.writeFile(finalInvalidFile, lastCode, 'utf-8');
+  await fs.writeFile(errorLogFile, lastErrors, 'utf-8');
+  
+  return false;
 }
 
-
-/* ------------------------------------ Main ------------------------------------ */
+// --- MAIN ---
 
 async function main() {
-  // Parsing Args... (omissis)
-  const promptsFolder = process.argv.find(arg => arg.startsWith('--promptsFolder='))?.split('=')[1] || config.promptsDir;
-  const model = process.argv.find(arg => arg.startsWith('--model='))?.split('=')[1] || config.model;
-  const target = process.argv.find(arg => arg.startsWith('--target='))?.split('=')[1] || '';
-  
-  config.promptsDir = promptsFolder;
-  config.model = model;
+  // Parsing Argomenti base
+  const args = process.argv.slice(2);
+  const promptsFolderArg = args.find(a => a.startsWith('--promptsFolder='));
+  const modelArg = args.find(a => a.startsWith('--model='));
+  const targetArg = args.find(a => a.startsWith('--target='));
 
-  // Usa un URL di default solo se non impostato
-  if (!process.env.OLLAMA_URL) {
-    process.env.OLLAMA_URL = "http://localhost:11434"; 
-    console.log('ℹ️  OLLAMA_URL non impostata, uso endpoint locale di default:', process.env.OLLAMA_URL);
-  }
+  if (promptsFolderArg) CONFIG.promptsDir = promptsFolderArg.split('=')[1];
+  if (modelArg) CONFIG.model = modelArg.split('=')[1];
+  const target = targetArg ? targetArg.split('=')[1].toLowerCase() : '';
 
-  console.log(`🚀 Generazione test LLM su ${promptsFolder} con modello ${model}`);
+  console.log(`🚀 Avvio Generazione Test Suite`);
+  console.log(`📁 Folder: ${CONFIG.promptsDir}`);
+  console.log(`🧠 Model:  ${CONFIG.model}`);
 
+  // Setup Directory
+  await fs.mkdir(CONFIG.outputDir, { recursive: true });
+  await fs.mkdir(CONFIG.validOutputDir, { recursive: true });
+  await fs.mkdir(CONFIG.invalidOutputDir, { recursive: true });
+
+  // Lettura File Prompt con tipizzazione corretta
+  let files: string[] = []; // <--- FIX QUI: Dichiarazione esplicita del tipo array di stringhe
   try {
-    await fs.access(config.promptsDir);
-    await fs.mkdir(config.outputDir, { recursive: true });
-    await fs.mkdir(config.validOutputDir, { recursive: true });
-    await fs.mkdir(config.invalidOutputDir, { recursive: true });
-  } catch (error) {
-    console.error('❌ Errore accesso directory:', error);
+    const dirContent = await fs.readdir(CONFIG.promptsDir);
+    files = dirContent.filter(f => f.endsWith('.prompt.txt'));
+  } catch (e) {
+    console.error(`❌ Errore lettura directory prompts: ${e}`);
     process.exit(1);
   }
 
-  let promptFiles = await fs.readdir(config.promptsDir);
-  promptFiles = promptFiles.filter(file => file.endsWith('.prompt.txt')).map(file => path.join(config.promptsDir, file));
-  
   if (target) {
-    promptFiles = promptFiles.filter(file => path.basename(file).toLowerCase().includes(target.toLowerCase()));
-    console.log(`🎯 Filtrando per target: ${target}`);
+    console.log(`🎯 Filtro target: "${target}"`);
+    files = files.filter(f => f.toLowerCase().includes(target));
   }
-  
-  console.log(`📁 Trovati ${promptFiles.length} prompt da processare`);
 
-  let success = 0, fail = 0;
-  for (const promptFile of promptFiles) {
-    const result = await generateAndValidate(promptFile);
-    if (result.success) success++; else fail++;
-    // Pausa per non sovraccaricare Ollama se necessario
-    // await sleep(5000); 
+  console.log(`📝 Trovati ${files.length} file da processare.`);
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const file of files) {
+    const fullPath = path.join(CONFIG.promptsDir, file);
+    const success = await processPromptFile(fullPath);
+    if (success) successCount++; else failCount++;
   }
-  
-  console.log(`\n🏁 Generazione completata! Successi (Test Funzionanti): ${success}, Fallimenti (Test Non Funzionanti): ${fail}`);
-  console.log(`Test validi: ${config.validOutputDir}`);
-  console.log(`Test con errori: ${config.invalidOutputDir}`);
+
+  console.log(`\n══════════════════════════════════════`);
+  console.log(`🏁 RIEPILOGO FINALE`);
+  console.log(`✅ Successi: ${successCount}`);
+  console.log(`❌ Falliti:  ${failCount}`);
+  console.log(`📂 Output Validi:   ${CONFIG.validOutputDir}`);
+  console.log(`📂 Output Invalidi: ${CONFIG.invalidOutputDir}`);
+  console.log(`══════════════════════════════════════\n`);
 }
 
-main().catch(error => {
-  console.error('❌ Errore fatale:', error);
+main().catch(e => {
+  console.error("❌ Fatal Error:", e);
   process.exit(1);
 });

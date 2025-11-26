@@ -2,251 +2,186 @@
 /**
  * build-prompts.ts
  *
- * Versione Definitiva e Stabile.
- *
- * Obiettivo: Iterare su OGNI file .sol nel dataset, estrarre il nome del contratto
- * in modo affidabile (usando solc come fallback), e creare un prompt.
- *
- * USCITA: File di prompt con nome leggibile: [ContractName].prompt.txt.
- *
- * LEGGE: Tutti i file .sol in dataset/.
- * CERCA: Il file scaffold corrispondente in scaffolds/<size> (opzionale).
+ * Versione Definitiva "Dual Prompt" con FQN Relativo alla Root.
+ * * Funzionalità:
+ * 1. Legge i contratti dalla cartella 'dataset'.
+ * 2. Calcola l'FQN basato sul percorso relativo alla root del progetto
+ * (es: "dataset/small/0x123.sol:ContractName").
+ * 3. Compila due template (Initial + Retry).
+ * 4. Unisce i due template in un unico file .prompt.txt pronto per l'uso.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
-// Solc è necessario per l'analisi robusta dei contratti (identificazione del nome corretto)
-import solc from 'solc'; 
+import solc from 'solc';
 
-// ---------------- CONFIG ---------------------
-const DEFAULT_SCAFFOLD_DIR = "scaffolds";
-const DEFAULT_OUT_DIR = "prompts_out";
-const DEFAULT_TEMPLATE = "prompts/templates/only-sol.template.txt";
-// Radice dove si trovano i contratti sorgente
-const DATASET_ROOT = "dataset"; 
+// ---------------- CONFIGURAZIONE ---------------------
+const CONFIG = {
+  // Template esistente
+  initialTemplate: "prompts/templates/only-sol.template.txt", 
+  // Template che devi creare
+  retryTemplate: "prompts/templates/retry_template.txt",     
+  
+  outDir: "prompts_out",
+  datasetRoot: "dataset", // La cartella dove risiedono i sorgenti .sol
+  reportFile: "dataset/report.json", // Metadata
+  
+  separator: "==========RETRY_TEMPLATE_SPLIT=========="
+};
 
-// ---------------------------------------------
+// Mappa globale dei metadati
+let contractMetadata: any = {};
 
-function read(p: string) {
-  return fs.readFileSync(p, "utf-8");
-}
+// ---------------- UTILS ---------------------
 
+function read(p: string) { return fs.readFileSync(p, "utf-8"); }
 function write(p: string, s: string) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, s, "utf-8");
 }
 
+// Cammina ricorsivamente nelle directory
 function* walk(dir: string): Generator<string> {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const e of entries) {
     const full = path.join(dir, e.name);
-    if (e.isDirectory()) yield* walk(full);
-    else if (e.isFile()) yield full;
+    if (e.isDirectory()) {
+      yield* walk(full);
+    } else if (e.isFile() && e.name.endsWith(".sol")) {
+      yield full;
+    }
   }
 }
 
-// -------------------------- HELPER SOLC/ANALISI ------------------------------------
+// ---------------- METADATA & ANALISI ---------------------
 
-/**
- * Pulisce il nome del contratto per l'uso nel nome del file (rimuove hash e caratteri speciali).
- */
-function sanitizeName(name: string): string {
-  // Consente solo lettere, numeri e underscore
-  return name.replace(/[^A-Za-z0-9_]/g, "");
+function loadMetadata() {
+  const reportPath = path.resolve(CONFIG.reportFile);
+  if (fs.existsSync(reportPath)) {
+    try {
+      contractMetadata = JSON.parse(read(reportPath));
+      console.log(`✅ Loaded metadata from ${CONFIG.reportFile}`);
+    } catch (e) {
+      console.error(`❌ Error parsing ${CONFIG.reportFile}:`, e);
+    }
+  } else {
+    console.warn(`⚠️  WARNING: ${CONFIG.reportFile} not found.`);
+  }
 }
 
-/**
- * Analizza il codice sorgente usando solc per estrarre i nomi dei contratti.
- * Questo è il metodo più affidabile per trovare il nome corretto.
- */
-function analyzeContractSolc(source: string): { contracts: string[] } | null {
-  // Solc richiede che il codice non abbia dipendenze non risolte
+// Analisi AST con Solc per trovare il nome esatto del contratto
+function analyzeContractSolc(source: string): string[] {
   const codeWithoutImports = source.replace(/^\s*import\s+[^;]+;/gm, ''); 
-
   try {
     const input = {
       language: 'Solidity',
       sources: { 'C.sol': { content: codeWithoutImports } },
-      settings: {
-        optimizer: { enabled: false },
-        outputSelection: { '*': { '*': ['abi'] } }
-      }
+      settings: { outputSelection: { '*': { '*': ['abi'] } } }
     };
-    // Compilazione sincrona e gestione output
     const output = JSON.parse(solc.compile(JSON.stringify(input)));
-    if (!output.contracts || !output.contracts['C.sol']) return null;
-    
-    // I nomi dei contratti sono le chiavi dell'oggetto contracts['C.sol']
-    const names = Object.keys(output.contracts['C.sol']);
-    return { contracts: names };
-  } catch (e) {
-    // console.error("Solc analysis failed:", e); // Utile per debug
-    return null;
+    if (!output.contracts || !output.contracts['C.sol']) return [];
+    return Object.keys(output.contracts['C.sol']);
+  } catch { return []; }
+}
+
+function extractContractNameFallback(code: string): string | null {
+  const match = code.match(/(?:abstract\s+)?(?:contract|interface|library)\s+([A-Za-z_][A-Za-z0-9_]*)/i);
+  return match ? match[1] : null;
+}
+
+// ---------------- PROMPT BUILDER ---------------------
+
+function fillTemplate(template: string, data: any): string {
+  let content = template;
+  for (const [key, value] of Object.entries(data)) {
+    const placeholder = `{${key}}`;
+    // Sostituzione globale di tutte le occorrenze
+    content = content.split(placeholder).join(String(value));
   }
+  return content;
 }
 
-/**
- * Estrae il nome del contratto tramite regex come fallback.
- */
-function extractContractNameFromSourceFallback(code: string): string | null {
-    const regex = /(?:abstract\s+)?(?:contract|interface|library)\s+([A-Za-z_][A-Za-z0-9_]*)/i;
-    const match = code.match(regex);
-    return match ? match[1] : null;
-}
-
-
-function extractSolidityVersion(content: string): string {
-  const m = content.match(/pragma\s+solidity\s+([^;]+)/);
-  return m ? m[1].trim() : 'unknown';
-}
-
-function extractConstructorParams(content: string): string {
-  const m = content.match(/constructor\s*\(([^)]*)\)/);
-  if (!m) return 'None.';
-  const inside = m[1].trim();
-  return inside.length > 0 ? inside : 'None.';
-}
-
-/**
- * Cerca il file scaffold per nome e dimensione. Se trovato, restituisce il contenuto.
- */
-function findScaffoldByContractName(name: string, targetSize: string): string | null {
-  const scaffoldPath = path.join(DEFAULT_SCAFFOLD_DIR, targetSize, `${name}.scaffold.ts`);
-  
-  if (fs.existsSync(scaffoldPath)) {
-    console.log(`✅ Trovato scaffold per ${name}`);
-    return read(scaffoldPath);
-  }
-  return null;
-}
-
-
-function detectSizeFromPath(f: string): "small" | "medium" | "large" | "other" {
-  // Deduce la dimensione dalla path: es. dataset/small/file.sol -> 'small'
-  const parts = f.split(path.sep).map((x) => x.toLowerCase());
+function detectSizeFromPath(f: string): string {
+  const parts = f.split(path.sep).map(x => x.toLowerCase());
   if (parts.includes("small")) return "small";
   if (parts.includes("medium")) return "medium";
   if (parts.includes("large")) return "large";
   return "other";
 }
 
-// ------------------------------------------------------------------------
+// ---------------- MAIN ---------------------
 
 async function main() {
-  const args = process.argv.slice(2);
+  console.log("🚀 Starting build-prompts...");
+  loadMetadata(); 
 
-  const templatePath =
-    args.find((a) => a.startsWith("--template="))?.split("=")[1] ||
-    DEFAULT_TEMPLATE;
-
-  const scaffoldDir =
-    args.find((a) => a.startsWith("--scaffolds="))?.split("=")[1] ||
-    DEFAULT_SCAFFOLD_DIR;
-
-  const outDir =
-    args.find((a) => a.startsWith("--out="))?.split("=")[1] ||
-    DEFAULT_OUT_DIR;
-
-  const target =
-    args.find((a) => a.startsWith("--target="))?.split("=")[1] || "";
-
-  const templateAbs = path.resolve(templatePath);
-  const template = read(templateAbs);
-
-  console.log(`📁 Template: ${templateAbs}`);
-  console.log(`📁 Scaffold dir: ${scaffoldDir}`);
-  console.log(`📁 Output dir: ${outDir}`);
-  if (target) console.log(`🎯 Filtrando solo: ${target}`);
-
-  let generated = 0;
-  let skipInvalidName = 0;
-  let skipNoScaffold = 0;
-
-  // 💡 ITERIAMO ORA SU TUTTI I CONTRATTI SORGENTE NEL DATASET
-  for (const f of walk(DATASET_ROOT)) {
-    if (!f.endsWith(".sol")) continue;
-
-    const solCode = read(f);
-    const size = detectSizeFromPath(f);
-
-    // 1. ESTRAZIONE NOME CONTRATTO (Usa solc, fallback su regex)
-    let contractName = null as string | null;
-    const solcRes = analyzeContractSolc(solCode);
-    if (solcRes && solcRes.contracts && solcRes.contracts.length > 0) {
-      // Solc è il metodo più affidabile. Prendiamo il primo contratto trovato.
-      contractName = solcRes.contracts[0]; 
-    } else {
-      // Fallback a regex (meno affidabile, ma necessario)
-      contractName = extractContractNameFromSourceFallback(solCode);
-    }
-    
-    if (!contractName) { 
-      console.log(`⚠ Skip contratto non definibile → ${f}`);
-      skipInvalidName++;
-      continue;
-    }
-    
-    // Normalizzazione del nome per i file di output
-    const safeContract = sanitizeName(contractName);
-    if (!safeContract) {
-       console.log(`⚠ Skip: Nome contratto sanitizzato vuoto per → ${f}`);
-       skipInvalidName++;
-       continue;
-    }
-
-
-    if (target && !safeContract.toLowerCase().includes(target.toLowerCase())) {
-      continue;
-    }
-
-    // 2. RICERCA SCAFFOLD CORRISPONDENTE (Opzionale)
-    const scaffoldContent = findScaffoldByContractName(safeContract, size);
-    
-    let finalScaffold = "";
-    if (scaffoldContent) {
-        // Se lo scaffold è stato trovato, usiamo il suo contenuto
-        finalScaffold = scaffoldContent;
-    } else {
-        // Se lo scaffold non è stato trovato (la maggior parte dei casi)
-        // Usiamo un placeholder generico e incrementiamo il contatore
-        finalScaffold = "// WARNING: Scaffold non trovato. L'LLM deve generare l'intera struttura di test Hardhat e le chiamate alle funzioni.";
-        skipNoScaffold++;
-    }
-
-
-    // 3. SOSTITUZIONE PLACEHOLDER E CREAZIONE PROMPT
-    const solVersion = extractSolidityVersion(solCode);
-    const ctorParams = extractConstructorParams(solCode);
-
-    const finalPrompt = template
-      .replace(/{CONTRACT}/g, solCode)
-      .replace(/{SCAFFOLD}/g, finalScaffold)
-      .replace(/{SOLIDITY_VERSION}/g, solVersion)
-      .replace(/{SOL_VERSION}/g, solVersion)
-      .replace(/{CTOR_PARAMS}/g, ctorParams)
-      .replace(/{CONSTRUCTOR_PARAMS}/g, ctorParams)
-      .replace(/{ETHERS_VERSION}/g, "v5");
-
-    // L'outPath USA SOLO il nome del contratto pulito (safeContract) per la leggibilità!
-    const outPath = path.join(
-      outDir,
-      size,
-      `${safeContract}.prompt.txt` 
-    );
-
-    write(outPath, finalPrompt);
-
-    console.log(`→ ${outPath}`);
-    generated++;
+  // Check template existence
+  if (!fs.existsSync(CONFIG.initialTemplate)) {
+    console.error(`❌ Initial template missing: ${CONFIG.initialTemplate}`);
+    process.exit(1);
+  }
+  if (!fs.existsSync(CONFIG.retryTemplate)) {
+    console.error(`❌ Retry template missing: ${CONFIG.retryTemplate}`);
+    process.exit(1);
   }
 
-  console.log("\n──────── SUMMARY ──────────");
-  console.log(`Prompt generati: ${generated}`);
-  console.log(`Skip contratti con nome invalido: ${skipInvalidName}`);
-  console.log(`Skip contratti senza scaffold trovato: ${skipNoScaffold}`);
-  console.log("Done.");
+  const tplInitial = read(CONFIG.initialTemplate);
+  const tplRetry = read(CONFIG.retryTemplate);
+
+  let generated = 0;
+
+  // Itera su tutti i file nella cartella dataset
+  for (const f of walk(CONFIG.datasetRoot)) {
+    const solCode = read(f);
+    const filename = path.basename(f); 
+    const size = detectSizeFromPath(f);
+
+    // 1. Trova Nome Contratto
+    let contractNames = analyzeContractSolc(solCode);
+    let contractName = contractNames.length > 0 ? contractNames[0] : extractContractNameFallback(solCode);
+
+    if (!contractName) {
+      console.log(`⚠ Skip invalid contract: ${filename}`);
+      continue;
+    }
+
+    // 2. Calcola FQN (Fully Qualified Name) RELATIVO ALLA ROOT
+    // Questo è il passaggio cruciale per far funzionare Hardhat senza spostare i file.
+    // Restituirà qualcosa come: "dataset/small/0x123.sol"
+    const relativePath = path.relative(process.cwd(), f).split(path.sep).join('/');
+    const fqn = `${relativePath}:${contractName}`;
+
+    // 3. Estrai Dati Aggiuntivi
+    const solVersion = (solCode.match(/pragma\s+solidity\s+([^;]+)/) || [])[1] || '0.8.0';
+    const ctorParams = (solCode.match(/constructor\s*\(([^)]*)\)/) || [])[1] || 'None.';
+
+    // 4. Prepara il contesto dati per i template
+    const contextData = {
+      CONTRACT: solCode,          // Per only-sol.template.txt
+      CONTRACT_CONTENT: solCode,  // Per retry_template.txt
+      SOL_VERSION: solVersion,
+      ETHERS_VERSION: "v5",
+      CTOR_PARAMS: ctorParams,
+      FQN_LABEL: fqn              // FQN corretto iniettato ovunque
+    };
+
+    // 5. Compila i template
+    const prompt1 = fillTemplate(tplInitial, contextData);
+    const prompt2 = fillTemplate(tplRetry, contextData);
+
+    // 6. Unisci e Salva
+    const finalContent = `${prompt1}\n\n${CONFIG.separator}\n\n${prompt2}`;
+    
+    const safeName = contractName.replace(/[^a-z0-9_]/gi, '');
+    const outPath = path.join(CONFIG.outDir, size, `${safeName}.prompt.txt`);
+    
+    write(outPath, finalContent);
+    generated++;
+    
+    if (generated % 20 === 0) console.log(`... generated ${generated} prompts.`);
+  }
+
+  console.log(`\n✅ Done! Generated ${generated} prompts in '${CONFIG.outDir}'.`);
 }
 
-main().catch((err) => {
-  console.error("❌ Errore fatale:", err);
-  process.exit(1);
-});
+main().catch(e => console.error(e));
