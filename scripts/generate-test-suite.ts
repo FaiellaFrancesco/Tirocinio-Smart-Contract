@@ -17,7 +17,7 @@ import fetch from 'node-fetch';
 
 // --- CONFIGURAZIONE ---
 const CONFIG = {
-  promptsDir: './prompts_out/small',
+  promptsDir: './prompts_out/large',
   outputDir: './llm-out/temp',
   validOutputDir: './llm-out/valid',
   invalidOutputDir: './llm-out/invalid',
