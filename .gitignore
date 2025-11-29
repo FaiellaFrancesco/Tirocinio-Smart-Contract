@@ -23,7 +23,7 @@ dataset/
 scaffolds/
 prompts_out_scaffold/
 Second_Gen/
-
+sumo_lab/
 # Misc
 .DS_Store
 .vscode/
