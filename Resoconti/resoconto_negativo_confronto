@@ -1,0 +1,53 @@
+È un'ottima domanda. Sapere chi ha ottenuto quei risultati ti aiuta a contestualizzare i tuoi (e a difenderti durante la discussione della tesi).
+
+La differenza fondamentale è che i lavori che hanno superato il "muro" delle dipendenze esterne o della complessità elevata hanno usato modelli commerciali di fascia altissima (chiusi) oppure modelli open-source pesantemente modificati (fine-tuned).
+
+Ecco i modelli specifici citati negli studi che "sfidano" la tua tesi:
+
+1. Gemini 1.5 Pro e GPT-4
+
+Studio: "Prompt to Pwn: Automated Exploit Generation" (2025)
+
+Cosa hanno fatto: Hanno generato exploit complessi (che tecnicamente sono test suite "cattive") che simulano interazioni DeFi.
+
+Modelli Usati: Gemini 1.5 Pro e GPT-4.
+
+Il Risultato: Hanno raggiunto tassi di successo fino al 92%.
+
+Il "Trucco": Questi modelli hanno una Context Window enorme (fino a 1-2 Milioni di token) e capacità di ragionamento superiori a qualsiasi modello 32B open-source. Inoltre, essendo modelli chiusi via API, non hanno problemi di VRAM locale.
+
+Per la tua tesi: Puoi dire: "Mentre modelli proprietari come Gemini 1.5 Pro eccellono grazie a risorse infinite, la nostra ricerca dimostra i limiti dei modelli Open Source accessibili (32B) in un contesto di risorse finite."
+
+2. LLaMA 3.1 (Fine-Tuned)
+
+Studio: "SmartLLM: Smart Contract Auditing"
+
+Cosa hanno fatto: Hanno superato le prestazioni dei tool statici nell'audit.
+
+Modelli Usati: LLaMA 3.1 (versione base), ma sottoposto a Fine-Tuning specifico su migliaia di smart contract vulnerabili e standard ERC.
+
+Il Risultato: Accuratezza del 70% e Recall del 100%.
+
+Il "Trucco": Non hanno usato il modello "base" come hai fatto tu (Zero-Shot/Few-Shot). Hanno "insegnato" al modello la struttura dei contratti prima di iniziare.
+
+Per la tua tesi: "Il nostro approccio 'Generalista' (senza fine-tuning specifico) si ferma dove inizia la necessità di conoscenza di dominio specifica, che SmartLLM ha risolto con l'addestramento dedicato."
+
+3. Claude 3.7 Sonnet e OpenAI o1
+
+Studio: "SolContractEval" (Benchmark 2025)
+
+Cosa hanno fatto: Hanno comparato la capacità di generare contratti complessi e sicuri.
+
+Modelli Usati: Claude 3.7 Sonnet e OpenAI o1 (modelli con "Reasoning" avanzato).
+
+Il Risultato: Claude 3.7 è risultato il migliore in assoluto, staccando nettamente Qwen 2.5-Coder 32B sui task complessi.
+
+Per la tua tesi: Questo conferma che il tuo fallimento sui "Large" non è un errore metodologico, ma un limite tecnologico del modello scelto (Qwen 32B). "I benchmark di settore confermano che Qwen 32B, pur essendo eccellente per la sua taglia, soffre un gap prestazionale rispetto ai modelli SOTA (State-of-the-Art) chiusi sui task di alta complessità."
+
+In Sintesi per la Tesi
+
+Puoi scrivere:
+
+"La letteratura conferma che il superamento delle barriere di complessità (External Dependencies) è stato ottenuto principalmente attraverso l'uso di modelli proprietari di classe superiore (GPT-4, Claude 3.7, Gemini 1.5 Pro) o tramite tecniche di Fine-Tuning costose su modelli open-source (LLaMA 3.1). Il nostro lavoro definisce invece il limite superiore di ciò che è possibile ottenere con un approccio accessibile e replicabile (Modello Open 32B + Prompt Engineering), dimostrando che l'ingegnerizzazione del prompt può compensare la minore 'intelligenza' grezza del modello fino a un livello di complessità medio."
+
+Le regole introdotte nel sistema di Self-Healing non sono specifiche per il dominio dei contratti analizzati (Domain-Specific Overfitting), ma sono specifiche per l'ambiente di esecuzione (Environment-Specific Adaptation). Esse correggono le discrepanze tra la rappresentazione teorica del codice generata dall'LLM e i vincoli pratici imposti dal framework di testing (Hardhat/Ethers.js) e dalla macchina virtuale Ethereum (EVM)."

@@ -1,0 +1,83 @@
+TITOLO: Sviluppo di una Pipeline Agentica per la Generazione e Auto-Correzione di Test Suite per Smart Contract
+
+AUTORE: [Il Tuo Nome]
+DATA: [Data Corrente]
+TECNOLOGIA: Hardhat, TypeScript, LLM (Qwen 2.5-Coder 32B / DeepSeek-R1)
+
+--------------------------------------------------------------------------------
+1. INTRODUZIONE E OBIETTIVI
+--------------------------------------------------------------------------------
+Il progetto mira ad automatizzare la creazione di unit test per Smart Contract Solidity utilizzando Large Language Models (LLM). La sfida principale non risiede nella generazione del codice, ma nella sua validità esecutiva all'interno di ambienti di sviluppo deterministici come Hardhat.
+
+L'obiettivo è stato sviluppare un sistema "Self-Healing" (auto-riparante) capace di:
+1. Generare test sintatticamente corretti per Ethers.js v5.
+2. Risolvere autonomamente errori di compilazione e runtime.
+3. Gestire la complessità delle dipendenze (Ereditarietà) senza intervento umano.
+
+--------------------------------------------------------------------------------
+2. ARCHITETTURA DEL SISTEMA
+--------------------------------------------------------------------------------
+La soluzione implementata si basa su un'architettura a tre stadi:
+
+A. PRE-PROCESSING (Context Enrichment)
+   - Script: `build-prompts.ts`
+   - Funzione: Analisi statica dei file Solidity.
+   - Innovazione: Implementazione di un "Recursive Flattener" che risolve le dipendenze locali (`import "./File.sol"`) e le inietta nel prompt per eliminare la "cecità da ereditarietà".
+   - Risoluzione FQN: Calcolo dinamico del Fully Qualified Name (es. `dataset/small/Token.sol:MyToken`) per prevenire l'errore Hardhat `HH700` (Artifact not found).
+
+B. EXECUTION ENGINE (Iterative Loops)
+   - Script: `generate-test-suite.ts`
+   - Strategia: "Dual Prompting". Ogni task è composto da un Prompt Iniziale (generazione) e un Template di Retry (correzione).
+   - Logica: Esecuzione in loop con massimo 3 tentativi (`Try 1` -> Validazione -> `Try 2` -> Validazione -> `Try 3`).
+
+C. VALIDATION LAYER (Runtime Feedback)
+   - Strumento: `npx hardhat test` su file temporanei isolati.
+   - Feedback: Cattura dello `stderr` (messaggi di errore) e iniezione nel prompt successivo per guidare la correzione.
+
+--------------------------------------------------------------------------------
+3. TASSONOMIA DEGLI ERRORI E STRATEGIE DI RISOLUZIONE
+--------------------------------------------------------------------------------
+Durante la fase sperimentale, sono state identificate categorie di errori ricorrenti. Per ciascuna, è stata codificata una regola euristica nel "Retry Template".
+
+3.1 Errori Ambientali e di Configurazione
+   - Problema: L'LLM utilizzava matcher non disponibili (es. `.emit`, `.revertedWith` di Waffle) o sintassi Ethers v6 in ambiente v5.
+   - Soluzione (Regola C, E): Imposizione di vincoli negativi ("NO Waffle Matchers") e uso di blocchi `try/catch` nativi per la verifica dei revert. Istruzione specifica per l'accesso a `.deployTransaction.wait()`.
+
+3.2 Errori di Tipo e Precisione Numerica
+   - Problema: Incompatibilità tra oggetti `BigNumber` (Ethers) e primitive `BigInt` (TS), ed errori di notazione scientifica per grandi numeri (`1e+24`).
+   - Soluzione (Regola A, D): Obbligo di conversione in stringa (`.toString()`) per tutti i confronti di uguaglianza e uso del suffisso `n` per i letterali numerici.
+
+3.3 Errori Logici e Allucinazioni di Sicurezza
+   - Problema: L'LLM ("Auditor Paranoico") scriveva test che si aspettavano il fallimento di transazioni su funzioni pubbliche, causando falsi positivi.
+   - Soluzione (Regola G): Euristica di "Fiducia nel Codice": se una transazione attesa come fallita ha successo, e la funzione è pubblica, il test deve essere rimosso o invertito (Happy Path).
+
+3.4 Errori EVM-Specifici (Gas e Allowance)
+   - Problema: Fallimento dei check sul saldo del mittente a causa del costo del Gas; fallimento dei `transferFrom` per mancata `approve`.
+   - Soluzione (Regola I, N): Istruzione di verificare solo il saldo del ricevente (Gas-free) e di preparare sempre lo stato (Mint/Approve) prima delle azioni.
+
+--------------------------------------------------------------------------------
+4. RISULTATI SPERIMENTALI
+--------------------------------------------------------------------------------
+Il sistema è stato testato su un dataset eterogeneo (Small/Medium).
+
+- Dataset SMALL (Contratti isolati):
+  - Tasso di Successo: > 90%
+  - Note: Il sistema gestisce perfettamente la logica standard ERC20 e calcoli matematici semplici.
+
+- Dataset MEDIUM (Contratti con dipendenze):
+  - Tasso di Successo: ~40-50%
+  - Fattori di Successo: L'iniezione del codice "flattened" ha risolto la maggior parte dei `TypeError` su funzioni ereditate.
+  - Cause di Fallimento Residue:
+    1. Dipendenze Esterne non risolte (es. Uniswap, Oracoli) che richiederebbero un ambiente di Forking della Mainnet.
+    2. Logica di Business Oscura (es. parametri del costruttore non inferibili staticamente).
+    3. Overflow aritmetici (`Panic 0x11`) in scenari complessi di tassazione dei token.
+
+--------------------------------------------------------------------------------
+5. CONCLUSIONI E SVILUPPI FUTURI
+--------------------------------------------------------------------------------
+Il sistema dimostra che è possibile utilizzare LLM open-source (32B) per automatizzare il testing, a patto di costruire un'infrastruttura di "Prompt Engineering Difensivo".
+L'approccio iterativo (Retry) si è rivelato superiore all'approccio "One-Shot", permettendo il recupero di circa il 40% dei test inizialmente falliti.
+
+Per aumentare la copertura sui contratti "Large/Complex", i futuri sviluppi dovrebbero includere:
+- Integrazione di un simulatore di Forking per dipendenze DeFi esterne.
+- Analisi AST più profonda per identificare variabili private e rimuovere test impossibili a priori.

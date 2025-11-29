@@ -15,7 +15,9 @@ oldstuff/
 # LLM and prompt outputs (large generated files)
 prompts_out/
 prompts_out-old/
+prompts_out_old2/
 llm-out/
+First-Gen/
 llm-out-old/
 dataset/
 scaffolds/

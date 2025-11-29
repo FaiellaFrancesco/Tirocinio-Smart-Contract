@@ -1,0 +1,37 @@
+
+
+══════════════════════════════════════ SMALL
+🏁 RIEPILOGO FINALE
+✅ Successi: 68
+❌ Falliti:  21
+📂 Output Validi:   ./llm-out/valid
+📂 Output Invalidi: ./llm-out/invalid
+
+
+----
+
+🏁 RIEPILOGO FINALE
+✅ Successi: 76
+❌ Falliti:  13
+📂 Output Validi:   ./llm-out/valid
+📂 Output Invalidi: ./llm-out/invalid
+══════════════════════════════════════
+
+
+Il successo di ChadGPT conferma che il prompt e il modello (Qwen/DeepSeek 32B) sono capaci di gestire logica complessa e nomi strani, purché abbiano il codice davanti agli occhi.
+
+I fallimenti sugli altri Medium (quelli con TypeError: is not a function) sono quasi certamente dovuti a codice mancante (file importati non inclusi nel prompt).
+
+Strategia per la Tesi: Puoi categorizzare i contratti Medium in due sottogruppi:
+
+Medium "Self-Contained": (Come ChadGPT). Tutto in un file. Tasso di successo alto.
+
+Medium "Distributed": (Quelli che falliscono). Usano import esterni. Tasso di successo basso senza "Flattener".
+
+Questo è un risultato analitico molto forte. Dimostra che il limite non è il "ragionamento" dell'AI, ma la visibilità del contesto.
+══════════════════════════════════════ MEDIUM 
+🏁 RIEPILOGO FINALE
+✅ Successi: 4
+❌ Falliti:  10
+📂 Output Validi:   ./llm-out/valid
+📂 Output Invalidi: ./llm-out/invalid

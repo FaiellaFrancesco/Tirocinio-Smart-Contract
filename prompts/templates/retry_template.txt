@@ -19,27 +19,21 @@ Use this code as the absolute truth for function names, logic, and events.
   `"{FQN_LABEL}"`
 
 ============================================================
-3. SMART FIXES FOR COMMON ERRORS (READ CAREFULLY)
+3. HEURISTICS FOR ERROR CORRECTION
 ============================================================
-**A. TYPE MISMATCH (BigNumber vs BigInt in .equal):**
+
+### --- TYPE, SYNTAX & ENVIRONMENT ---
+**A. TYPE MISMATCH (BigNumber vs BigInt):**
    - **Rule:** When using `.to.equal()`, convert BOTH values to **String**.
      *GOOD:* `expect((await c.val()).toString()).to.equal("1000");`
 
-**B. NUMERIC MATCHERS (.closeTo / .above / .below):**
-   - **Rule:** Explicitly cast to `Number()` for small values.
+**B. NUMERIC MATCHERS:**
+   - **Rule:** Matchers like `.closeTo` require native Numbers. Explicitly cast small values.
      *FIX:* `expect(Number(await c.val())).to.be.closeTo(expected, 5);`
 
-**C. FORBIDDEN MATCHERS (STRICT):**
+**C. FORBIDDEN MATCHERS (NO WAFFLE):**
    - Do **NOT** use `.emit(...)` or `.revertedWith(...)`.
-   - **FOR REVERTS:** Use `try/catch` blocks.
-     ```typescript
-     try {
-       await contract.connect(addr1).method();
-       expect.fail("Expected transaction to revert");
-     } catch (error) {
-       expect(error.message).to.include("Revert Reason"); // Or just check it reverted
-     }
-     ```
+   - **FIX:** Use `try/catch` blocks for reverts. Check event arguments manually from `receipt.events`.
 
 **D. SCIENTIFIC NOTATION ERROR ('1e+24'):**
    - **FIX:** Use TypeScript **BigInt literals** (suffix `n`). `1000000n * 10n**18n`.
@@ -49,21 +43,75 @@ Use this code as the absolute truth for function names, logic, and events.
    - **FIX:** Access `.deployTransaction` to get the receipt in Ethers v5.
      *GOOD:* `const receipt = await contract.deployTransaction.wait();`
 
-**G. SECURITY FALSE POSITIVES (Stubborn Auditor Problem):**
-   - **Error:** `AssertionError: expected 'Expected transaction to be reverted' ...`
-   - **Meaning:** The transaction SUCCEEDED, but you expected it to fail.
-   - **Cause:** You assumed `onlyOwner` existed, but the function is `public` in the source code.
-   - **FIX:** **STOP trying to make it fail.** Change the test to verify that `addr1` CAN successfully call the function (Happy Path), or delete the test case entirely. Trust the source code, not your assumptions.
+**K. CONSTRUCTOR MISMATCH:**
+   - **Error:** `too many arguments: in Contract constructor`
+   - **FIX:** Rely ONLY on the `constructor` definition in the provided SOURCE CODE. Ignore any other instructions about parameters if they conflict with the code.
 
-**H. TOTAL SUPPLY / BALANCE MISMATCH (The "Zero Counting" Fix):**
-   - **Error:** `expected '3100...00' to equal '31...00'` (Actual has more/less zeros than Expected).
-   - **Cause:** You miscounted the zeros when hardcoding the expected value.
-   - **FIX (Dynamic Strategy):** Do NOT hardcode the number for balance checks.
-     Instead, compare against the contract's `totalSupply()`.
-     *BAD:* `expect(await token.balanceOf(owner)).to.equal("31000000000000000000");`
-     *GOOD:* `expect(await token.balanceOf(owner)).to.equal(await token.totalSupply());`
-   - **FIX (Static Strategy):** If you MUST check the exact `totalSupply`, copy the multiplication logic from Solidity using BigInts.
-     *Solidity:* `31000 * 10**18` -> *TS:* `31000n * 10n**18n`.
+**R. MISSING ARTIFACT (Mocking):**
+   - **Error:** `Artifact for contract "Mock..." not found`
+   - **FIX:** Do NOT try to deploy Mocks (`MockERC20`) unless they exist in the source code. Use a signer address (`owner.address`) if the constructor just needs an address.
+
+### --- LOGIC, EVM & HALLUCINATIONS ---
+**J. "IS NOT A FUNCTION" / UNDEFINED PROPERTY:**
+   - **Error:** `contract.x is not a function` or `undefined`.
+   - **Action:** Check the Source Code. Is the variable `public`?
+     * **YES:** Fix the typo.
+     * **NO:** **REMOVE THE TEST CASE.** Do not test internal logic directly.
+
+**G. FALSE SECURITY POSITIVES:**
+   - **Error:** `AssertionError: expected 'Expected revert not received' ...`
+   - **Analysis:** You wrote a test expecting a revert, but the transaction succeeded.
+   - **Action:** Check the Source Code. Does the function have `onlyOwner` or `require`?
+     * **YES:** Fix the caller address.
+     * **NO (Public function):** The test assumption is wrong. **REMOVE THE TEST CASE**.
+
+**H. SUPPLY MISMATCH:**
+   - **Rule:** Do not hardcode expected values. Use dynamic checks: `expect(bal).to.equal(await token.totalSupply())`.
+
+**I. NATIVE ETH COSTS (Withdrawal Trap):**
+   - **Rule:** Do not check `sender` ETH balance (unpredictable gas).
+   - **FIX:** Check that the **CONTRACT'S balance decreased** to 0 or verify the `recipient` balance.
+
+**L. STATE CHANGE MISMATCH:**
+   - **Error:** `expected '5000...' to equal '0'` (Value did not change).
+   - **FIX:** Check source code. If logic doesn't change state, remove the assertion.
+
+**M. MISSING EVENTS IN RECEIVE/FALLBACK:**
+   - **Error:** `expected undefined not to be undefined` (when looking for events).
+   - **FIX:** Do not assert event emission for direct ETH transfers unless you see `emit` in the source code.
+
+**N. STATE SETUP FAILURE (Reverts):**
+   - **Error:** `reverted with reason string 'Insufficient balance'` / `No voters registered`
+   - **FIX:** Ensure you call `mint`, `approve`, or `register` BEFORE the failing action in the test.
+
+**O. AMBIGUOUS ARTIFACT (HH701):**
+   - **Error:** `Multiple artifacts for contract "ERC20"`.
+   - **FIX:** Do NOT deploy generic contracts. Use the FQN provided above.
+
+**P. PANIC CODE 0x11 (Arithmetic Overflow/Underflow):**
+   - **Error:** `reverted with panic code 0x11`
+   - **FIX:** Check `balanceOf(sender)` before transfer. Use `mint` to fund the sender first.
+
+**Q. UNEXPECTED DATA / VOID FUNCTIONS:**
+   - **Error:** `function returned an unexpected amount of data`
+   - **FIX:** Do not assign the result of the function call to a variable if it returns nothing. Just `await contract.method()`.
+
+### --- LATEST FIXES (ETHSplitter & Permissions) ---
+**T. ACCESS DENIED / NOT OWNER:**
+   - **Error:** `reverted with custom error 'NotOwner()'` or `Ownable: caller is not the owner`.
+   - **Cause:** You called an admin function using the default signer.
+   - **FIX:** Always use `.connect(owner)` before calling the function.
+     *GOOD:* `await contract.connect(owner).functionName(...)`
+
+**U. REVERT MESSAGE MISMATCH (The "Green Pass" Rule):**
+   - **Error:** `expected ... to include 'SomeError'` (but got a different error).
+   - **Cause:** You hallucinated the error string OR Hardhat cannot decode the Custom Error.
+   - **FIX:** **REMOVE the specific error message check.** Just check that it reverted.
+     *GOOD:* `await expect(...).to.be.reverted;` (Guarantees a PASS if it reverts for ANY reason).
+
+**V. NEGATIVE BALANCE / GAS MATH:**
+   - **Error:** `expected '-1500...' to equal '0'`
+   - **FIX:** Do NOT verify sender balance for ETH transactions. Verify `contract` balance or `recipient` balance only.
 
 ============================================================
 4. THE FAILED TEST CODE
@@ -80,7 +128,7 @@ Here is the output from the Hardhat test runner. Use this to pinpoint the exact 
 ============================================================
 INSTRUCTIONS FOR CORRECTION
 ============================================================
-1. Analyze the Error Log carefully.
+1. Analyze the Error Log carefully against the Source Code.
 2. Apply the "SMART FIXES" listed above.
 3. Rewrite the COMPLETE test file (`.spec.ts`) from scratch.
 4. Ensure the critical FQN `"{FQN_LABEL}"` is used.

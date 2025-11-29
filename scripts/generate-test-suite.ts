@@ -70,7 +70,7 @@ async function callRemoteOllama(model: string, prompt: string): Promise<{ succes
         model,
         prompt,
         // Parametri ottimizzati per codice
-        options: { temperature: 0.1, top_k: 10, top_p: 0.8, num_predict: 8192, num_ctx: 10000 },
+        options: { temperature: 0.1, top_k: 10, top_p: 0.8, num_predict: 8192, num_ctx: 32768 /*10000*/ },
         stream: false
       }),
       signal: controller.signal

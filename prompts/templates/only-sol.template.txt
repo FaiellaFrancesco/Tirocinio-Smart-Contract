@@ -26,7 +26,7 @@ The execution environment is strict. You must adhere to these anti-patterns to a
 * Use `loadFixture` from `@nomicfoundation/hardhat-network-helpers` for performance.
 * **Constructor Analysis:**
     * Params required: `{CTOR_PARAMS}`
-    * **Logic:** specificare valori validi (non nulli). Se il contratto richiede indirizzi, usa `owner.address` o `addr1.address`. Se richiede numeri, usa valori che rispettano i `require` nel costruttore.
+    * **Logic:** Provide valid, non-null values. If the contract requires addresses, use `owner.address` or `addr1.address`. If it requires numbers, use valid integers that satisfy any `require` statements in the constructor.
 
 ### 4. TEST COVERAGE REQUIREMENTS
 Structure your test suite with these `describe` blocks:
@@ -36,11 +36,13 @@ Structure your test suite with these `describe` blocks:
     * **Logic Check:** BEFORE writing a test for `transferFrom`, check the source code. Does it use `allowance`?
     * **YES (ERC20 Logic):** You MUST call `approve` on the holder account BEFORE calling `transferFrom`.
     * **NO (Custom Logic):** Do not force `approve` if the contract does not require it.
+    * Assert state changes explicitly (balances updated, mappings changed).
 3.  **Access Control & Security:**
     * **Logic Check:** Look at the function modifiers.
     * **IF** `onlyOwner` or `require(msg.sender == ...)` exists: Write a test expecting a revert from an unauthorized account.
     * **IF** function is `public` with NO checks: Do NOT write a revert test. Assume it is intentionally public.
 4.  **Edge Cases & Reverts:** Test conditions that trigger explicit `require` statements found in the code.
+
 ### 5. SOURCE CODE ANALYSIS
 Analyze the following contract to understand state variables, events, and logic:
 
