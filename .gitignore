@@ -24,6 +24,7 @@ scaffolds/
 prompts_out_scaffold/
 Second_Gen/
 sumo_lab/
+sumo/
 # Misc
 .DS_Store
 .vscode/

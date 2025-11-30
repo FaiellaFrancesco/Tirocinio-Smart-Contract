@@ -150,3 +150,12 @@ Note per la tesi (lezioni apprese)
 
       
    
+
+Mutation Testing completed in 13 hours, 29 minutes and 24 seconds 👋
+SuMo generated 6290 mutants: 
+- 2272 live; 
+- 3953 killed; 
+- 65 stillborn; 
+- 0 timed-out. 
+
+Mutation Score: 63.50 %

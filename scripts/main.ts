@@ -3,7 +3,7 @@ import path from "path";
 
 /**
  * main.ts (Pipeline Orchestrator)
- *
+ * 
  * OBIETTIVO:
  * Questo script funge da "Centro di Comando" per l'intera tesi. Automatizza l'esecuzione sequenziale
  * di tutti i passaggi necessari per passare dai contratti grezzi ai test validati.

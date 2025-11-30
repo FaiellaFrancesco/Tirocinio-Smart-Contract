@@ -32,8 +32,8 @@ const config: HardhatUserConfig = {
   },
   paths: {
     //sources: "./contracts",
-    sources: "./dataset",
-    tests: "./test",
+    sources: "./sumo_lab/contracts",
+    tests: "./sumo_lab/test",
     cache: "./cache",
     artifacts: "./artifacts"
   },
