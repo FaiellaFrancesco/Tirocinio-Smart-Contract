@@ -1,0 +1,88 @@
+RESOCONTO ATTIVITÀ SPERIMENTALI E METODOLOGICHE (FASE 1)
+Data: 18 Novembre 2025
+
+I. OBIETTIVO GENERALE E CONTESTO
+--------------------------------------------------
+Obiettivo: Valutare la robustezza (tramite Mutation Score) e la qualità dei test unitari per smart contract Solidity generati da LLM.
+
+Dataset: Contratti Solidity con versioni eterogenee (da 0.5.x a 0.8.x), suddivisi per dimensione (small, medium, large).
+Modello LLM: Qwen2.5-Coder:32B (accesso remoto via Ollama/ngrok).
+Ambiente di Testing: Hardhat configurato per Ethers v5.
+
+II. SVILUPPO DELLA PIPELINE (SCRIPT)
+--------------------------------------------------
+
+1. RISOLUZIONE DELLE SFIDE PRELIMINARI:
+   - Gestione Multi-Versione Solidity: Configurazione di 'hardhat.config.ts' per supportare tutti i compilatori richiesti dal dataset (0.5.x, 0.6.x, 0.7.x, 0.8.x).
+   - Allineamento API Ethers: La pipeline è stata allineata forzatamente a Ethers v5, eliminando ogni riferimento e incoerenza con Ethers v6/BigInt.
+
+2. SCRIPT DI PREPARAZIONE ('build-prompts.ts'):
+   - Funzione: Creazione di Prompt Dinamico.
+   - Output: Generazione di un prompt in formato testo puro (.txt) altamente vincolante per il modello Qwen.
+   - Metadati Dinamici:
+     - {SOL_VERSION}: Estratto dal pragma del contratto sorgente.
+     - {CTOR_PARAMS}: Estratto dall'artifact JSON per i parametri del costruttore.
+     - Vincolo Ethers V5: Istruzione esplicita per l'uso di 'ethers.BigNumber.from()' (NON BigInt) per coerenza ambientale.
+
+3. SCRIPT DI ESECUZIONE E VALIDAZIONE ('run-all-v5-clean.ts'):
+   - Funzione: Orchestrazione dell'intero processo (LLM Call -> Validazione -> Routing).
+   - Logica Ollama: Implementata la chiamata HTTP con gestione del timeout e parsing del formato di streaming/NDJSON.
+   - Normalizzazione Import (Fix V5/Hardhat): Correzione aggressiva della riga di importazione nel codice LLM, forzando 'import { ethers } from "hardhat";' per garantire l'esecuzione.
+   - VALIDAZIONE FINALE (Runtime): Il criterio di successo è spostato sull'esecuzione effettiva. Il test è valido solo se 'npx hardhat test' viene eseguito con successo e stampa 'passing tests' (assenza di 'failing tests').
+   - Routing:
+     - Successo (Test Funzionante): Salvataggio in './llm-out/valid'.
+     - Fallimento (Errore Compilazione/Runtime): Salvataggio in './llm-out/invalid' + log di errore di Hardhat.
+
+III. STATO ATTUALE
+La pipeline è tecnicamente stabile. Il prompt è allineato a V5, il runner è resiliente e la validazione è basata sul runtime effettivo. La prossima attività è l'esecuzione in batch sull'intero dataset per generare il corpo di test suite da analizzare con le tecniche di Mutation Testing.
+
+AGGIORNAMENTO DETTAGLIATO (18-11-2025) — Modifiche eseguite dall'assistente:
+-----------------------------------------------------------------------
+- Scopo: rendere il pipeline di generazione/validazione test LLM compatibile con ethers v5
+   e migliorare la robustezza delle chiamate al modello remoto (Ollama).
+
+- File modificati:
+   - `scripts/generate-test-suite.ts`
+      - Aggiunta gestione di risposte NDJSON e fallback JSON nella funzione di chiamata a Ollama
+         (ora prova a parsare sia linee JSON multiple che un singolo JSON nell'intero body).
+      - Implementata una semplice logica di retry (3 tentativi) quando la chiamata a Ollama fallisce,
+         con backoff incrementale tra i tentativi.
+      - Normalizzazione del contenuto TypeScript generato: gli import da `ethers` vengono sostituiti
+         con `import { ethers } from "hardhat";` prima dell'esecuzione per garantire compatibilità
+         con l'ambiente Hardhat + ethers v5.
+      - Ora la validazione esegue il test su un file temporaneo unico per esecuzione
+         (`test/temp_llm_test_<timestamp>_<rand>.spec.ts`) per evitare collisioni e aiutare il debug.
+      - La funzione `validateRuntime` restituisce il contenuto normalizzato effettivamente eseguito
+         e questo viene salvato nelle cartelle `llm-out/valid` o `llm-out/invalid` così da preservare
+         la versione esatta usata per la validazione.
+
+- File secondari e script già modificati in precedenza (contesto):
+   - `scripts/build-prompts.ts`
+      - Migliorato il rilevamento del file `.sol` corrispondente allo scaffold e aggiunta estrazione
+         dei parametri del costruttore dal sorgente quando l'ABI non è disponibile.
+      - Supporto a più varianti di placeholder nei template: `{SOLIDITY_VERSION}`, `{SOL_VERSION}`,
+         `{CTOR_PARAMS}`, `{CONSTRUCTOR_PARAMS}`, `{CTOR}`, `{ETHERS_VERSION}`.
+   - `prompts/templates/only-sol.template.txt` (e `sol-and-scaffold.txt`)
+      - Aggiornati i template per istruire esplicitamente il modello a generare test compatibili con
+         ethers v5: import `@nomiclabs/hardhat-waffle`, evitare `loadFixture`, usare matchers compatibili
+         con chai v4 / waffle, e gestire correttamente BigNumber vs primitive.
+
+- Motivazioni e impatto:
+   - Alcuni moduli più recenti (@nomicfoundation) richiedono ethers v6; l'obiettivo è invece mantenere
+      il progetto su ethers v5 (con TypeChain target `ethers-v5`). Le modifiche ai template e alla
+      normalizzazione riducono i falsi negativi dovuti a codice generato non compatibile (es. `loadFixture`,
+      import da `@nomicfoundation/...`).
+   - Salvare il contenuto normalizzato migliora riproducibilità e debugging: il test che passa è
+      esattamente quello salvato in `llm-out/valid`.
+
+- Prossimi passi eseguibili (consigliati):
+   1. Eseguire un controllo rapido di TypeScript/transpile (`npx ts-node --transpile-only scripts/generate-test-suite.ts`) per
+       verificare assenza di errori di sintassi sullo script modificato.
+   2. Eseguire `npx ts-node scripts/generate-test-suite.ts --promptsFolder=prompts_out/small --model=<model>`
+       su 1-3 prompt per test end-to-end (richiede `OLLAMA_URL` configurato).
+   3. Se si prevede di processare grandi batch, aggiungere rate-limiting o un queue worker per evitare
+       sovraccarichi su Ollama e per parallelizzare in modo sicuro.
+
+Breve nota operativa: durante l'esecuzione dello script `build-prompts.ts` sono stati generati 1555 prompt
+usando il template `prompts/templates/only-sol.template.txt` (log console). Questo è normale quando si
+rigenera la base di prompt per tutti gli scaffold.

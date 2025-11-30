@@ -1,4 +1,5 @@
-import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-ethers";
+import "@typechain/hardhat";
 import "@nomicfoundation/hardhat-network-helpers";
 import { HardhatUserConfig } from "hardhat/config";
 
@@ -30,14 +31,15 @@ const config: HardhatUserConfig = {
     localhost: { url: "http://127.0.0.1:8545" }
   },
   paths: {
-    sources: "./contracts",
-    tests: "./test",
+    //sources: "./contracts",
+    sources: "./sumo_lab/contracts",
+    tests: "./sumo_lab/test",
     cache: "./cache",
     artifacts: "./artifacts"
   },
   typechain: {
     outDir: "typechain-types",
-    target: "ethers-v6"
+    target: "ethers-v5"
   }
 };
 

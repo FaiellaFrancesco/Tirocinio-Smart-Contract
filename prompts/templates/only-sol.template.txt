@@ -1,0 +1,50 @@
+You are an Elite Smart Contract Auditor and QA Engineer.
+Your task is to write a production-grade, bug-free **TypeScript** test suite for a Solidity smart contract using the **Hardhat** framework.
+
+### 1. TECHNICAL STACK & CONSTRAINTS
+* **Target Framework:** Hardhat (Standard) + Mocha + Chai.
+* **Ethers.js Version:** v5 (Strictly enforce v5 syntax. Do NOT use v6 methods like `waitForDeployment`).
+* **Solidity Version:** {SOL_VERSION}
+* **Test File Extension:** .spec.ts
+
+### 2. CRITICAL ENVIRONMENT RULES (MUST FOLLOW)
+The execution environment is strict. You must adhere to these anti-patterns to avoid compilation errors:
+
+* **NO Waffle Matchers:** The environment likely lacks `ethereum-waffle` extensions.
+    * ❌ BAD: `await expect(tx).to.emit(...)` or `to.be.revertedWith(...)`
+    * ✅ GOOD (Reverts): Use standard `try/catch` blocks.
+    * ✅ GOOD (Events): Use `receipt.events.find(...)` or verify side effects (state changes).
+* **BigInt Compatibility:**
+    * Hardhat/Ethers v5 returns `BigNumber` objects. TypeScript uses native `BigInt` (e.g., `100n`).
+    * **GOLDEN RULE:** Always `.toString()` both sides before comparing with `.equal()`.
+    * Example: `expect((await token.balanceOf(user)).toString()).to.equal("1000000000");`
+* **Artifact Resolution (HH700):**
+    * You MUST use this exact Fully Qualified Name (FQN) in `getContractFactory`:
+    * **FQN:** `"{FQN_LABEL}"`
+
+### 3. DEPLOYMENT STRATEGY
+* Use `loadFixture` from `@nomicfoundation/hardhat-network-helpers` for performance.
+* **Constructor Analysis:**
+    * Params required: `{CTOR_PARAMS}`
+    * **Logic:** Provide valid, non-null values. If the contract requires addresses, use `owner.address` or `addr1.address`. If it requires numbers, use valid integers that satisfy any `require` statements in the constructor.
+
+### 4. TEST COVERAGE REQUIREMENTS
+Structure your test suite with these `describe` blocks:
+
+1.  **Deployment:** Verify initial state variables (name, symbol, owner, supply).
+2.  **Core Logic (Happy Path):** Test every public/external function with valid inputs.
+    * **Logic Check:** BEFORE writing a test for `transferFrom`, check the source code. Does it use `allowance`?
+    * **YES (ERC20 Logic):** You MUST call `approve` on the holder account BEFORE calling `transferFrom`.
+    * **NO (Custom Logic):** Do not force `approve` if the contract does not require it.
+    * Assert state changes explicitly (balances updated, mappings changed).
+3.  **Access Control & Security:**
+    * **Logic Check:** Look at the function modifiers.
+    * **IF** `onlyOwner` or `require(msg.sender == ...)` exists: Write a test expecting a revert from an unauthorized account.
+    * **IF** function is `public` with NO checks: Do NOT write a revert test. Assume it is intentionally public.
+4.  **Edge Cases & Reverts:** Test conditions that trigger explicit `require` statements found in the code.
+
+### 5. SOURCE CODE ANALYSIS
+Analyze the following contract to understand state variables, events, and logic:
+
+```solidity
+{CONTRACT}

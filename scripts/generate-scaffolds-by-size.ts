@@ -1,245 +1,279 @@
+#!/usr/bin/env ts-node
 /**
- * USAGE: Generates test scaffolds for all Solidity contracts, organized by size.
+ * generate-scaffolds-by-size.ts
  *
- * Quick start:
- *   npx ts-node scripts/generate-scaffolds-by-size.ts
+ * Genera scaffold di test per OGNI contratto trovato nei dataset suddivisi per size.
+ * Estrae i nomi dei contratti, le funzioni pubbliche/esterne e i require tramite solc (fallback regex).
+ * Produce uno scaffold pulito, ordinato e perfetto per la generazione LLM di test completi.
  *
- * Options:
- *   [artifacts-path]   Hardhat artifacts root path (default: ./artifacts/contracts)
- *   [output-path]      Output folder for test scaffolds (default: ./scaffolds)
- *   --include=regex    Only contracts matching the regex
- *
- * Examples:
- *   npx ts-node scripts/generate-scaffolds-by-size.ts
- *   npx ts-node scripts/generate-scaffolds-by-size.ts artifacts/contracts scaffolds --include=Token
- *
- * The output folder is deleted and recreated on each run.
- * Generated files contain test stubs for every function, comments for events/errors, and TODO_AI blocks for LLM completion.
+ * OUTPUT:
+ *   scaffolds/<size>/<ContractName>.scaffold.ts
  */
 
 import * as fs from "fs";
 import * as path from "path";
+import solc from "solc";
 
-const DEFAULT_ARTIFACTS_ROOT = "./artifacts/contracts";
-const DEFAULT_OUTDIR = "./scaffolds";
+// Percorsi dataset + contracts
+const DATASET_DIR = "dataset";
+const CONTRACTS_DIR = "contracts";
+const SIZES = ["small", "medium", "large"];
 
+// Output scaffolds
+const OUTPUT_DIR = "scaffolds";
 
-interface AbiItem {
-  type: string;
-  name?: string;
-  inputs?: any[];
-  stateMutability?: string;
-}
-interface ArtifactJson {
-  contractName?: string;
-  sourceName?: string;
-  abi?: AbiItem[];
-  bytecode?: string; // "0x..." se deployabile, "0x" se interfaccia/astratto
+// Pulizia nome contratto
+function sanitizeName(name: string): string {
+  return name.replace(/[^A-Za-z0-9_]/g, "");
 }
 
-function isReadableFile(filepath: string): boolean {
-  try {
-    return fs.statSync(filepath).isFile() && !path.basename(filepath).startsWith(".");
-  } catch { return false; }
+// Cerca funzioni pubbliche/esterne via regex
+function extractFunctionsRegex(src: string): string[] {
+  const matches = [...src.matchAll(/function\s+([A-Za-z0-9_]+)\s*\([^)]*\)\s*(?:public|external)/g)];
+  return matches.map(m => m[1]);
 }
 
-function tsDefaultFor(solType: string): string {
-  if (solType.endsWith("[]")) return "[] /* TODO_AI */";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "1n /* TODO_AI */";
-  if (solType === "address") return "addr1.address /* TODO_AI */";
-  if (solType === "bool") return "true /* TODO_AI */";
-  if (solType === "string") return '"example" /* TODO_AI */';
-  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
-  if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
-  if (solType.startsWith("tuple")) return "{ /* TODO_AI tuple */ }";
-  return "/* TODO_AI */";
-}
-function badTsDefaultFor(solType: string): string {
-  // "edge/zero" arguments valid at syntax level
-  if (solType.endsWith("[]")) return "[] /* TODO_AI: make invalid/edge */";
-  if (solType.startsWith("uint") || solType.startsWith("int")) return "0n /* TODO_AI: make invalid/edge */";
-  if (solType === "bool") return "false /* TODO_AI */";
-  if (solType === "address") return '"0x0000000000000000000000000000000000000000" /* TODO_AI: use zero/unauthorized */';
-  if (solType.startsWith("bytes32")) return `"0x${"00".repeat(64)}" /* TODO_AI */`;
-  if (solType.startsWith("bytes")) return '"0x" /* TODO_AI */';
-  if (solType === "string") return '"" /* TODO_AI */';
-  if (solType.startsWith("tuple")) return "{ /* TODO_AI invalid tuple */ }";
-  return tsDefaultFor(solType);
+// Estrai require + messaggi
+function extractRevertsRegex(src: string): Array<{ func: string; msg: string }> {
+  const results: Array<{ func: string; msg: string }> = [];
+
+  const functionBlocks = [...src.matchAll(/function\s+([A-Za-z0-9_]+)[\s\S]*?{([\s\S]*?)}/g)];
+
+  for (const match of functionBlocks) {
+    const func = match[1];
+    const body = match[2];
+    const reverts = [...body.matchAll(/require\s*\([^,]+,\s*["'`](.*?)["'`]\)/g)];
+    for (const r of reverts) {
+      results.push({ func, msg: r[1] });
+    }
+  }
+
+  return results;
 }
 
-function signatureOf(name: string, inputs: any[]): string {
-  const t = (inputs ?? []).map((i: any) => i.type).join(",");
-  return `${name}(${t})`;
+// Estrai nomi contratti
+function extractContractsRegex(src: string): string[] {
+  const matches = [...src.matchAll(/contract\s+([A-Za-z0-9_]+)/g)];
+  return matches.map(m => m[1]);
 }
 
-function renderFunctionBlock(fn: AbiItem): string {
-  const name = fn.name!;
-  const sig = signatureOf(name, fn.inputs || []);
-  const argsList = (fn.inputs || []).map(i => tsDefaultFor(i.type)).join(", ");
-  const isView = fn.stateMutability === "view" || fn.stateMutability === "pure";
-  const isPayable = fn.stateMutability === "payable";
-  const callLine = isView
-    ? `await contract.${name}(${argsList})`
-    : `await contract.${name}(${argsList}${isPayable ? (argsList ? ", " : "") + "{ value: 1n /* TODO_AI in wei */ }" : ""})`;
-  const expectLine = isView
-    ? `// TODO_AI: expect(await contract.${name}(${argsList})).to.equal(/* atteso */);`
-    : `// TODO_AI: verifica stato/eventi dopo la tx`;
-  const badArgs = (fn.inputs || []).map((i: any) => badTsDefaultFor(i.type)).join(", ");
-  const stateComment = isView ? "// read-only call" : "// state-changing transaction";
-
-  return `
-  describe("${sig}", function () {
-    it("happy path", async function () {
-      const { contract, owner, addr1, addr2 } = await loadFixture(deployFixture);
-      ${isView ? "// read-only call" : "// state-changing transaction"}
-      const result = ${callLine};
-      ${expectLine}
-    });
-
-    it("reverts on invalid input/role", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      await expect(
-        contract.${name}(${badArgs})
-      ).to.be.reverted; // TODO_AI: .with("MESSAGE")
-    });
-
-    it("boundary cases", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      // TODO_AI: 0, max, address(0), role limits, etc.
-    });
-
-    // TODO_AI: if emits events: await expect(tx).to.emit(contract, "Event").withArgs(...)
-  });
-`;
-}
-
-function renderFile(contractName: string, abi: AbiItem[]): string {
-  const fns = abi.filter(a => a.type === "function" && a.name);
-  const events = abi.filter(a => a.type === "event").map(e => (e as any).name).join(", ") || "—";
-  const ctor = abi.find(a => a.type === "constructor");
-  const ctorArgs = (ctor?.inputs || []).map(i => tsDefaultFor(i.type as string)).join(", ");
-
-  return `import { expect } from "chai";
+// Scaffold generator
+function generateScaffold(
+  contractName: string,
+  functions: string[],
+  reverts: Array<{ func: string; msg: string }>
+): string {
+  let out = `
 import { ethers } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { expect } from "chai";
 
-  /**
-   * Scaffold automatically generated for ${contractName}.
-   * Blocks marked // TODO_AI must be completed by the LLM.
-   */
-
-  describe("${contractName} — LLM Scaffold", function () {
-    async function deployFixture() {
-      const [owner, addr1, addr2] = await ethers.getSigners();
-      const Factory = await ethers.getContractFactory("${contractName}");
-      // TODO_AI: complete constructor parameters if present
-      const contract = await Factory.deploy();
-      await contract.waitForDeployment();
-      return { contract, owner, addr1, addr2 };
-    }
-
-    it("basic deployment", async function () {
-      const { contract } = await loadFixture(deployFixture);
-      expect(await contract.getAddress()).to.properAddress;
-    });
-
-    // Events in ABI: ${events}
-
-    ${fns.map(renderFunctionBlock).join("\n")}
-  });
+describe("${contractName}", function () {
+  async function deployFixture() {
+    const factory = await ethers.getContractFactory("${contractName}");
+    const contract = await factory.deploy();
+    return { contract };
+  }
 `;
+
+  // Descrizioni funzioni
+  for (const fn of functions) {
+    out += `
+  describe("${fn}", function () {
+    it("should execute ${fn}");
+`;
+
+    for (const r of reverts.filter(e => e.func === fn)) {
+      out += `    it("should revert: ${r.msg}");\n`;
+    }
+
+    out += `  });\n`;
+  }
+
+  out += `
+});
+`;
+
+  return out;
 }
 
-function slugFromSource(sourceName?: string): string | null {
-  if (!sourceName) return null;
-  // e.g. "contracts/tokens/v2/Token.sol" -> "tokens__v2__Token"
-  const parts = sourceName.replace(/^contracts\//, "").replace(/\.sol$/, "").split("/");
-  return parts.join("__");
-}
+// Compila con solc — fallback regex se fallisce
+function analyzeContractSolc(source: string): { contracts: any; abi: Record<string, any[]> } | null {
+  try {
+    const input = {
+      language: "Solidity",
+      sources: { "C.sol": { content: source } },
+      settings: {
+        optimizer: { enabled: false },
+        outputSelection: { "*": { "*": ["abi"] } }
+      }
+    };
 
-function removeOutputBase(outDirBase: string) {
-  if (fs.existsSync(outDirBase)) {
-    fs.rmSync(outDirBase, { recursive: true, force: true });
+    const output = JSON.parse(solc.compile(JSON.stringify(input)));
+
+    if (!output.contracts || !output.contracts["C.sol"]) return null;
+
+    const names = Object.keys(output.contracts["C.sol"]);
+    const abiMap: Record<string, any[]> = {};
+
+    for (const name of names) {
+      abiMap[name] = output.contracts["C.sol"][name].abi || [];
+    }
+
+    return { contracts: names, abi: abiMap };
+  } catch {
+    return null;
   }
 }
 
-function main() {
-  const args = process.argv.slice(2);
-  const artifactsRoot = args[0] && !args[0].startsWith("--") ? args[0] : DEFAULT_ARTIFACTS_ROOT;
-  // Directory base per output
-  const outDirBase = args[1] && !args[1].startsWith("--") ? args[1] : DEFAULT_OUTDIR;
-  removeOutputBase(outDirBase);
-  const outDirs = {
-    empty: path.join(outDirBase, "empty"),
-    small: path.join(outDirBase, "small"),
-    medium: path.join(outDirBase, "medium"),
-    large: path.join(outDirBase, "large"),
-  };
-  // Crea solo le cartelle di destinazione effettive
-  // Nessuna cartella "scaffold-by-size" o simili
-  Object.values(outDirs).forEach(dir => fs.mkdirSync(dir, { recursive: true }));
-  const includeReArg = args.find(a => a.startsWith("--include="));
-  const includeRe = includeReArg ? new RegExp(includeReArg.split("=")[1]) : null;
+async function main() {
+  const argv = process.argv.slice(2);
+  const LIMIT_ARG = argv.find((a) => a.startsWith("--limit="));
+  const LIMIT = LIMIT_ARG ? parseInt(LIMIT_ARG.split("=")[1], 10) || 0 : 0;
+  const FORCE = argv.includes("--force");
 
-  if (!fs.existsSync(artifactsRoot) || !fs.statSync(artifactsRoot).isDirectory()) {
-    console.error("❌ Artifact folder not found: " + artifactsRoot);
-    process.exit(1);
-  }
-  fs.mkdirSync(outDirBase, { recursive: true });
+  let totalContracts = 0;
+  let totalScaffolds = 0;
+  let solcSuccess = 0;
+  let solcFail = 0;
 
-  let count = 0, skipped = 0;
+  const generated = new Set<string>(); // track generated contract names
 
-  function scanDir(dir: string) {
-    const entries = fs.readdirSync(dir);
-    for (const entry of entries) {
-      if (entry.endsWith(".dbg.json")) continue; // ignora debug
-      const fullPath = path.join(dir, entry);
-      const stat = fs.statSync(fullPath);
+  for (const size of SIZES) {
+    const sizeDir = path.join(DATASET_DIR, size);
+    if (!fs.existsSync(sizeDir)) continue;
 
-      if (stat.isDirectory()) {
-        scanDir(fullPath);
-        continue;
-      }
-      if (!entry.endsWith(".json") || !isReadableFile(fullPath)) continue;
+    const outDir = path.join(OUTPUT_DIR, size);
+    fs.mkdirSync(outDir, { recursive: true });
 
-      const rawData = fs.readFileSync(fullPath, "utf-8");
-      let art: ArtifactJson;
-      try { art = JSON.parse(rawData) as ArtifactJson; }
-      catch { continue; }
+    const files = fs.readdirSync(sizeDir).filter(f => f.endsWith(".sol"));
 
-  // Minimum requirement: ABI present
-  if (!art.abi || !Array.isArray(art.abi) || art.abi.length === 0) { skipped++; continue; }
-  // Key filter: only deployable contracts (no interfaces/libraries/abstract)
-  if (typeof art.bytecode !== "string" || art.bytecode === "0x") { skipped++; continue; }
+    for (const file of files) {
+      const filePath = path.join(sizeDir, file);
+      const source = fs.readFileSync(filePath, "utf8");
 
-  const name = (art.contractName ?? path.basename(entry, ".json")).trim();
-  if (includeRe && !includeRe.test(name)) { skipped++; continue; }
+      // Tenta solc
+      const solcResult = analyzeContractSolc(source);
 
-  // Determine output folder by source path
-  let sizeFolder: string | undefined = undefined;
-  if (art.sourceName?.includes("/empty/")) sizeFolder = "empty";
-  else if (art.sourceName?.includes("/small/")) sizeFolder = "small";
-  else if (art.sourceName?.includes("/medium/")) sizeFolder = "medium";
-  else if (art.sourceName?.includes("/large/")) sizeFolder = "large";
-  const outDir = sizeFolder ? outDirs[sizeFolder] : outDirBase;
+      let contractNames: string[] = [];
+      let functionsByContract: Record<string, string[]> = {};
+      let revertsByContract: Record<string, Array<{ func: string; msg: string }>> = {};
 
-      // Avoid overwriting if duplicates exist
-      let outPath = path.join(outDir, `${name}.scaffold.spec.ts`);
-      if (isReadableFile(outPath)) {
-        const slug = slugFromSource(art.sourceName) ?? path.basename(fullPath, ".json");
-        outPath = path.join(outDir, `${name}__${slug}.scaffold.spec.ts`);
+      if (solcResult) {
+        solcSuccess++;
+        contractNames = solcResult.contracts;
+
+        for (const cname of contractNames) {
+          const abi = solcResult.abi[cname] || [];
+          functionsByContract[cname] = abi
+            .filter(x => x.type === "function")
+            .map(f => f.name);
+
+          revertsByContract[cname] = extractRevertsRegex(source);
+        }
+      } else {
+        solcFail++;
+        // fallback regex
+        contractNames = extractContractsRegex(source);
+
+        for (const cname of contractNames) {
+          functionsByContract[cname] = extractFunctionsRegex(source);
+          revertsByContract[cname] = extractRevertsRegex(source);
+        }
       }
 
-      const content = renderFile(name, art.abi as AbiItem[]);
-      fs.writeFileSync(outPath, content, "utf-8");
-      console.log(`✅ ${name}  →  ${outPath}`);
-      count++;
+      for (const cname of contractNames) {
+        totalContracts++;
+        if (LIMIT > 0 && totalContracts > LIMIT) break;
+        if (generated.has(cname) && !FORCE) continue;
+
+        const scaffoldContent = generateScaffold(
+          cname,
+          functionsByContract[cname] || [],
+          revertsByContract[cname] || []
+        );
+
+        const outPath = path.join(outDir, `${sanitizeName(cname)}.scaffold.ts`);
+        fs.writeFileSync(outPath, scaffoldContent, "utf8");
+        totalScaffolds++;
+        generated.add(cname);
+
+        console.log(`✔ Scaffold generato: ${outPath}`);
+      }
     }
   }
 
-  scanDir(artifactsRoot);
-  console.log(`\n📁 Created ${count} scaffolds. Skipped ${skipped} artifacts (interfaces/abstract/bytecode '0x' or missing ABI).`);
-  console.log(`Artifact root: ${path.resolve(artifactsRoot)}  |  Output base: ${path.resolve(outDirBase)}`);
+  // --- Process any .sol files that live in `contracts/` (flattened sources)
+  if (fs.existsSync(CONTRACTS_DIR)) {
+    const outDirOther = path.join(OUTPUT_DIR, "other");
+    fs.mkdirSync(outDirOther, { recursive: true });
+
+    function collectSolFiles(dir: string): string[] {
+      const acc: string[] = [];
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) acc.push(...collectSolFiles(p));
+        else if (e.isFile() && p.endsWith('.sol')) acc.push(p);
+      }
+      return acc;
+    }
+
+    const contractFiles = collectSolFiles(CONTRACTS_DIR);
+    for (const filePath of contractFiles) {
+      // skip files that are inside the dataset folders (already processed)
+      if (filePath.includes(path.join(DATASET_DIR, path.sep))) continue;
+
+      const source = fs.readFileSync(filePath, 'utf8');
+      const solcResult = analyzeContractSolc(source);
+
+      let contractNames: string[] = [];
+      let functionsByContract: Record<string, string[]> = {};
+      let revertsByContract: Record<string, Array<{ func: string; msg: string }>> = {};
+
+      if (solcResult) {
+        solcSuccess++;
+        contractNames = solcResult.contracts;
+        for (const cname of contractNames) {
+          const abi = solcResult.abi[cname] || [];
+          functionsByContract[cname] = abi.filter(x => x.type === 'function').map((f: any) => f.name);
+          revertsByContract[cname] = extractRevertsRegex(source);
+        }
+      } else {
+        solcFail++;
+        contractNames = extractContractsRegex(source);
+        for (const cname of contractNames) {
+          functionsByContract[cname] = extractFunctionsRegex(source);
+          revertsByContract[cname] = extractRevertsRegex(source);
+        }
+      }
+
+      for (const cname of contractNames) {
+        totalContracts++;
+        if (LIMIT > 0 && totalContracts > LIMIT) break;
+        if (generated.has(cname) && !FORCE) continue;
+
+        const scaffoldContent = generateScaffold(
+          cname,
+          functionsByContract[cname] || [],
+          revertsByContract[cname] || []
+        );
+
+        const outPath = path.join(outDirOther, `${sanitizeName(cname)}.scaffold.ts`);
+        fs.writeFileSync(outPath, scaffoldContent, 'utf8');
+        totalScaffolds++;
+        generated.add(cname);
+        console.log(`✔ Scaffold generato (contracts/): ${outPath}`);
+      }
+    }
+  }
+
+  console.log(`
+────────── SUMMARY ──────────
+Contratti analizzati: ${totalContracts}
+Scaffolds generati: ${totalScaffolds}
+Compilazioni solc OK: ${solcSuccess}
+Compilazioni solc FALLITE (fallback regex): ${solcFail}
+Output: ${OUTPUT_DIR}/<size>/
+  `);
 }
 
 main();

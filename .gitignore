@@ -1,12 +1,41 @@
+
+# Node/npm
 node_modules/
-cache/
-coverage/
+
+# Hardhat / build artifacts
 artifacts/
-test/ai/
-sumo-output/
-*.raw.md
+cache/
+typechain-types/
+
+# Test / temp outputs
+test/temp*
+test/**/*.temp*
+oldstuff/
+
+# LLM and prompt outputs (large generated files)
+prompts_out/
+prompts_out-old/
+prompts_out_old2/
+llm-out/
+First-Gen/
+llm-out-old/
+dataset/
+scaffolds/
+prompts_out_scaffold/
+Second_Gen/
+sumo_lab/
+sumo/
+# Misc
 .DS_Store
-TODO
+.vscode/
+.env
+*.log
+*.tmp
+
+# Sumologic / other tool outputs
+sumo-output/
+
+# 
 
 
 
